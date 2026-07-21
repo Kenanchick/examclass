@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  STUDENT
+  TEACHER
+  ADMIN
+}
+
+enum ClassroomMemberRole {
+  STUDENT
+  TEACHER
+}
+
+enum ClassroomStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum TopicStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ExamPart {
+  FIRST
+  SECOND
+}
+
+enum TaskStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model User {
+    id          String   @id @default(cuid())
+  email       String   @unique
+  passwordHash String?
+  firstName   String
+  lastName    String
+  avatarUrl    String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  role Role @default(STUDENT)
+
+  ownedClassrooms      Classroom[]       @relation("ClassroomOwner")
+  classroomMemberships ClassroomMember[]
+}
+
+model Subject {
+  id String @id @default(cuid())
+  code String @unique
+  name String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  classrooms Classroom[]
+  topics     Topic[]
+}
+
+model Classroom {
+  id          String          @id @default(cuid())
+  title       String
+  description String?
+  inviteCode  String          @unique @default(cuid())
+  status      ClassroomStatus @default(ACTIVE)
+  ownerId     String
+  subjectId   String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  owner   User    @relation("ClassroomOwner", fields: [ownerId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  members ClassroomMember[]
+
+  @@index([ownerId])
+  @@index([subjectId])
+}
+
+model ClassroomMember {
+  classroomId String
+  userId      String
+  role        ClassroomMemberRole @default(STUDENT)
+  joinedAt    DateTime            @default(now())
+
+  classroom Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([classroomId, userId])
+  @@index([userId])
+}
+
+model Topic {
+  id          String      @id @default(cuid())
+  subjectId   String
+  parentId    String?
+  slug        String
+  name        String
+  description String?
+  sortOrder   Int         @default(0)
+  status      TopicStatus @default(DRAFT)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  subject  Subject @relation(fields: [subjectId], references: [id])
+  parent   Topic?  @relation("TopicHierarchy", fields: [parentId], references: [id])
+  children Topic[] @relation("TopicHierarchy")
+
+  prerequisiteLinks TopicPrerequisite[] @relation("DependentTopic")
+  unlocksTopics     TopicPrerequisite[] @relation("PrerequisiteTopic")
+
+  @@unique([subjectId, slug])
+  @@index([subjectId, parentId])
+}
+
+model TopicPrerequisite {
+  topicId        String
+  prerequisiteId String
+  minimumMastery Int      @default(70)
+  createdAt      DateTime @default(now())
+
+  topic        Topic @relation("DependentTopic", fields: [topicId], references: [id], onDelete: Cascade)
+  prerequisite Topic @relation("PrerequisiteTopic", fields: [prerequisiteId], references: [id], onDelete: Cascade)
+
+  @@id([topicId, prerequisiteId])
+  @@index([prerequisiteId])
+}

@@ -1,0 +1,31 @@
+.page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 24px;
+}
+
+.content {
+  max-width: 640px;
+}
+
+.content h1 {
+  margin: 8px 0 16px;
+  font-size: clamp(32px, 6vw, 64px);
+  line-height: 1;
+}
+
+.content p {
+  margin: 0;
+  color: #52525b;
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.content .eyebrow {
+  color: #2563eb;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
