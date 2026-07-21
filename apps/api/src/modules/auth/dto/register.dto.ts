@@ -1,11 +1,6 @@
-import { Transform, type TransformFnParams } from 'class-transformer';
+import { Transform } from 'class-transformer';
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
-
-const normalizeText = ({ value }: TransformFnParams): string | undefined =>
-  typeof value === 'string' ? value.trim() : undefined;
-
-const normalizeEmail = ({ value }: TransformFnParams): string | undefined =>
-  typeof value === 'string' ? value.trim().toLowerCase() : undefined;
+import { normalizeEmail, normalizeText } from './auth-transformers';
 
 export class RegisterDto {
   @Transform(normalizeEmail)
