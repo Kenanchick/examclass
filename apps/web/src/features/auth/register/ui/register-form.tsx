@@ -8,11 +8,11 @@ import {
 
 import axios from "axios";
 import { useState } from "react";
-import { register as registerUser } from "@/shared/api/auth";
-
-type ApiErrorResponse = {
-  message?: string | string[];
-};
+import {
+  type ApiErrorResponse,
+  register as registerUser,
+} from "@/shared/api/auth";
+import Link from "next/link";
 
 export function RegisterForm() {
   const {
@@ -155,7 +155,9 @@ export function RegisterForm() {
 
       <p className="pt-1 text-center text-sm text-muted">
         Уже есть аккаунт?{" "}
-        <span className="font-semibold text-brand">Войти</span>
+        <Link href="/login" className="font-semibold text-brand">
+          Войти
+        </Link>
       </p>
     </form>
   );
