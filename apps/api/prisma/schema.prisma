@@ -47,24 +47,23 @@ enum TaskStatus {
 }
 
 model User {
-    id          String   @id @default(cuid())
-  email       String   @unique
+  id           String   @id @default(cuid())
+  email        String   @unique
   passwordHash String?
-  firstName   String
-  lastName    String
+  name         String
   avatarUrl    String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  role Role @default(STUDENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  role         Role     @default(STUDENT)
 
   ownedClassrooms      Classroom[]       @relation("ClassroomOwner")
   classroomMemberships ClassroomMember[]
 }
 
 model Subject {
-  id String @id @default(cuid())
-  code String @unique
-  name String
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
   description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())

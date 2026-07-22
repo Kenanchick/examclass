@@ -44,8 +44,7 @@ export class AuthService {
       const user = await this.usersService.create({
         email: dto.email,
         passwordHash,
-        firstName: dto.firstName,
-        lastName: dto.lastName,
+        name: dto.name,
         role: Role.STUDENT,
       });
 
@@ -107,8 +106,7 @@ export class AuthService {
     return {
       id: user.id,
       email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      name: user.name,
       avatarUrl: user.avatarUrl,
       role: user.role,
       createdAt: user.createdAt,

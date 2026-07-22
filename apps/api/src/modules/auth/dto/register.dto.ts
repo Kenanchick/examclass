@@ -1,5 +1,11 @@
 import { Transform } from 'class-transformer';
-import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  MaxLength,
+  MinLength,
+  Matches,
+} from 'class-validator';
 import { normalizeEmail, normalizeText } from './auth-transformers';
 
 export class RegisterDto {
@@ -11,17 +17,14 @@ export class RegisterDto {
   @IsString()
   @MinLength(8)
   @MaxLength(128)
+  @Matches(/[A-Z]/)
+  @Matches(/[0-9]/)
   password!: string;
 
   @Transform(normalizeText)
   @IsString()
-  @MinLength(1)
-  @MaxLength(64)
-  firstName!: string;
-
-  @Transform(normalizeText)
-  @IsString()
-  @MinLength(1)
-  @MaxLength(64)
-  lastName!: string;
+  @MinLength(3)
+  @MaxLength(20)
+  @Matches(/^[a-zA-Z0-9а-яА-ЯёЁ]+$/)
+  name!: string;
 }
