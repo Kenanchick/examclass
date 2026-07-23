@@ -310,7 +310,7 @@ $$2 + 2 = 4 \\text{ часа}$$
   {
     publicId: 'Q13P8D6',
     topicSlug: 'ege-13-trigonometric',
-    statement: `Решите уравнение: $\\sin x = \\frac{\\sqrt{3}}{2}$. В ответе укажите наименьший положительный корень в градусах.`,
+    statement: `Решите уравнение: $\\sin x = \\dfrac{\\sqrt{3}}{2}$. В ответе укажите наименьший положительный корень в градусах.`,
     correctAnswer: '60',
     referenceSolution: `**Решение**
 
