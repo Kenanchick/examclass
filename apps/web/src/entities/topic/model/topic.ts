@@ -10,12 +10,15 @@ export type TopicTask = {
 };
 
 export type TopicWithChildren = Topic & {
-  children: Array<Topic & { tasks: TopicTask[] }>;
+  taskCount: number;
+  tasks: TopicTask[];
+  children: Array<Topic & { taskCount: number; tasks: TopicTask[] }>;
 };
 
 export type SubjectTopics = {
   id: string;
   code: string;
   name: string;
+  totalTaskCount: number;
   topics: TopicWithChildren[];
 };

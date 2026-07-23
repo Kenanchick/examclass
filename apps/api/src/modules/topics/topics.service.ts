@@ -28,6 +28,27 @@ export class TopicsService {
             slug: true,
             name: true,
             sortOrder: true,
+            _count: {
+              select: {
+                tasks: {
+                  where: {
+                    status: TaskStatus.PUBLISHED,
+                  },
+                },
+              },
+            },
+            tasks: {
+              where: {
+                status: TaskStatus.PUBLISHED,
+              },
+              orderBy: {
+                createdAt: 'asc',
+              },
+              take: 1,
+              select: {
+                publicId: true,
+              },
+            },
             children: {
               where: {
                 status: TopicStatus.PUBLISHED,
@@ -40,6 +61,15 @@ export class TopicsService {
                 slug: true,
                 name: true,
                 sortOrder: true,
+                _count: {
+                  select: {
+                    tasks: {
+                      where: {
+                        status: TaskStatus.PUBLISHED,
+                      },
+                    },
+                  },
+                },
                 tasks: {
                   where: {
                     status: TaskStatus.PUBLISHED,
@@ -47,6 +77,7 @@ export class TopicsService {
                   orderBy: {
                     createdAt: 'asc',
                   },
+                  take: 1,
                   select: {
                     publicId: true,
                   },
@@ -62,6 +93,32 @@ export class TopicsService {
       throw new NotFoundException('Предмет не найден');
     }
 
-    return subject;
+    const { topics: rawTopics, ...subjectData } = subject;
+    const topics = rawTopics.map(({ _count, children, ...topic }) => {
+      const normalizedChildren = children.map(
+        ({ _count: childCount, ...child }) => ({
+          ...child,
+          taskCount: childCount.tasks,
+        }),
+      );
+      const taskCount =
+        _count.tasks +
+        normalizedChildren.reduce((total, child) => total + child.taskCount, 0);
+
+      return {
+        ...topic,
+        taskCount,
+        children: normalizedChildren,
+      };
+    });
+
+    return {
+      ...subjectData,
+      totalTaskCount: topics.reduce(
+        (total, topic) => total + topic.taskCount,
+        0,
+      ),
+      topics,
+    };
   }
 }

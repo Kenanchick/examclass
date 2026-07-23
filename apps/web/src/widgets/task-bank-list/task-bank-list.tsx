@@ -13,6 +13,21 @@ type SubjectComingSoonProps = {
   subjectName: string;
 };
 
+function formatTaskCount(count: number) {
+  const lastTwoDigits = count % 100;
+  const lastDigit = count % 10;
+  const word =
+    lastTwoDigits >= 11 && lastTwoDigits <= 14
+      ? "задач"
+      : lastDigit === 1
+        ? "задача"
+        : lastDigit >= 2 && lastDigit <= 4
+          ? "задачи"
+          : "задач";
+
+  return `${count} ${word}`;
+}
+
 function SubjectComingSoon({ subjectName }: SubjectComingSoonProps) {
   return (
     <div className="flex flex-col items-start gap-5 rounded-2xl border-2 border-dashed border-[#c6ddf5] bg-[#eef6ff] p-6 sm:flex-row sm:items-center sm:p-8">
@@ -77,7 +92,12 @@ export function TaskBankList() {
 
   return (
     <section className="relative overflow-hidden p-6 sm:p-8 lg:p-10">
-      <div className="absolute right-0 top-0 hidden h-56 w-56 items-center justify-center lg:flex">
+      <div className="absolute right-0 top-0 hidden h-56 items-center gap-4 lg:flex">
+        {subjectData && (
+          <p className="text-base font-medium text-muted">
+            {formatTaskCount(subjectData.totalTaskCount)}
+          </p>
+        )}
         <Image
           alt={
             subjectData?.topics.length === 0
@@ -100,9 +120,17 @@ export function TaskBankList() {
           Открытый банк задач
         </h1>
 
-        <p className="mt-2 text-base text-muted sm:text-lg">
-          {selectedSubject?.name ?? "Профильная математика"} · ЕГЭ
-        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-3">
+          <p className="text-base text-muted sm:text-lg">
+            {selectedSubject?.name ?? "Профильная математика"} · ЕГЭ
+          </p>
+
+          {subjectData && (
+            <span className="text-base font-medium text-muted lg:hidden">
+              {formatTaskCount(subjectData.totalTaskCount)}
+            </span>
+          )}
+        </div>
 
         <div className="mt-7 flex flex-wrap gap-3">
           {subjects.map((subject) => {
@@ -152,6 +180,7 @@ export function TaskBankList() {
             {subjectData.topics.map((topic) => {
               const hasSubtopics = topic.children.length > 0;
               const isOpen = openedTopicId === topic.id;
+              const firstTopicTask = topic.tasks[0];
 
               return (
                 <div
@@ -173,6 +202,8 @@ export function TaskBankList() {
                     onClick={() => {
                       if (hasSubtopics) {
                         setOpenedTopicId(isOpen ? null : topic.id);
+                      } else if (firstTopicTask) {
+                        router.push(`/tasks/${firstTopicTask.publicId}`);
                       }
                     }}
                     type="button"
@@ -185,15 +216,19 @@ export function TaskBankList() {
                       {topic.name}
                     </span>
 
+                    <span className="shrink-0 rounded-full bg-panel px-2.5 py-1 text-xs font-bold text-muted transition group-hover:bg-white">
+                      {formatTaskCount(topic.taskCount)}
+                    </span>
+
                     {hasSubtopics ? (
                       <ChevronDown
                         className={`size-5 text-brand transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
                           isOpen ? "rotate-180" : ""
                         }`}
                       />
-                    ) : (
+                    ) : firstTopicTask ? (
                       <ArrowRight className="size-5 text-brand transition-transform group-hover:translate-x-1" />
-                    )}
+                    ) : null}
                   </button>
 
                   <div
@@ -205,24 +240,35 @@ export function TaskBankList() {
                   >
                     <div className="min-h-0 overflow-hidden">
                       <div className="mt-2 rounded-xl border border-brand/15 bg-brand/5 p-2">
-                        {topic.children.map((subtopic) => (
-                          <button
-                            className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-white"
-                            key={subtopic.id}
-                            onClick={() => {
-                              const task = subtopic.tasks[0];
+                        {topic.children.map((subtopic) => {
+                          const firstTask = subtopic.tasks[0];
 
-                              if (task) {
-                                router.push(`/tasks/${task.publicId}`);
-                              }
-                            }}
-                            type="button"
-                          >
-                            <span className="size-1.5 rounded-full bg-brand" />
-                            <span className="flex-1">{subtopic.name}</span>
-                            <ArrowRight className="size-4 text-brand" />
-                          </button>
-                        ))}
+                          return (
+                            <button
+                              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+                                firstTask
+                                  ? "cursor-pointer text-ink hover:bg-white"
+                                  : "cursor-default text-muted"
+                              }`}
+                              key={subtopic.id}
+                              onClick={() => {
+                                if (firstTask) {
+                                  router.push(`/tasks/${firstTask.publicId}`);
+                                }
+                              }}
+                              type="button"
+                            >
+                              <span className="size-1.5 rounded-full bg-brand" />
+                              <span className="flex-1">{subtopic.name}</span>
+                              <span className="shrink-0 rounded-full border border-brand/10 bg-white px-2.5 py-1 text-xs font-bold text-muted">
+                                {formatTaskCount(subtopic.taskCount)}
+                              </span>
+                              {firstTask && (
+                                <ArrowRight className="size-4 text-brand" />
+                              )}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
