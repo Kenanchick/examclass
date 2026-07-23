@@ -8,6 +8,7 @@ import { useFavoritesQuery } from "@/entities/favorite/api/use-favorites-query";
 import { getTaskExamNumber } from "@/entities/task/model/task";
 import { useFavoritesFilter } from "@/features/favorites/filter/model/use-favorites-filter";
 import { FavoritesFilters } from "@/features/favorites/filter/ui/favorites-filters";
+import { MathText } from "@/shared/ui/math-text";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
@@ -136,9 +137,10 @@ export function StudentFavoritesPage() {
                     </span>
                     <Star className="size-5 fill-amber-400 text-amber-400" />
                   </div>
-                  <p className="mt-4 text-[15px] font-semibold leading-6 text-ink">
-                    {task.statement}
-                  </p>
+                  <MathText
+                    className="mt-4 text-[15px] font-semibold leading-6 text-ink [&_p]:mb-0"
+                    content={task.statement}
+                  />
                   <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand">
                     Открыть задачу
                     <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
