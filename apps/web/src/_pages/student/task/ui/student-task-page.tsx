@@ -388,11 +388,6 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
                           Разбор решения
                         </p>
                         <MathText className="mt-3 max-w-2xl text-base leading-7 text-ink" content={task.referenceSolution ?? "Решение скоро появится."} />
-                        {task.correctAnswer && (
-                          <p className="mt-4 text-sm font-bold text-success">
-                            Ответ: {task.correctAnswer}
-                          </p>
-                        )}
                       </div>
                       <Image
                         alt="Пингвин подсказывает решение"
