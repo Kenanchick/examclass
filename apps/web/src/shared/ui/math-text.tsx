@@ -83,8 +83,28 @@ export function MathText({ content, className = "" }: MathTextProps) {
               />
             );
           },
-          p: ({ children }) => (
-            <p className="mb-4 leading-7">{children}</p>
+          p: ({ children }) => {
+            const isAnalogs = rawText(children).startsWith("Аналоги:");
+
+            return (
+              <p
+                className={
+                  isAnalogs
+                    ? "mb-4 text-[13px] leading-5 text-muted"
+                    : "mb-4 leading-7"
+                }
+              >
+                {children}
+              </p>
+            );
+          },
+          a: ({ href, children }) => (
+            <a
+              className="font-semibold text-brand no-underline transition hover:underline"
+              href={href}
+            >
+              {children}
+            </a>
           ),
           strong: ({ children }) => (
             <strong className="font-bold text-ink">{children}</strong>
