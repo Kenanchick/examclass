@@ -1,0 +1,6 @@
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Прямоугольная трапеция с вписанной окружностью -->
+  <polygon points="60,60 187,60 367,240 60,240" fill="none" stroke="#1f2937" stroke-width="2"/>
+  <circle cx="150" cy="150" r="90" fill="none" stroke="#1f2937" stroke-width="2"/>
+  <circle cx="150" cy="150" r="3" fill="#1f2937"/>
+</svg>
