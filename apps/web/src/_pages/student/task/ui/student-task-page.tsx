@@ -26,6 +26,51 @@ type StudentTaskPageProps = {
   publicId: string;
 };
 
+type StudyHintProps = {
+  imageSrc: string;
+  imageAlt: string;
+  title: string;
+  children: string;
+};
+
+function StudyHint({
+  imageSrc,
+  imageAlt,
+  title,
+  children,
+}: StudyHintProps) {
+  return (
+    <div className="relative grid grid-cols-[160px_minmax(0,1fr)] items-center gap-8">
+      <Image
+        alt={imageAlt}
+        className="relative z-10 h-auto w-40 shrink-0"
+        height={1448}
+        src={imageSrc}
+        width={1086}
+      />
+
+      <svg
+        aria-hidden="true"
+        className="pointer-events-none absolute left-[132px] top-1/2 h-12 w-[68px] -translate-y-1/2 text-ink/75"
+        fill="none"
+        viewBox="0 0 68 48"
+      >
+        <path
+          d="M2 31C13 8 25 8 32 27C39 46 51 45 66 19"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeWidth="2"
+        />
+      </svg>
+
+      <div className="relative z-10 min-w-0">
+        <p className="text-base font-bold leading-6 text-ink">{title}</p>
+        <p className="mt-2 text-sm leading-6 text-muted">{children}</p>
+      </div>
+    </div>
+  );
+}
+
 function normalizeAnswer(value: string) {
   return value
     .trim()
@@ -201,7 +246,7 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
             />
           </section>
 
-          <div className="mt-6 grid gap-6 2xl:grid-cols-[minmax(0,1fr)_300px]">
+          <div className="mt-6 grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
             <article className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_16px_35px_rgba(15,43,76,0.06)]">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line px-7 py-6 sm:px-9">
                 <div className="flex items-center gap-3">
@@ -351,40 +396,22 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
               </div>
             </article>
 
-            <aside className="hidden 2xl:flex 2xl:flex-col 2xl:gap-10 2xl:py-4">
-              <div className="flex items-center gap-3">
-                <Image
-                  alt="Ёжик изучает геометрию"
-                  className="h-auto w-28 shrink-0"
-                  height={1448}
-                  src="/hedgehog.png"
-                  width={1086}
-                />
-                <div className="relative min-w-0 pt-1 before:absolute before:-left-7 before:top-1/2 before:h-px before:w-8 before:-translate-y-1/2 before:bg-gradient-to-r before:from-brand/20 before:to-brand/80 after:absolute after:-left-8 after:top-1/2 after:size-2 after:-translate-y-1/2 after:rounded-full after:bg-brand/80 after:ring-4 after:ring-brand/10">
-                  <p className="text-sm font-bold text-ink">
-                    Геометрический настрой
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    Делайте небольшой чертёж даже в простых задачах.
-                  </p>
-                </div>
-              </div>
+            <aside className="hidden 2xl:flex 2xl:flex-col 2xl:gap-6 2xl:py-2">
+              <StudyHint
+                imageAlt="Ёжик изучает геометрию"
+                imageSrc="/hedgehog.png"
+                title="Геометрический настрой"
+              >
+                Делайте небольшой чертёж даже в простых задачах.
+              </StudyHint>
 
-              <div className="flex items-center gap-3">
-                <Image
-                  alt="Лисёнок проверяет ответ"
-                  className="h-auto w-28 shrink-0"
-                  height={1448}
-                  src="/fox.png"
-                  width={1086}
-                />
-                <div className="relative min-w-0 pt-1 before:absolute before:-left-7 before:top-1/2 before:h-px before:w-8 before:-translate-y-1/2 before:bg-gradient-to-r before:from-brand/20 before:to-brand/80 after:absolute after:-left-8 after:top-1/2 after:size-2 after:-translate-y-1/2 after:rounded-full after:bg-brand/80 after:ring-4 after:ring-brand/10">
-                  <p className="text-sm font-bold text-ink">Проверка</p>
-                  <p className="mt-2 text-sm leading-6 text-muted">
-                    Сверяйте единицы измерения и формат ответа.
-                  </p>
-                </div>
-              </div>
+              <StudyHint
+                imageAlt="Лисёнок проверяет ответ"
+                imageSrc="/fox.png"
+                title="Проверка"
+              >
+                Сверяйте единицы измерения и формат ответа.
+              </StudyHint>
             </aside>
           </div>
         </div>
