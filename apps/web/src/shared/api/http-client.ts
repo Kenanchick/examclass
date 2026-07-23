@@ -10,3 +10,15 @@ export const apiClient = axios.create({
   baseURL,
   timeout: 10_000,
 });
+
+apiClient.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const accessToken = window.localStorage.getItem("accessToken");
+
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+  }
+
+  return config;
+});

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { TaskStatus } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
+import { taskDetailsSelect } from './task-details.select';
 
 @Injectable()
 export class TasksService {
@@ -12,35 +13,7 @@ export class TasksService {
         publicId: publicId.toUpperCase(),
         status: TaskStatus.PUBLISHED,
       },
-      select: {
-        publicId: true,
-        examPart: true,
-        statement: true,
-        correctAnswer: true,
-        referenceSolution: true,
-        difficulty: true,
-        source: true,
-        topic: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            sortOrder: true,
-            parent: {
-              select: {
-                name: true,
-                sortOrder: true,
-              },
-            },
-            subject: {
-              select: {
-                code: true,
-                name: true,
-              },
-            },
-          },
-        },
-      },
+      select: taskDetailsSelect,
     });
 
     if (!task) {

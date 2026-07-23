@@ -7,17 +7,19 @@ import {
   House,
   MessagesSquare,
   MonitorUp,
+  Star,
   Target,
 } from "lucide-react";
 
 export type StudentNavigationItem = {
   label: string;
   icon: LucideIcon;
-  active?: boolean;
+  href?: string;
 };
 
 export const studentNavigation: StudentNavigationItem[] = [
-  { label: "Главная", icon: House, active: true },
+  { label: "Главная", icon: House, href: "/dashboard" },
+  { label: "Избранное", icon: Star, href: "/favorites" },
   { label: "Домашние", icon: ClipboardCheck },
   { label: "Варианты", icon: FileText },
   { label: "Сообщения", icon: MessagesSquare },

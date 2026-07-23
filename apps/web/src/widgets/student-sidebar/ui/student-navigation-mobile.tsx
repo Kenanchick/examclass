@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { studentNavigation } from "@/widgets/student-sidebar/model/navigation";
 
@@ -9,6 +11,7 @@ type StudentMobileMenuProps = {
 };
 
 export function StudentMobileMenu({ onClose }: StudentMobileMenuProps) {
+  const pathname = usePathname();
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -49,14 +52,24 @@ export function StudentMobileMenu({ onClose }: StudentMobileMenuProps) {
         <nav className="space-y-2 p-4">
           {studentNavigation.map((item) => {
             const Icon = item.icon;
+            const isActive = item.href === pathname;
+            const className = `flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-3.5 text-left text-[15px] font-medium transition ${
+              isActive ? "bg-brand/10 text-brand" : "text-ink hover:bg-panel"
+            }`;
 
-            return (
+            return item.href ? (
+              <Link
+                className={className}
+                href={item.href}
+                key={item.label}
+                onClick={onClose}
+              >
+                <Icon className="size-5" strokeWidth={1.8} />
+                {item.label}
+              </Link>
+            ) : (
               <button
-                className={`flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-3.5 text-left text-[15px] font-medium transition ${
-                  item.active
-                    ? "bg-brand/10 text-brand"
-                    : "text-ink hover:bg-panel"
-                }`}
+                className={className}
                 key={item.label}
                 onClick={onClose}
                 type="button"

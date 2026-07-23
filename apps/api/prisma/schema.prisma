@@ -58,6 +58,7 @@ model User {
 
   ownedClassrooms      Classroom[]       @relation("ClassroomOwner")
   classroomMemberships ClassroomMember[]
+  favoriteTasks        TaskFavorite[]
 }
 
 model Subject {
@@ -145,10 +146,23 @@ model Task {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  topic Topic @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  topic     Topic          @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  favorites TaskFavorite[]
 
   @@index([topicId, status])
   @@index([examPart, status])
+}
+
+model TaskFavorite {
+  userId    String
+  taskId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@id([userId, taskId])
+  @@index([userId, createdAt])
 }
 
 model TopicPrerequisite {
