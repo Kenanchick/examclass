@@ -882,6 +882,269 @@ const incircleTangents: GeometryTask = {
   ].join('\n\n'),
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · ДОКАЗАТЕЛЬСТВО · ДИАГОНАЛЬ КУБА ⊥ СЕЧЕНИЮ ACB₁
+// ─────────────────────────────────────────────────────────────────────────────
+
+const cubeDiagFigure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    D: [0, 0],
+    A: [3, 0],
+    B: [4.5, 1.35],
+    C: [1.5, 1.35],
+    D1: [0, 3],
+    A1: [3, 3],
+    B1: [4.5, 4.35],
+    C1: [1.5, 4.35],
+  },
+  fills: [{ points: ['A', 'C', 'B1'] }],
+  edges: [
+    { from: 'D', to: 'A' },
+    { from: 'A', to: 'B' },
+    { from: 'D1', to: 'A1' },
+    { from: 'A1', to: 'B1' },
+    { from: 'B1', to: 'C1' },
+    { from: 'C1', to: 'D1' },
+    { from: 'D', to: 'D1' },
+    { from: 'A', to: 'A1' },
+    { from: 'B', to: 'B1' },
+    { from: 'B', to: 'C', style: 'dashed' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'C', to: 'C1', style: 'dashed' },
+    { from: 'A', to: 'C', style: 'section' },
+    { from: 'C', to: 'B1', style: 'section' },
+    { from: 'A', to: 'B1', style: 'section' },
+    { from: 'B', to: 'D1', style: 'dashed' },
+  ],
+  labels: {
+    D: { dx: -6, dy: 16, anchor: 'end' },
+    A: { dx: 4, dy: 16, anchor: 'start' },
+    B: { dx: 12, dy: 6, anchor: 'start' },
+    C: { dx: 10, dy: 11, anchor: 'start' },
+    D1: { dx: -12, dy: 2, anchor: 'end' },
+    A1: { dx: -12, dy: 4, anchor: 'end' },
+    B1: { dx: 8, dy: -6, anchor: 'start' },
+    C1: { dx: -8, dy: -8, anchor: 'end' },
+  },
+};
+
+const cubeDiagonal: GeometryTask = {
+  publicId: 'G14CUB2',
+  topicSlug: 'ege-14-proofs',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 2√3',
+  statement: [
+    `Дан куб $ABCDA_1B_1C_1D_1$ с ребром $6$.`,
+    `**а)** Докажите, что прямая $BD_1$ перпендикулярна плоскости $ACB_1$.`,
+    `**б)** Найдите расстояние от точки $B$ до плоскости $ACB_1$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(cubeDiagFigure),
+    `Введём систему координат с началом в точке $D$: оси направим вдоль рёбер $DA$, $DC$ и $DD_1$. Тогда`,
+    `$$A(6;\\,0;\\,0),\\ C(0;\\,6;\\,0),\\ B(6;\\,6;\\,0),\\ B_1(6;\\,6;\\,6),\\ D_1(0;\\,0;\\,6).$$`,
+    `Найдём нормаль к плоскости $ACB_1$ как векторное произведение $\\vec{AC}$ и $\\vec{AB_1}$:`,
+    `$$\\vec{AC} = (-6;\\,6;\\,0), \\quad \\vec{AB_1} = (0;\\,6;\\,6), \\quad \\vec{n} = \\vec{AC}\\times\\vec{AB_1} = (36;\\,36;\\,-36).$$`,
+    `Вектор направляющей прямой $BD_1$ равен $\\vec{BD_1} = D_1 - B = (-6;\\,-6;\\,6)$. Поскольку`,
+    `$$\\vec{BD_1} = -\\tfrac{1}{6}\\,\\vec{n},$$`,
+    `векторы коллинеарны, значит $BD_1 \\perp (ACB_1)$. **Что и требовалось доказать.**`,
+    `## Пункт б). Расстояние от точки $B$ до плоскости`,
+    `Уравнение плоскости $ACB_1$ с нормалью $(1;\\,1;\\,-1)$, проходящей через $A(6;0;0)$: $x + y - z - 6 = 0$. Тогда`,
+    `$$\\rho(B,\\,ACB_1) = \\frac{|6 + 6 - 0 - 6|}{\\sqrt{1^2 + 1^2 + 1^2}} = \\frac{6}{\\sqrt{3}} = 2\\sqrt{3}.$$`,
+    `**Ответ:** б) $2\\sqrt{3}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · УГЛЫ И РАССТОЯНИЯ · ДВУГРАННЫЙ УГОЛ ПРИ ОСНОВАНИИ ПИРАМИДЫ
+// ─────────────────────────────────────────────────────────────────────────────
+
+const pyramidDihedralFigure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    S: [0, 2.4],
+    A: [2.5, -0.1],
+    B: [0.5, 1.1],
+    C: [-2.5, 0.1],
+    D: [-0.5, -1.1],
+    O: [0, 0],
+    K: [-1.5, -0.5],
+  },
+  fills: [{ points: ['S', 'C', 'D'] }],
+  edges: [
+    { from: 'D', to: 'A' },
+    { from: 'C', to: 'D' },
+    { from: 'A', to: 'B', style: 'dashed' },
+    { from: 'B', to: 'C', style: 'dashed' },
+    { from: 'S', to: 'A' },
+    { from: 'S', to: 'C' },
+    { from: 'S', to: 'D' },
+    { from: 'S', to: 'B', style: 'dashed' },
+    { from: 'S', to: 'K', style: 'section' },
+    { from: 'O', to: 'K', style: 'dashed' },
+    { from: 'S', to: 'O', style: 'dashed' },
+  ],
+  angles: [{ at: 'K', from: 'S', to: 'O', label: '45°' }],
+  labels: {
+    S: { dx: 0, dy: -12, anchor: 'middle' },
+    A: { dx: 10, dy: 8, anchor: 'start' },
+    B: { dx: 8, dy: -2, anchor: 'start' },
+    C: { dx: -10, dy: 2, anchor: 'end' },
+    D: { dx: 4, dy: 16, anchor: 'start' },
+    O: { dx: 9, dy: 8, anchor: 'start' },
+    K: { dx: -9, dy: 10, anchor: 'end' },
+  },
+};
+
+const pyramidDihedral: GeometryTask = {
+  publicId: 'G14ANG2',
+  topicSlug: 'ege-14-angles-distances',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 45°',
+  statement: [
+    `В правильной четырёхугольной пирамиде $SABCD$ сторона основания $AB = 2$, а высота $SO = 1$ ($O$ — центр основания). Точка $K$ — середина ребра $CD$.`,
+    `**а)** Докажите, что $\\angle SKO$ — линейный угол двугранного угла между боковой гранью $SCD$ и плоскостью основания.`,
+    `**б)** Найдите двугранный угол между гранью $SCD$ и плоскостью основания.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(pyramidDihedralFigure),
+    `Ребро двугранного угла — прямая $CD$. Точка $K$ — середина $CD$.`,
+    `Треугольник $SCD$ равнобедренный ($SC = SD$), поэтому медиана $SK$ является высотой: $SK \\perp CD$.`,
+    `Отрезок $OK$ соединяет центр основания с серединой стороны $CD$, поэтому $OK \\perp CD$.`,
+    `Обе прямые $SK$ и $OK$ перпендикулярны ребру $CD$ в одной точке $K$, значит $\\angle SKO$ — линейный угол двугранного угла между гранью $SCD$ и основанием. **Что и требовалось доказать.**`,
+    `## Пункт б). Величина угла`,
+    `$OK = \\tfrac{1}{2}AB = 1$. В прямоугольном треугольнике $SOK$ ($\\angle SOK = 90°$, так как $SO \\perp$ основанию)`,
+    `$$\\operatorname{tg}\\angle SKO = \\frac{SO}{OK} = \\frac{1}{1} = 1 \\;\\Rightarrow\\; \\angle SKO = 45°.$$`,
+    `**Ответ:** б) $45°$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · МЕДИАНА К ГИПОТЕНУЗЕ
+// ─────────────────────────────────────────────────────────────────────────────
+
+const medianHypotenuseFigure = {
+  maxWidth: 400,
+  maxHeight: 360,
+  points: {
+    C: [0, 0],
+    A: [0, 6],
+    B: [8, 0],
+    M: [4, 3],
+  },
+  circles: [{ cx: 4, cy: 3, r: 5 }],
+  edges: [
+    { from: 'C', to: 'A' },
+    { from: 'C', to: 'B' },
+    { from: 'A', to: 'B' },
+    { from: 'C', to: 'M', style: 'section' },
+  ],
+  rightAngles: [{ at: 'C', from: 'A', to: 'B' }],
+  labels: {
+    C: { dx: -8, dy: 14, anchor: 'end' },
+    A: { dx: -8, dy: -4, anchor: 'end' },
+    B: { dx: 10, dy: 12, anchor: 'start' },
+    M: { dx: 10, dy: -4, anchor: 'start' },
+  },
+};
+
+const medianHypotenuse: GeometryTask = {
+  publicId: 'G17MED2',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 5',
+  statement: [
+    `В прямоугольном треугольнике $ABC$ с прямым углом $C$ проведена медиана $CM$ к гипотенузе $AB$.`,
+    `**а)** Докажите, что $CM = \\dfrac{1}{2}AB$.`,
+    `**б)** Найдите $CM$, если катеты равны $6$ и $8$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(medianHypotenuseFigure),
+    `Опишем окружность около треугольника $ABC$. Вписанный угол $\\angle ACB = 90°$ опирается на сторону $AB$, поэтому $AB$ — диаметр этой окружности, а её центр — середина $AB$, то есть точка $M$.`,
+    `Тогда $MA = MB = MC$ как радиусы окружности, поэтому`,
+    `$$CM = MA = \\frac{1}{2}AB.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Вычисление $CM$`,
+    `По теореме Пифагора гипотенуза равна`,
+    `$$AB = \\sqrt{AC^2 + BC^2} = \\sqrt{6^2 + 8^2} = \\sqrt{100} = 10,$$`,
+    `поэтому $CM = \\tfrac{1}{2}AB = 5$.`,
+    `**Ответ:** б) $5$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · МЕДИАНЫ, ТОЧКА ПЕРЕСЕЧЕНИЯ, ПЛОЩАДЬ
+// ─────────────────────────────────────────────────────────────────────────────
+
+const centroidFigure = {
+  maxWidth: 420,
+  maxHeight: 340,
+  points: {
+    A: [0, 6],
+    B: [-4, 0],
+    C: [4, 0],
+    M: [-2, 3],
+    N: [2, 3],
+    O: [0, 2],
+  },
+  fills: [{ points: ['M', 'O', 'N'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'A' },
+    { from: 'B', to: 'N', style: 'dashed' },
+    { from: 'C', to: 'M', style: 'dashed' },
+    { from: 'M', to: 'N', style: 'section' },
+  ],
+  labels: {
+    A: { dx: 0, dy: -12, anchor: 'middle' },
+    B: { dx: -8, dy: 14, anchor: 'end' },
+    C: { dx: 8, dy: 14, anchor: 'start' },
+    M: { dx: -12, dy: 0, anchor: 'end' },
+    N: { dx: 12, dy: 0, anchor: 'start' },
+    O: { dx: 8, dy: 12, anchor: 'start' },
+  },
+};
+
+const centroidArea: GeometryTask = {
+  publicId: 'G17CEN1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 12',
+  statement: [
+    `В треугольнике $ABC$ точки $M$ и $N$ — середины сторон $AB$ и $AC$ соответственно. Отрезки $BN$ и $CM$ пересекаются в точке $O$.`,
+    `**а)** Докажите, что $BO : ON = 2 : 1$.`,
+    `**б)** Найдите площадь треугольника $ABC$, если площадь треугольника $MON$ равна $1$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(centroidFigure),
+    `Так как $M$ и $N$ — середины сторон $AB$ и $AC$, отрезки $BN$ и $CM$ — медианы треугольника $ABC$. Медианы пересекаются в одной точке (центроиде), которая делит каждую из них в отношении $2 : 1$, считая от вершины. Поэтому`,
+    `$$BO : ON = 2 : 1.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Площадь треугольника $ABC$`,
+    `Обозначим высоту треугольника $ABC$, опущенную из вершины $A$ на $BC$, через $h$, а $BC = a$. Тогда $S_{ABC} = \\tfrac{1}{2}ah$.`,
+    `Средняя линия $MN \\parallel BC$ и $MN = \\tfrac{1}{2}a$; она находится на расстоянии $\\tfrac{1}{2}h$ от вершины $A$. Точка $O$ делит медиану из $A$ в отношении $2 : 1$, поэтому она удалена от $A$ на $\\tfrac{2}{3}h$. Значит, расстояние от $O$ до прямой $MN$ равно $\\tfrac{2}{3}h - \\tfrac{1}{2}h = \\tfrac{1}{6}h$.`,
+    `Площадь треугольника $MON$ с основанием $MN$:`,
+    `$$S_{MON} = \\frac{1}{2}\\cdot MN \\cdot \\frac{h}{6} = \\frac{1}{2}\\cdot \\frac{a}{2}\\cdot \\frac{h}{6} = \\frac{ah}{24} = \\frac{1}{12}S_{ABC}.$$`,
+    `Отсюда $S_{ABC} = 12\\,S_{MON} = 12\\cdot 1 = 12$.`,
+    `**Ответ:** б) $12$.`,
+  ].join('\n\n'),
+};
+
 const geometryTasks: GeometryTask[] = [
   stereometrySection,
   prismSection,
@@ -889,10 +1152,14 @@ const geometryTasks: GeometryTask[] = [
   pyramidVolumeRatio,
   pyramidPerp,
   pyramidDistance,
+  cubeDiagonal,
+  pyramidDihedral,
   planimetrySimilarity,
   planimetryMedian,
   trapezoidMidline,
   incircleTangents,
+  medianHypotenuse,
+  centroidArea,
 ];
 
 async function main() {
