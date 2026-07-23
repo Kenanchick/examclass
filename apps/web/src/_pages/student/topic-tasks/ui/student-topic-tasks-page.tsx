@@ -45,7 +45,7 @@ export function StudentTopicTasksPage({ topicId }: StudentTopicTasksPageProps) {
     return (
       <StudentLayout>
         <main className="min-w-0 p-4 sm:p-7 lg:p-8">
-          <div className="mx-auto max-w-[1320px]">
+          <div className="mx-auto max-w-[1760px]">
             <RequestState variant="loading" />
           </div>
         </main>
@@ -57,7 +57,7 @@ export function StudentTopicTasksPage({ topicId }: StudentTopicTasksPageProps) {
     return (
       <StudentLayout>
         <main className="min-w-0 p-4 sm:p-7 lg:p-8">
-          <div className="mx-auto max-w-[1320px]">
+          <div className="mx-auto max-w-[1760px]">
             <RequestState
               backHref="/dashboard"
               backLabel="К банку задач"
@@ -105,7 +105,7 @@ export function StudentTopicTasksPage({ topicId }: StudentTopicTasksPageProps) {
   return (
     <StudentLayout>
       <main className="min-w-0 p-4 sm:p-7 lg:p-8">
-        <div className="mx-auto max-w-[1320px]">
+        <div className="mx-auto max-w-[1760px]">
           <Link
             className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-muted transition hover:text-brand"
             href="/dashboard"
@@ -114,7 +114,7 @@ export function StudentTopicTasksPage({ topicId }: StudentTopicTasksPageProps) {
             Банк задач
           </Link>
 
-          <div className="mt-5 grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
+          <div className="mt-5 grid gap-8 xl:grid-cols-[460px_minmax(0,1fr)]">
             <div className="hidden xl:block xl:self-start xl:sticky xl:top-8">
               <TaskBankSidebar
                 activeTopicId={topic.id}

@@ -102,22 +102,22 @@ export function TaskCard({
 
   return (
     <article className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_16px_35px_rgba(15,43,76,0.06)]">
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line px-7 py-6 sm:px-9">
-        <div className="flex items-center gap-3">
-          <span className="rounded-xl bg-brand/10 px-3 py-1.5 text-sm font-bold text-brand">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line px-8 py-7 sm:px-11">
+        <div className="flex items-center gap-3.5">
+          <span className="rounded-xl bg-brand/10 px-4 py-2 text-base font-bold text-brand">
             Задача {taskNumber}
           </span>
           <DifficultyDots difficulty={task.difficulty} />
-          <span className="text-sm font-medium text-muted">Сложность</span>
+          <span className="text-[15px] font-medium text-muted">Сложность</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <button
             aria-label={
               isFavorite ? "Убрать из избранного" : "Добавить в избранное"
             }
             aria-pressed={isFavorite}
-            className={`grid size-10 cursor-pointer place-items-center rounded-xl border transition ${
+            className={`grid size-12 cursor-pointer place-items-center rounded-xl border transition ${
               isFavorite
                 ? "border-amber-300 bg-amber-50 text-amber-500"
                 : "border-line bg-white text-muted hover:border-amber-300 hover:text-amber-500"
@@ -126,11 +126,11 @@ export function TaskCard({
             onClick={onToggleFavorite}
             type="button"
           >
-            <Star className={`size-5 ${isFavorite ? "fill-current" : ""}`} />
+            <Star className={`size-5.5 ${isFavorite ? "fill-current" : ""}`} />
           </button>
           <button
             aria-label="Скопировать ID задачи"
-            className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 py-2 text-sm font-bold text-brand transition hover:border-brand/35 hover:bg-panel"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-4 py-2.5 text-[15px] font-bold text-brand transition hover:border-brand/35 hover:bg-panel"
             onClick={handleCopyId}
             type="button"
           >
@@ -144,29 +144,29 @@ export function TaskCard({
         </div>
       </div>
 
-      <div className="px-7 py-8 sm:px-9 sm:py-10">
+      <div className="px-8 py-9 sm:px-11 sm:py-12">
         <MathText
-          className="max-w-4xl text-xl leading-9 text-ink sm:text-[1.35rem]"
+          className="max-w-5xl text-[1.35rem] leading-10 text-ink sm:text-[1.5rem]"
           content={task.statement}
         />
 
         {task.source && (
-          <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-muted">
-            <BookMarked className="size-3.5 shrink-0" />
+          <p className="mt-5 inline-flex items-center gap-1.5 text-sm text-muted">
+            <BookMarked className="size-4 shrink-0" />
             Источник: {task.source}
           </p>
         )}
 
-        <div className="mt-9 rounded-2xl border border-line bg-panel/60 p-4 sm:p-5">
+        <div className="mt-10 rounded-2xl border border-line bg-panel/60 p-5 sm:p-7">
           <label
-            className="block text-base font-bold text-ink"
+            className="block text-lg font-bold text-ink"
             htmlFor={answerFieldId}
           >
             Ваш ответ
           </label>
-          <div className="mt-3 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
             <input
-              className="min-w-0 flex-1 rounded-xl border border-line bg-white px-4 py-3.5 text-[17px] text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/10"
+              className="min-w-0 flex-1 rounded-xl border border-line bg-white px-5 py-4 text-lg text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/10"
               id={answerFieldId}
               onChange={(event) => {
                 setAnswer(event.target.value);
@@ -176,7 +176,7 @@ export function TaskCard({
               value={answer}
             />
             <button
-              className="cursor-pointer rounded-xl bg-brand px-6 py-3.5 text-base font-bold text-white transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="cursor-pointer rounded-xl bg-brand px-7 py-4 text-lg font-bold text-white transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
               disabled={!answer.trim()}
               onClick={handleCheckAnswer}
               type="button"
@@ -201,14 +201,14 @@ export function TaskCard({
 
         <button
           aria-expanded={isSolutionOpen}
-          className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-xl border border-brand/25 bg-brand/5 px-4 py-3.5 text-base font-bold text-brand transition hover:bg-brand/10"
+          className="mt-6 inline-flex cursor-pointer items-center gap-2.5 rounded-xl border border-brand/25 bg-brand/5 px-5 py-4 text-lg font-bold text-brand transition hover:bg-brand/10"
           onClick={() => setIsSolutionOpen((isOpen) => !isOpen)}
           type="button"
         >
-          <Lightbulb className="size-5" />
+          <Lightbulb className="size-5.5" />
           {isSolutionOpen ? "Скрыть решение" : "Показать решение"}
           <ChevronDown
-            className={`size-4 transition-transform duration-300 ${
+            className={`size-5 transition-transform duration-300 ${
               isSolutionOpen ? "rotate-180" : ""
             }`}
           />
@@ -222,14 +222,14 @@ export function TaskCard({
           }`}
         >
           <div className="min-h-0 overflow-hidden">
-            <div className="relative overflow-hidden rounded-2xl border border-[#c6ddf5] bg-[#eef6ff] p-5 pr-5 sm:p-6 sm:pr-40">
+            <div className="relative overflow-hidden rounded-2xl border border-[#c6ddf5] bg-[#eef6ff] p-6 pr-6 sm:p-8 sm:pr-44">
               <div className="relative z-10">
-                <p className="inline-flex items-center gap-2 text-base font-bold text-brand">
-                  <NotebookPen className="size-5" />
+                <p className="inline-flex items-center gap-2 text-lg font-bold text-brand">
+                  <NotebookPen className="size-5.5" />
                   Разбор решения
                 </p>
                 <MathText
-                  className="mt-3 max-w-2xl text-base leading-7 text-ink"
+                  className="mt-3 max-w-3xl text-[17px] leading-8 text-ink"
                   content={task.referenceSolution ?? "Решение скоро появится."}
                 />
               </div>

@@ -11,7 +11,7 @@ export function StudentLayout({ children }: StudentLayoutProps) {
     <div className="min-h-dvh bg-page">
       <StudentHeader />
 
-      <div className="grid min-h-[calc(100dvh-6rem)] lg:grid-cols-[290px_1fr]">
+      <div className="grid min-h-[calc(100dvh-6rem)] lg:grid-cols-[92px_1fr]">
         <StudentSidebar />
         {children}
       </div>

@@ -10,6 +10,8 @@ import { formatTaskCount } from "@/entities/topic/lib/format-task-count";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { useTaskBankStore } from "./model/task-bank-store";
 
+const EASE_SMOOTH = "ease-[cubic-bezier(0.22,1,0.36,1)]";
+
 type SubjectComingSoonProps = {
   subjectName: string;
 };
@@ -184,7 +186,7 @@ export function TaskBankList() {
                 >
                   <button
                     aria-expanded={hasSubtopics ? isOpen : undefined}
-                    className="group flex min-h-16 w-full cursor-pointer items-center gap-4 rounded-xl border border-line px-4 text-left transition hover:border-brand/40 hover:bg-panel"
+                    className={`group flex min-h-20 w-full cursor-pointer items-center gap-5 rounded-2xl border border-line px-5 text-left transition-colors duration-300 ${EASE_SMOOTH} hover:border-brand/40 hover:bg-panel`}
                     onClick={() => {
                       if (hasSubtopics) {
                         setOpenedTopicId(isOpen ? null : topic.id);
@@ -194,26 +196,30 @@ export function TaskBankList() {
                     }}
                     type="button"
                   >
-                    <span className="grid size-10 shrink-0 place-items-center rounded-[14px] border border-[#80afe4] bg-gradient-to-br from-[#d8ecff] via-[#acd4ff] to-[#78afe0] text-sm font-extrabold text-[#063d73] shadow-[inset_0_2px_0_rgba(255,255,255,0.8),inset_0_-2px_0_rgba(38,100,166,0.16),0_4px_0_#5d91c9,0_7px_0_rgba(31,79,129,0.14)]">
+                    <span className="grid size-12 shrink-0 place-items-center rounded-2xl border border-[#80afe4] bg-gradient-to-br from-[#d8ecff] via-[#acd4ff] to-[#78afe0] text-base font-extrabold text-[#063d73] shadow-[inset_0_2px_0_rgba(255,255,255,0.8),inset_0_-2px_0_rgba(38,100,166,0.16),0_5px_0_#5d91c9,0_8px_0_rgba(31,79,129,0.14)]">
                       {topic.sortOrder}
                     </span>
 
-                    <span className="flex-1 text-[15px] font-medium text-ink">
+                    <span className="flex-1 text-[17px] font-medium text-ink">
                       {topic.name}
                     </span>
 
-                    <span className="shrink-0 rounded-full bg-panel px-2.5 py-1 text-xs font-bold text-muted transition group-hover:bg-white">
+                    <span
+                      className={`shrink-0 rounded-full bg-panel px-3 py-1.5 text-[13px] font-bold text-muted transition-colors duration-300 ${EASE_SMOOTH} group-hover:bg-white`}
+                    >
                       {formatTaskCount(topic.taskCount)}
                     </span>
 
                     {hasSubtopics ? (
                       <ChevronDown
-                        className={`size-5 text-brand transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+                        className={`size-6 text-brand transition-transform duration-500 ${EASE_SMOOTH} motion-reduce:transition-none ${
                           isOpen ? "rotate-180" : ""
                         }`}
                       />
                     ) : hasTasks ? (
-                      <ArrowRight className="size-5 text-brand transition-transform group-hover:translate-x-1" />
+                      <ArrowRight
+                        className={`size-6 text-brand transition-transform duration-300 ${EASE_SMOOTH} group-hover:translate-x-1.5`}
+                      />
                     ) : null}
                   </button>
 
@@ -231,7 +237,7 @@ export function TaskBankList() {
 
                           return (
                             <button
-                              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
+                              className={`flex w-full items-center gap-3 rounded-xl px-3.5 py-3 text-left text-[15px] font-medium transition-colors duration-300 ${EASE_SMOOTH} ${
                                 subtopicHasTasks
                                   ? "cursor-pointer text-ink hover:bg-white"
                                   : "cursor-default text-muted"
@@ -244,7 +250,7 @@ export function TaskBankList() {
                               }}
                               type="button"
                             >
-                              <span className="size-1.5 rounded-full bg-brand" />
+                              <span className="size-2 rounded-full bg-brand" />
                               <span className="flex-1">{subtopic.name}</span>
                               <span className="shrink-0 rounded-full border border-brand/10 bg-white px-2.5 py-1 text-xs font-bold text-muted">
                                 {formatTaskCount(subtopic.taskCount)}
