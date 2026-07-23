@@ -91,9 +91,200 @@ const rootTopics = [
   },
 ];
 
-const planimetrySubtopics = [
-  { order: 1, slug: 'ege-01-circles', name: 'Окружности' },
-  { order: 2, slug: 'ege-01-figure-angles', name: 'Углы фигуры' },
+const subtopicGroups = [
+  {
+    parentSlug: 'ege-01-planimetry',
+    subtopics: [
+      { slug: 'ege-01-triangles', name: 'Треугольники' },
+      { slug: 'ege-01-quadrilaterals', name: 'Четырёхугольники' },
+      { slug: 'ege-01-circles', name: 'Окружности' },
+      { slug: 'ege-01-figure-angles', name: 'Углы фигуры' },
+    ],
+  },
+  {
+    parentSlug: 'ege-02-vectors',
+    subtopics: [
+      { slug: 'ege-02-coordinates', name: 'Координаты' },
+      { slug: 'ege-02-vector-sum', name: 'Сумма векторов' },
+      { slug: 'ege-02-dot-product', name: 'Скалярное произведение' },
+    ],
+  },
+  {
+    parentSlug: 'ege-03-stereometry',
+    subtopics: [
+      { slug: 'ege-03-cube', name: 'Куб' },
+      { slug: 'ege-03-parallelepiped', name: 'Параллелепипед' },
+      { slug: 'ege-03-pyramid', name: 'Пирамида' },
+      { slug: 'ege-03-cylinder', name: 'Цилиндр' },
+      { slug: 'ege-03-cone', name: 'Конус' },
+      { slug: 'ege-03-sphere', name: 'Шар' },
+      { slug: 'ege-03-volumes-sections', name: 'Объёмы и сечения' },
+    ],
+  },
+  {
+    parentSlug: 'ege-04-probability-basics',
+    subtopics: [
+      {
+        slug: 'ege-04-classical-definition',
+        name: 'Классическое определение вероятности',
+      },
+    ],
+  },
+  {
+    parentSlug: 'ege-05-complex-probability',
+    subtopics: [
+      {
+        slug: 'ege-05-addition-multiplication',
+        name: 'Теоремы сложения и умножения вероятностей',
+      },
+      { slug: 'ege-05-independent-events', name: 'Независимые события' },
+    ],
+  },
+  {
+    parentSlug: 'ege-06-simple-equations',
+    subtopics: [
+      { slug: 'ege-06-exponential', name: 'Показательные уравнения' },
+      { slug: 'ege-06-logarithmic', name: 'Логарифмические уравнения' },
+      { slug: 'ege-06-irrational', name: 'Иррациональные уравнения' },
+      { slug: 'ege-06-trigonometric', name: 'Тригонометрические уравнения' },
+    ],
+  },
+  {
+    parentSlug: 'ege-07-transformations',
+    subtopics: [
+      { slug: 'ege-07-trigonometry', name: 'Тригонометрия' },
+      { slug: 'ege-07-powers', name: 'Степени' },
+      { slug: 'ege-07-logarithms', name: 'Логарифмы' },
+    ],
+  },
+  {
+    parentSlug: 'ege-08-derivative',
+    subtopics: [
+      {
+        slug: 'ege-08-geometric-meaning',
+        name: 'Геометрический смысл производной',
+      },
+      {
+        slug: 'ege-08-physical-meaning',
+        name: 'Физический смысл производной',
+      },
+      { slug: 'ege-08-tangent', name: 'Касательная' },
+    ],
+  },
+  {
+    parentSlug: 'ege-09-applied-problems',
+    subtopics: [
+      {
+        slug: 'ege-09-physical-quantities',
+        name: 'Физические величины в формулах',
+      },
+      {
+        slug: 'ege-09-economic-quantities',
+        name: 'Экономические величины в формулах',
+      },
+    ],
+  },
+  {
+    parentSlug: 'ege-10-word-problems',
+    subtopics: [
+      { slug: 'ege-10-straight-motion', name: 'Движение по прямой' },
+      { slug: 'ege-10-circular-motion', name: 'Движение по окружности' },
+      { slug: 'ege-10-water-motion', name: 'Движение по воде' },
+      { slug: 'ege-10-work', name: 'Работа' },
+      { slug: 'ege-10-mixtures-alloys', name: 'Смеси и сплавы' },
+      { slug: 'ege-10-percentages', name: 'Проценты' },
+    ],
+  },
+  {
+    parentSlug: 'ege-11-function-graphs',
+    subtopics: [
+      { slug: 'ege-11-parabolas', name: 'Параболы' },
+      { slug: 'ege-11-hyperbolas', name: 'Гиперболы' },
+      { slug: 'ege-11-lines', name: 'Прямые' },
+      { slug: 'ege-11-roots', name: 'Корни' },
+      { slug: 'ege-11-trigonometry', name: 'Тригонометрические функции' },
+      { slug: 'ege-11-logarithms', name: 'Логарифмические функции' },
+    ],
+  },
+  {
+    parentSlug: 'ege-12-function-extrema',
+    subtopics: [
+      {
+        slug: 'ege-12-extrema-derivative',
+        name: 'Нахождение минимума и максимума с помощью производной',
+      },
+    ],
+  },
+  {
+    parentSlug: 'ege-13-equations',
+    subtopics: [
+      { slug: 'ege-13-trigonometric', name: 'Тригонометрические уравнения' },
+      { slug: 'ege-13-exponential', name: 'Показательные уравнения' },
+      { slug: 'ege-13-logarithmic', name: 'Логарифмические уравнения' },
+      { slug: 'ege-13-root-selection', name: 'Отбор корней' },
+    ],
+  },
+  {
+    parentSlug: 'ege-14-stereometry-problem',
+    subtopics: [
+      { slug: 'ege-14-proofs', name: 'Доказательство свойств фигур' },
+      { slug: 'ege-14-sections', name: 'Сечения' },
+      { slug: 'ege-14-angles-distances', name: 'Углы и расстояния' },
+    ],
+  },
+  {
+    parentSlug: 'ege-15-inequalities',
+    subtopics: [
+      { slug: 'ege-15-rational', name: 'Рациональные неравенства' },
+      { slug: 'ege-15-exponential', name: 'Показательные неравенства' },
+      { slug: 'ege-15-logarithmic', name: 'Логарифмические неравенства' },
+      { slug: 'ege-15-systems', name: 'Системы неравенств' },
+    ],
+  },
+  {
+    parentSlug: 'ege-16-financial-math',
+    subtopics: [
+      {
+        slug: 'ege-16-differentiated-loans',
+        name: 'Кредиты с дифференцированными платежами',
+      },
+      {
+        slug: 'ege-16-annuity-loans',
+        name: 'Кредиты с аннуитетными платежами',
+      },
+      { slug: 'ege-16-deposits', name: 'Вклады' },
+      { slug: 'ege-16-optimization', name: 'Задачи на оптимизацию' },
+    ],
+  },
+  {
+    parentSlug: 'ege-17-planimetry-problem',
+    subtopics: [
+      {
+        slug: 'ege-17-proofs-calculations',
+        name: 'Сложная геометрическая задача на доказательство и вычисление',
+      },
+    ],
+  },
+  {
+    parentSlug: 'ege-18-parameter-problem',
+    subtopics: [
+      { slug: 'ege-18-analytic-method', name: 'Аналитический метод' },
+      { slug: 'ege-18-graphical-method', name: 'Графический метод' },
+      {
+        slug: 'ege-18-root-location',
+        name: 'Расположение корней квадратного трёхчлена',
+      },
+    ],
+  },
+  {
+    parentSlug: 'ege-19-number-properties',
+    subtopics: [
+      { slug: 'ege-19-divisibility', name: 'Делимость' },
+      { slug: 'ege-19-sequences', name: 'Последовательности' },
+      { slug: 'ege-19-progressions', name: 'Прогрессии' },
+      { slug: 'ege-19-logic', name: 'Логика' },
+    ],
+  },
 ];
 
 async function main() {
@@ -141,35 +332,37 @@ async function main() {
     topicIds.set(topic.slug, savedTopic.id);
   }
 
-  const planimetryId = topicIds.get('ege-01-planimetry');
+  for (const group of subtopicGroups) {
+    const parentId = topicIds.get(group.parentSlug);
 
-  if (!planimetryId) {
-    throw new Error('Planimetry topic was not created');
-  }
+    if (!parentId) {
+      throw new Error(`Parent topic ${group.parentSlug} was not created`);
+    }
 
-  for (const subtopic of planimetrySubtopics) {
-    await prisma.topic.upsert({
-      where: {
-        subjectId_slug: {
-          subjectId: subject.id,
-          slug: subtopic.slug,
+    for (const [index, subtopic] of group.subtopics.entries()) {
+      await prisma.topic.upsert({
+        where: {
+          subjectId_slug: {
+            subjectId: subject.id,
+            slug: subtopic.slug,
+          },
         },
-      },
-      update: {
-        name: subtopic.name,
-        parentId: planimetryId,
-        sortOrder: subtopic.order,
-        status: TopicStatus.PUBLISHED,
-      },
-      create: {
-        subjectId: subject.id,
-        parentId: planimetryId,
-        slug: subtopic.slug,
-        name: subtopic.name,
-        sortOrder: subtopic.order,
-        status: TopicStatus.PUBLISHED,
-      },
-    });
+        update: {
+          name: subtopic.name,
+          parentId,
+          sortOrder: index + 1,
+          status: TopicStatus.PUBLISHED,
+        },
+        create: {
+          subjectId: subject.id,
+          parentId,
+          slug: subtopic.slug,
+          name: subtopic.name,
+          sortOrder: index + 1,
+          status: TopicStatus.PUBLISHED,
+        },
+      });
+    }
   }
 
   console.log('Seed completed: profile math topics were added');
