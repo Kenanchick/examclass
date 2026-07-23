@@ -12,26 +12,71 @@ import { useTaskBankStore } from "./model/task-bank-store";
 
 const EASE_SMOOTH = "ease-[cubic-bezier(0.22,1,0.36,1)]";
 
+const CLOUD_PATH_WIDE =
+  "M955.0,170.0 C946.3,186.5 884.4,212.7 854.6,233.0 C824.9,253.3 829.8,281.1 776.6,291.6 C723.5,302.0 609.0,292.8 535.7,295.5 C462.4,298.3 396.0,315.3 336.6,308.1 C277.2,301.0 222.1,268.8 179.3,252.8 C136.6,236.8 102.6,225.8 80.3,212.0 C57.9,198.2 42.0,184.5 45.0,170.0 C48.0,155.5 80.6,142.3 98.1,125.0 C115.6,107.6 108.4,77.9 149.8,65.9 C191.2,54.0 288.2,61.0 346.6,53.2 C405.0,45.3 448.9,18.8 500.0,18.8 C551.1,18.8 595.0,45.3 653.4,53.2 C711.8,61.0 808.0,52.5 850.2,65.9 C892.4,79.4 889.3,116.8 906.8,134.1 C924.2,151.5 963.7,153.5 955.0,170.0 Z";
+
+const CLOUD_PATH_TALL =
+  "M620.0,358.0 C610.1,403.1 568.0,431.9 551.9,477.9 C535.8,523.8 553.3,611.1 523.2,633.6 C493.0,656.2 418.6,601.4 371.1,613.1 C323.7,624.7 273.6,712.8 238.7,703.6 C203.8,694.4 197.7,592.1 161.9,557.8 C126.1,523.4 47.7,531.0 24.0,497.7 C0.4,464.4 11.8,400.7 20.0,358.0 C28.2,315.3 58.7,286.3 73.3,241.6 C88.0,196.9 76.7,112.8 107.9,90.0 C139.1,67.3 213.5,118.4 260.5,105.0 C307.5,91.6 354.7,1.7 389.9,9.6 C425.0,17.5 434.6,119.5 471.5,152.5 C508.3,185.5 586.5,173.2 611.2,207.4 C636.0,241.7 629.9,312.9 620.0,358.0 Z";
+
 type SubjectComingSoonProps = {
   subjectName: string;
 };
 
+function Cloud({
+  path,
+  viewBox,
+  className = "",
+}: {
+  path: string;
+  viewBox: string;
+  className?: string;
+}) {
+  return (
+    <svg
+      aria-hidden="true"
+      className={`h-auto w-full text-[#eef6ff] ${className}`}
+      viewBox={viewBox}
+    >
+      <path
+        d={path}
+        fill="currentColor"
+        stroke="#c6ddf5"
+        strokeWidth="2.5"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 function SubjectComingSoon({ subjectName }: SubjectComingSoonProps) {
   return (
-    <div className="flex flex-col items-start gap-5 rounded-2xl border-2 border-dashed border-[#c6ddf5] bg-[#eef6ff] p-6 sm:flex-row sm:items-center sm:p-8">
-      <span className="grid size-14 shrink-0 rotate-[-3deg] place-items-center rounded-[1.15rem] bg-[#d9ebff] text-brand shadow-[0_4px_0_#9fc8ee]">
-        <BookOpen className="size-7" strokeWidth={2.2} />
-      </span>
+    <div className="relative mx-auto max-w-5xl">
+      <Cloud
+        className="sm:hidden"
+        path={CLOUD_PATH_TALL}
+        viewBox="0 0 640 720"
+      />
+      <Cloud
+        className="hidden sm:block"
+        path={CLOUD_PATH_WIDE}
+        viewBox="0 0 1000 340"
+      />
 
-      <div>
-        <p className="text-sm font-semibold text-brand">Скоро</p>
-        <h2 className="mt-1 text-xl font-bold tracking-[-0.03em] text-ink">
-          Банк задач по предмету «{subjectName}» в разработке
-        </h2>
-        <p className="mt-2 max-w-xl text-[15px] leading-6 text-muted">
-          Мы готовим темы, задачи и разборы. Пока продолжайте подготовку по
-          профильной математике.
-        </p>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-[14%] py-8 text-center sm:flex-row sm:items-center sm:gap-6 sm:px-[15%] sm:text-left">
+        <span className="grid size-14 shrink-0 rotate-[-3deg] place-items-center rounded-[1.15rem] bg-[#d9ebff] text-brand shadow-[0_4px_0_#9fc8ee]">
+          <BookOpen className="size-7" strokeWidth={2.2} />
+        </span>
+
+        <div>
+          <p className="text-sm font-semibold text-brand">Скоро</p>
+          <h2 className="mt-1 text-lg font-bold tracking-[-0.03em] text-ink sm:text-xl">
+            Банк задач по предмету «{subjectName}» в разработке
+          </h2>
+          <p className="mt-2 max-w-xl text-[15px] leading-6 text-muted">
+            Мы готовим темы, задачи и разборы. Пока продолжайте подготовку по
+            профильной математике.
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -93,7 +138,9 @@ export function TaskBankList() {
               : "Помощник ExamClass"
           }
           className={
-            subjectData?.topics.length === 0 ? "h-auto w-36" : "h-auto w-40"
+            subjectData?.topics.length === 0
+              ? "h-auto w-44 -scale-x-100"
+              : "h-auto w-40"
           }
           height={2000}
           src={
