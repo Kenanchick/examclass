@@ -2124,6 +2124,571 @@ const trapezoidDiagonalArea: GeometryTask = {
   ].join('\n\n'),
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · УГЛЫ И РАССТОЯНИЯ · ДИАГОНАЛЬ КУБА ⊥ ПЛОСКОСТИ BDC₁ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const cubeBdc1Figure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    A: [0, 0],
+    B: [3, 0],
+    C: [4.2, 1.2],
+    D: [1.2, 1.2],
+    A1: [0, 3],
+    B1: [3, 3],
+    C1: [4.2, 4.2],
+    D1: [1.2, 4.2],
+  },
+  fills: [{ points: ['B', 'D', 'C1'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'D', to: 'A', style: 'dashed' },
+    { from: 'A1', to: 'B1' },
+    { from: 'B1', to: 'C1' },
+    { from: 'C1', to: 'D1' },
+    { from: 'D1', to: 'A1' },
+    { from: 'A', to: 'A1' },
+    { from: 'B', to: 'B1' },
+    { from: 'C', to: 'C1' },
+    { from: 'D', to: 'D1', style: 'dashed' },
+    { from: 'B', to: 'D', style: 'section' },
+    { from: 'D', to: 'C1', style: 'section' },
+    { from: 'C1', to: 'B', style: 'section' },
+    { from: 'A1', to: 'C', style: 'dashed' },
+  ],
+  labels: {
+    A: { dx: -6, dy: 16, anchor: 'end' },
+    B: { dx: 2, dy: 16, anchor: 'start' },
+    C: { dx: 12, dy: 4, anchor: 'start' },
+    D: { dx: -8, dy: -6, anchor: 'end' },
+    A1: { dx: -12, dy: 2, anchor: 'end' },
+    B1: { dx: 8, dy: 2, anchor: 'start' },
+    C1: { dx: 10, dy: -2, anchor: 'start' },
+    D1: { dx: -2, dy: -10, anchor: 'middle' },
+  },
+};
+
+const bdc1TriangleFigure = {
+  maxWidth: 340,
+  maxHeight: 320,
+  points: {
+    B: [0, 0],
+    C1: [4.243, 0],
+    D: [2.121, 3.674],
+  },
+  edges: [
+    { from: 'B', to: 'C1', ticks: 1 },
+    { from: 'C1', to: 'D', ticks: 1 },
+    { from: 'D', to: 'B', ticks: 1 },
+  ],
+  dims: [{ from: 'B', to: 'C1', text: '√2' }],
+  labels: {
+    B: { dx: -8, dy: 14, anchor: 'end' },
+    C1: { dx: 8, dy: 14, anchor: 'start' },
+    D: { dx: 0, dy: -12, anchor: 'middle' },
+  },
+};
+
+const cubeDiagPlane: GeometryTask = {
+  publicId: 'G14ANG5',
+  topicSlug: 'ege-14-angles-distances',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: STATGRAD,
+  correctAnswer: 'б) 2√3/3',
+  statement: [
+    `Дан единичный куб $ABCDA_1B_1C_1D_1$.`,
+    `**а)** Докажите, что прямая $A_1C$ перпендикулярна плоскости $BDC_1$.`,
+    `**б)** Найдите расстояние от точки $A_1$ до плоскости $BDC_1$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(cubeBdc1Figure),
+    `Введём координаты с началом в $A$: $A_1(0;0;1)$, $C(1;1;0)$, $B(1;0;0)$, $D(0;1;0)$, $C_1(1;1;1)$.`,
+    `Направляющий вектор диагонали: $\\vec{A_1C} = (1;1;-1)$. Нормаль к плоскости $BDC_1$ найдём как $\\vec{BD}\\times\\vec{BC_1}$, где $\\vec{BD}=(-1;1;0)$, $\\vec{BC_1}=(0;1;1)$:`,
+    `$$\\vec{n} = \\vec{BD}\\times\\vec{BC_1} = (1;1;-1).$$`,
+    `Так как $\\vec{A_1C} = \\vec{n}$, прямая $A_1C$ параллельна нормали, значит $A_1C \\perp (BDC_1)$. **Что и требовалось доказать.**`,
+    `## Пункт б). Расстояние от точки $A_1$ до плоскости`,
+    `Уравнение плоскости $BDC_1$ с нормалью $(1;1;-1)$, проходящей через $B(1;0;0)$: $x + y - z = 1$. Тогда`,
+    `$$\\rho(A_1,\\,BDC_1) = \\frac{|0 + 0 - 1 - 1|}{\\sqrt{1^2+1^2+1^2}} = \\frac{2}{\\sqrt{3}} = \\frac{2\\sqrt{3}}{3}.$$`,
+    `Треугольник $BDC_1$ — равносторонний со стороной $\\sqrt{2}$ (диагонали граней куба); диагональ $A_1C$ протыкает его в центре.`,
+    geo(bdc1TriangleFigure),
+    `**Ответ:** б) $\\dfrac{2\\sqrt{3}}{3}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · СЕЧЕНИЯ · СЕЧЕНИЕ ТРЕУГОЛЬНОЙ ПРИЗМЫ ЧЕРЕЗ СТОРОНУ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const prismSection3dFigure = {
+  maxWidth: 440,
+  maxHeight: 440,
+  points: {
+    A: [0, 0],
+    C: [4, 0],
+    B: [2.6, 1.6],
+    A1: [0, 4.5],
+    C1: [4, 4.5],
+    B1: [2.6, 6.1],
+    M: [2.6, 3.85],
+    P: [2, 0],
+  },
+  fills: [{ points: ['A', 'C', 'M'] }],
+  edges: [
+    { from: 'A', to: 'C' },
+    { from: 'A', to: 'B', style: 'dashed' },
+    { from: 'B', to: 'C', style: 'dashed' },
+    { from: 'A1', to: 'B1' },
+    { from: 'B1', to: 'C1' },
+    { from: 'C1', to: 'A1' },
+    { from: 'A', to: 'A1' },
+    { from: 'C', to: 'C1' },
+    { from: 'B', to: 'B1', style: 'dashed' },
+    { from: 'A', to: 'M', style: 'section' },
+    { from: 'C', to: 'M', style: 'section' },
+    { from: 'M', to: 'P', style: 'dashed' },
+  ],
+  rightAngles: [{ at: 'P', from: 'A', to: 'M' }],
+  labels: {
+    A: { dx: -8, dy: 12, anchor: 'end' },
+    C: { dx: 10, dy: 10, anchor: 'start' },
+    B: { dx: -10, dy: 2, anchor: 'end' },
+    A1: { dx: -10, dy: 0, anchor: 'end' },
+    C1: { dx: 10, dy: 0, anchor: 'start' },
+    B1: { dx: -10, dy: -2, anchor: 'end' },
+    M: { dx: 11, dy: 2, anchor: 'start' },
+    P: false,
+  },
+};
+
+const prismSectionFlatFigure = {
+  maxWidth: 340,
+  maxHeight: 340,
+  points: {
+    A: [0, 0],
+    C: [4, 0],
+    M: [2, 4.583],
+    P: [2, 0],
+  },
+  edges: [
+    { from: 'A', to: 'C' },
+    { from: 'A', to: 'M', ticks: 1 },
+    { from: 'C', to: 'M', ticks: 1 },
+    { from: 'M', to: 'P', style: 'dashed' },
+  ],
+  rightAngles: [{ at: 'P', from: 'A', to: 'M' }],
+  dims: [
+    { from: 'A', to: 'C', text: '4' },
+    { from: 'A', to: 'M', text: '5' },
+    { from: 'C', to: 'M', text: '5' },
+    { from: 'M', to: 'P', text: '√21' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 14, anchor: 'end' },
+    C: { dx: 8, dy: 14, anchor: 'start' },
+    M: { dx: 0, dy: -12, anchor: 'middle' },
+    P: false,
+  },
+};
+
+const prismTriangleSection: GeometryTask = {
+  publicId: 'G14SEC4',
+  topicSlug: 'ege-14-sections',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: YASHCHENKO,
+  correctAnswer: 'б) 2√21',
+  statement: [
+    `В правильной треугольной призме $ABCA_1B_1C_1$ сторона основания равна $4$, а боковое ребро равно $6$. Через сторону $AC$ основания и середину $M$ ребра $BB_1$ проведено сечение.`,
+    `**а)** Докажите, что сечение — равнобедренный треугольник.`,
+    `**б)** Найдите площадь сечения.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(prismSection3dFigure),
+    `Сечение — треугольник $ACM$. Точка $M$ лежит на оси симметрии призмы, проходящей через середину $AC$ и ребро $BB_1$, поэтому $AM = CM$ (наклонные с равными проекциями). Значит, треугольник $ACM$ равнобедренный. **Что и требовалось доказать.**`,
+    `## Пункт б). Площадь сечения`,
+    `Введём координаты: $A(0;0;0)$, $C(4;0;0)$, $B(2;2\\sqrt{3};0)$, тогда $M(2;2\\sqrt{3};3)$. Найдём стороны:`,
+    `$$AM = CM = \\sqrt{2^2 + (2\\sqrt{3})^2 + 3^2} = \\sqrt{4 + 12 + 9} = 5.$$`,
+    `Пусть $P$ — середина $AC$. Высота треугольника $MP = \\sqrt{MC^2 - PC^2} = \\sqrt{25 - 4} = \\sqrt{21}$.`,
+    geo(prismSectionFlatFigure),
+    `$$S_{ACM} = \\frac{1}{2}\\,AC\\cdot MP = \\frac{1}{2}\\cdot 4\\cdot \\sqrt{21} = 2\\sqrt{21}.$$`,
+    `**Ответ:** б) $2\\sqrt{21}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · СЕЧЕНИЯ · ОБЪЁМ ОТСЕЧЁННОЙ ЧАСТИ ПИРАМИДЫ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const pyramidMidSection3dFigure = {
+  maxWidth: 460,
+  maxHeight: 430,
+  points: {
+    A: [-2, 0],
+    B: [2, 0],
+    C: [3.2, 1.5],
+    D: [-0.8, 1.5],
+    S: [0.6, 4.5],
+    M: [-0.7, 2.25],
+    N: [1.3, 2.25],
+    K: [1.9, 3],
+    L: [-0.1, 3],
+  },
+  fills: [{ points: ['M', 'N', 'K', 'L'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'D', to: 'A', style: 'dashed' },
+    { from: 'S', to: 'A' },
+    { from: 'S', to: 'B' },
+    { from: 'S', to: 'C' },
+    { from: 'S', to: 'D', style: 'dashed' },
+    { from: 'M', to: 'N', style: 'section' },
+    { from: 'N', to: 'K', style: 'section' },
+    { from: 'K', to: 'L', style: 'section' },
+    { from: 'L', to: 'M', style: 'section' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 14, anchor: 'end' },
+    B: { dx: 8, dy: 14, anchor: 'start' },
+    C: { dx: 12, dy: 4, anchor: 'start' },
+    D: { dx: -10, dy: -4, anchor: 'end' },
+    S: { dx: 0, dy: -12, anchor: 'middle' },
+    M: { dx: -11, dy: 2, anchor: 'end' },
+    N: { dx: 4, dy: 12, anchor: 'start' },
+    K: { dx: 11, dy: 2, anchor: 'start' },
+    L: { dx: -11, dy: -2, anchor: 'end' },
+  },
+};
+
+const midSquareFigure = {
+  maxWidth: 300,
+  maxHeight: 300,
+  points: {
+    M: [0, 0],
+    N: [3, 0],
+    K: [3, 3],
+    L: [0, 3],
+  },
+  edges: [
+    { from: 'M', to: 'N' },
+    { from: 'N', to: 'K' },
+    { from: 'K', to: 'L' },
+    { from: 'L', to: 'M' },
+  ],
+  dims: [{ from: 'M', to: 'N', text: '3' }],
+  labels: {
+    M: { dx: -8, dy: 14, anchor: 'end' },
+    N: { dx: 8, dy: 14, anchor: 'start' },
+    K: { dx: 8, dy: -4, anchor: 'start' },
+    L: { dx: -8, dy: -4, anchor: 'end' },
+  },
+};
+
+const pyramidMidSection: GeometryTask = {
+  publicId: 'G14SEC5',
+  topicSlug: 'ege-14-sections',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: LYSENKO,
+  correctAnswer: 'б) 42',
+  statement: [
+    `В правильной четырёхугольной пирамиде $SABCD$ сторона основания равна $6$, а высота равна $4$. Через середины $M$, $N$, $K$, $L$ боковых рёбер $SA$, $SB$, $SC$, $SD$ проведено сечение.`,
+    `**а)** Докажите, что $MNKL$ — квадрат.`,
+    `**б)** Найдите объём части пирамиды, заключённой между сечением и основанием.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(pyramidMidSection3dFigure),
+    `Отрезки $MN$, $NK$, $KL$, $LM$ — средние линии треугольников $SAB$, $SBC$, $SCD$, $SDA$, поэтому они параллельны сторонам основания и равны их половинам: $MN = KL = \\tfrac{1}{2}AB$, $NK = LM = \\tfrac{1}{2}BC$.`,
+    `Так как $ABCD$ — квадрат, все стороны $MNKL$ равны, а смежные стороны параллельны перпендикулярным сторонам квадрата, значит углы прямые. Следовательно, $MNKL$ — квадрат. **Что и требовалось доказать.**`,
+    `## Пункт б). Объём`,
+    `Объём всей пирамиды: $V = \\tfrac{1}{3}\\,S_{ABCD}\\cdot h = \\tfrac{1}{3}\\cdot 36\\cdot 4 = 48$.`,
+    `Сечение $MNKL$ проходит через середины боковых рёбер, поэтому пирамида $SMNKL$ подобна пирамиде $SABCD$ с коэффициентом $\\tfrac{1}{2}$. Её объём`,
+    geo(midSquareFigure),
+    `$$V_{SMNKL} = \\left(\\frac{1}{2}\\right)^3 V = \\frac{1}{8}\\cdot 48 = 6.$$`,
+    `Искомый объём части между сечением и основанием:`,
+    `$$V_{ABCD\\text{-}MNKL} = V - V_{SMNKL} = 48 - 6 = 42.$$`,
+    `**Ответ:** б) $42$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · СВОЙСТВО БИССЕКТРИСЫ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const bisectorFigure = {
+  maxWidth: 400,
+  maxHeight: 340,
+  points: {
+    A: [0, 4],
+    B: [-4, 0],
+    C: [2, 0],
+    L: [-0.4, 0],
+  },
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'A' },
+    { from: 'A', to: 'L', style: 'section' },
+  ],
+  angles: [
+    { at: 'A', from: 'B', to: 'L', label: 'α' },
+    { at: 'A', from: 'L', to: 'C', label: 'α' },
+  ],
+  dims: [
+    { from: 'A', to: 'B', text: '6' },
+    { from: 'A', to: 'C', text: '4' },
+  ],
+  labels: {
+    A: { dx: 0, dy: -12, anchor: 'middle' },
+    B: { dx: -8, dy: 14, anchor: 'end' },
+    C: { dx: 8, dy: 14, anchor: 'start' },
+    L: { dx: 2, dy: 16, anchor: 'start' },
+  },
+};
+
+const bisectorRatioFigure = {
+  maxWidth: 400,
+  maxHeight: 320,
+  points: {
+    A: [0, 4],
+    B: [-4, 0],
+    C: [2, 0],
+    L: [-0.4, 0],
+  },
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'C', to: 'A' },
+    { from: 'B', to: 'L', style: 'section' },
+    { from: 'L', to: 'C', style: 'section' },
+    { from: 'A', to: 'L', style: 'dashed' },
+  ],
+  dims: [
+    { from: 'B', to: 'L', text: '3' },
+    { from: 'L', to: 'C', text: '2' },
+  ],
+  labels: {
+    A: { dx: 0, dy: -12, anchor: 'middle' },
+    B: { dx: -8, dy: 14, anchor: 'end' },
+    C: { dx: 8, dy: 14, anchor: 'start' },
+    L: { dx: 0, dy: 16, anchor: 'middle' },
+  },
+};
+
+const bisectorProperty: GeometryTask = {
+  publicId: 'G17BIS1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: YASHCHENKO,
+  correctAnswer: 'б) 3',
+  statement: [
+    `Биссектриса $AL$ треугольника $ABC$ пересекает сторону $BC$ в точке $L$.`,
+    `**а)** Докажите, что $BL : LC = AB : AC$.`,
+    `**б)** Найдите $BL$, если $AB = 6$, $AC = 4$, $BC = 5$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(bisectorFigure),
+    `Треугольники $ABL$ и $ACL$ имеют общую высоту из вершины $A$, поэтому отношение их площадей равно отношению оснований: $\\dfrac{S_{ABL}}{S_{ACL}} = \\dfrac{BL}{LC}$.`,
+    `С другой стороны, $AL$ — биссектриса, значит точка $L$ равноудалена от сторон $AB$ и $AC$; обозначим это расстояние $d$. Тогда $S_{ABL} = \\tfrac{1}{2}AB\\cdot d$ и $S_{ACL} = \\tfrac{1}{2}AC\\cdot d$, поэтому $\\dfrac{S_{ABL}}{S_{ACL}} = \\dfrac{AB}{AC}$. Отсюда`,
+    `$$\\frac{BL}{LC} = \\frac{AB}{AC}.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Вычисление $BL$`,
+    `По доказанному $\\dfrac{BL}{LC} = \\dfrac{AB}{AC} = \\dfrac{6}{4} = \\dfrac{3}{2}$. Значит, $BL = 3x$, $LC = 2x$ и $BL + LC = 5x = BC = 5$, откуда $x = 1$.`,
+    geo(bisectorRatioFigure),
+    `$$BL = 3x = 3.$$`,
+    `**Ответ:** б) $3$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · СРЕДНЯЯ ЛИНИЯ И СЕРЕДИНЫ ДИАГОНАЛЕЙ ТРАПЕЦИИ (2 рис.)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const trapezoidMidlineFigure = {
+  maxWidth: 440,
+  maxHeight: 260,
+  points: {
+    A: [0, 0],
+    D: [8, 0],
+    B: [2, 3],
+    C: [6, 3],
+    M: [1, 1.5],
+    N: [7, 1.5],
+    P: [3, 1.5],
+    Q: [5, 1.5],
+  },
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D' },
+    { from: 'D', to: 'A' },
+    { from: 'A', to: 'C', style: 'dashed' },
+    { from: 'B', to: 'D', style: 'dashed' },
+    { from: 'M', to: 'N' },
+    { from: 'P', to: 'Q', style: 'section' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 14, anchor: 'end' },
+    D: { dx: 8, dy: 14, anchor: 'start' },
+    B: { dx: -6, dy: -8, anchor: 'end' },
+    C: { dx: 6, dy: -8, anchor: 'start' },
+    M: { dx: -11, dy: 2, anchor: 'end' },
+    N: { dx: 11, dy: 2, anchor: 'start' },
+    P: { dx: -2, dy: -9, anchor: 'end' },
+    Q: { dx: 2, dy: -9, anchor: 'start' },
+  },
+};
+
+const trapezoidSegmentsFigure = {
+  maxWidth: 440,
+  maxHeight: 140,
+  points: {
+    M: [0, 0],
+    P: [2, 0],
+    Q: [4, 0],
+    N: [6, 0],
+  },
+  edges: [{ from: 'M', to: 'N' }],
+  dims: [
+    { from: 'M', to: 'P', text: 'b/2' },
+    { from: 'P', to: 'Q', text: '(a−b)/2' },
+    { from: 'Q', to: 'N', text: 'b/2' },
+  ],
+  labels: {
+    M: { dx: -4, dy: 16, anchor: 'end' },
+    P: { dx: 0, dy: 16, anchor: 'middle' },
+    Q: { dx: 0, dy: 16, anchor: 'middle' },
+    N: { dx: 4, dy: 16, anchor: 'start' },
+  },
+};
+
+const trapezoidMidlineSegment: GeometryTask = {
+  publicId: 'G17TRP3',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: STATGRAD,
+  correctAnswer: 'б) 8 и 4',
+  statement: [
+    `В трапеции $ABCD$ ($BC \\parallel AD$) средняя линия $MN$ равна $6$, а отрезок $PQ$, соединяющий середины диагоналей, равен $2$.`,
+    `**а)** Докажите, что $PQ = \\dfrac{AD - BC}{2}$.`,
+    `**б)** Найдите основания трапеции.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(trapezoidMidlineFigure),
+    `Точки $M$, $P$, $Q$, $N$ лежат на средней линии (все на серединном уровне между основаниями). Обозначим $AD = a$, $BC = b$.`,
+    `Точка $P$ — середина диагонали $AC$, поэтому $MP$ — средняя линия треугольника $ABC$ и $MP = \\tfrac{1}{2}BC = \\tfrac{b}{2}$. Аналогично $QN = \\tfrac{b}{2}$. Вся средняя линия $MN = \\tfrac{a+b}{2}$, поэтому`,
+    geo(trapezoidSegmentsFigure),
+    `$$PQ = MN - MP - QN = \\frac{a+b}{2} - \\frac{b}{2} - \\frac{b}{2} = \\frac{a-b}{2} = \\frac{AD - BC}{2}.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Основания`,
+    `Из условия $\\dfrac{a+b}{2} = 6$ и $\\dfrac{a-b}{2} = 2$, то есть $a + b = 12$ и $a - b = 4$. Решая систему, получаем $a = 8$, $b = 4$.`,
+    `**Ответ:** б) основания равны $8$ и $4$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · ВЫСОТА ИЗ ПРЯМОГО УГЛА (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const altitudeFigure = {
+  maxWidth: 440,
+  maxHeight: 300,
+  points: {
+    A: [0, 0],
+    B: [13, 0],
+    C: [4, 6],
+    H: [4, 0],
+  },
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'A' },
+    { from: 'C', to: 'H', style: 'section' },
+  ],
+  rightAngles: [
+    { at: 'C', from: 'A', to: 'B' },
+    { at: 'H', from: 'C', to: 'A' },
+  ],
+  dims: [
+    { from: 'A', to: 'H', text: '4' },
+    { from: 'H', to: 'B', text: '9' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 4, anchor: 'end' },
+    B: { dx: 8, dy: 4, anchor: 'start' },
+    C: { dx: 0, dy: -12, anchor: 'middle' },
+    H: { dx: 0, dy: 16, anchor: 'middle' },
+  },
+};
+
+const altitudeSimilarFigure = {
+  maxWidth: 440,
+  maxHeight: 300,
+  points: {
+    A: [0, 0],
+    B: [13, 0],
+    C: [4, 6],
+    H: [4, 0],
+  },
+  fills: [{ points: ['A', 'C', 'H'] }, { points: ['C', 'B', 'H'] }],
+  edges: [
+    { from: 'A', to: 'C' },
+    { from: 'C', to: 'H' },
+    { from: 'H', to: 'A' },
+    { from: 'C', to: 'B' },
+    { from: 'B', to: 'H' },
+  ],
+  angles: [
+    { at: 'A', from: 'C', to: 'B', label: 'β' },
+    { at: 'C', from: 'H', to: 'B', label: 'β' },
+  ],
+  rightAngles: [{ at: 'H', from: 'C', to: 'A' }],
+  labels: {
+    A: { dx: -8, dy: 4, anchor: 'end' },
+    B: { dx: 8, dy: 4, anchor: 'start' },
+    C: { dx: 0, dy: -12, anchor: 'middle' },
+    H: { dx: 0, dy: 16, anchor: 'middle' },
+  },
+};
+
+const altitudeGeometricMean: GeometryTask = {
+  publicId: 'G17ALT1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: LYSENKO,
+  correctAnswer: 'б) 6',
+  statement: [
+    `В прямоугольном треугольнике $ABC$ с прямым углом $C$ проведена высота $CH$ к гипотенузе $AB$.`,
+    `**а)** Докажите, что $CH^2 = AH \\cdot BH$.`,
+    `**б)** Найдите $CH$, если $AH = 4$ и $BH = 9$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(altitudeFigure),
+    `Рассмотрим треугольники $ACH$ и $CBH$. Оба прямоугольные ($\\angle AHC = \\angle CHB = 90°$). Угол $\\angle CAH$ (то есть $\\angle A$) равен углу $\\angle BCH$, так как оба дополняют угол $\\angle ACH$ до $90°$.`,
+    geo(altitudeSimilarFigure),
+    `Значит, $\\triangle ACH \\sim \\triangle CBH$ по двум углам, откуда`,
+    `$$\\frac{CH}{BH} = \\frac{AH}{CH} \\quad\\Rightarrow\\quad CH^2 = AH \\cdot BH.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Вычисление $CH$`,
+    `$$CH = \\sqrt{AH \\cdot BH} = \\sqrt{4 \\cdot 9} = \\sqrt{36} = 6.$$`,
+    `**Ответ:** б) $6$.`,
+  ].join('\n\n'),
+};
+
 const geometryTasks: GeometryTask[] = [
   stereometrySection,
   prismSection,
@@ -2138,6 +2703,9 @@ const geometryTasks: GeometryTask[] = [
   rhombusInCube,
   hexSection,
   perpEdgePyramid,
+  cubeDiagPlane,
+  prismTriangleSection,
+  pyramidMidSection,
   planimetrySimilarity,
   planimetryMedian,
   trapezoidMidline,
@@ -2149,6 +2717,9 @@ const geometryTasks: GeometryTask[] = [
   twoTangentCircles,
   tangentSecant,
   trapezoidDiagonalArea,
+  bisectorProperty,
+  trapezoidMidlineSegment,
+  altitudeGeometricMean,
 ];
 
 async function main() {
