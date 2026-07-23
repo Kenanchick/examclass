@@ -19,6 +19,7 @@ import {
   useFavoritesQuery,
 } from "@/entities/favorite/api/use-favorites-query";
 import { useTaskQuery } from "@/entities/task/api/use-task-query";
+import { MathText } from "@/shared/ui/math-text";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
@@ -311,9 +312,7 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
               </div>
 
               <div className="px-7 py-8 sm:px-9 sm:py-10">
-                <p className="max-w-4xl text-xl leading-9 text-ink sm:text-[1.35rem]">
-                  {task.statement}
-                </p>
+                <MathText className="max-w-4xl text-xl leading-9 text-ink sm:text-[1.35rem]" content={task.statement} />
 
                 <div className="mt-9 rounded-2xl border border-line bg-panel/60 p-4 sm:p-5">
                   <label
@@ -388,9 +387,7 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
                           <NotebookPen className="size-5" />
                           Разбор решения
                         </p>
-                        <p className="mt-3 max-w-2xl text-base leading-7 text-ink">
-                          {task.referenceSolution ?? "Решение скоро появится."}
-                        </p>
+                        <MathText className="mt-3 max-w-2xl text-base leading-7 text-ink" content={task.referenceSolution ?? "Решение скоро появится."} />
                         {task.correctAnswer && (
                           <p className="mt-4 text-sm font-bold text-success">
                             Ответ: {task.correctAnswer}
