@@ -201,7 +201,7 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
             />
           </section>
 
-          <div className="mt-6 grid gap-6 2xl:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="mt-6 grid gap-6 2xl:grid-cols-[minmax(0,1fr)_300px]">
             <article className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_16px_35px_rgba(15,43,76,0.06)]">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line px-7 py-6 sm:px-9">
                 <div className="flex items-center gap-3">
@@ -351,35 +351,39 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
               </div>
             </article>
 
-            <aside className="hidden 2xl:flex 2xl:flex-col 2xl:gap-5">
-              <div className="relative overflow-hidden rounded-3xl border border-line bg-white p-5">
-                <p className="text-sm font-bold text-ink">
-                  Геометрический настрой
-                </p>
-                <p className="mt-2 max-w-[145px] text-sm leading-6 text-muted">
-                  Делайте небольшой чертёж даже в простых задачах.
-                </p>
+            <aside className="hidden 2xl:flex 2xl:flex-col 2xl:gap-10 2xl:py-4">
+              <div className="flex items-center gap-3">
                 <Image
                   alt="Ёжик изучает геометрию"
-                  className="mt-3 h-auto w-36"
+                  className="h-auto w-28 shrink-0"
                   height={1448}
                   src="/hedgehog.png"
                   width={1086}
                 />
+                <div className="relative min-w-0 pt-1 before:absolute before:-left-7 before:top-1/2 before:h-px before:w-8 before:-translate-y-1/2 before:bg-gradient-to-r before:from-brand/20 before:to-brand/80 after:absolute after:-left-8 after:top-1/2 after:size-2 after:-translate-y-1/2 after:rounded-full after:bg-brand/80 after:ring-4 after:ring-brand/10">
+                  <p className="text-sm font-bold text-ink">
+                    Геометрический настрой
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-muted">
+                    Делайте небольшой чертёж даже в простых задачах.
+                  </p>
+                </div>
               </div>
 
-              <div className="relative overflow-hidden rounded-3xl border border-[#c6ddf5] bg-[#eef6ff] p-5">
-                <p className="text-sm font-bold text-ink">Проверка</p>
-                <p className="mt-2 max-w-[145px] text-sm leading-6 text-muted">
-                  Сверяйте единицы измерения и формат ответа.
-                </p>
+              <div className="flex items-center gap-3">
                 <Image
                   alt="Лисёнок проверяет ответ"
-                  className="mt-3 h-auto w-36"
+                  className="h-auto w-28 shrink-0"
                   height={1448}
                   src="/fox.png"
                   width={1086}
                 />
+                <div className="relative min-w-0 pt-1 before:absolute before:-left-7 before:top-1/2 before:h-px before:w-8 before:-translate-y-1/2 before:bg-gradient-to-r before:from-brand/20 before:to-brand/80 after:absolute after:-left-8 after:top-1/2 after:size-2 after:-translate-y-1/2 after:rounded-full after:bg-brand/80 after:ring-4 after:ring-brand/10">
+                  <p className="text-sm font-bold text-ink">Проверка</p>
+                  <p className="mt-2 text-sm leading-6 text-muted">
+                    Сверяйте единицы измерения и формат ответа.
+                  </p>
+                </div>
               </div>
             </aside>
           </div>
