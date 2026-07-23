@@ -43,3 +43,9 @@ export async function login(data: LoginRequest) {
 
   return response.data;
 }
+
+export async function getCurrentUser() {
+  const response = await apiClient.get<User>("/auth/me");
+
+  return response.data;
+}

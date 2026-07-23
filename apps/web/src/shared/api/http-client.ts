@@ -22,3 +22,30 @@ apiClient.interceptors.request.use((config) => {
 
   return config;
 });
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: unknown) => {
+    if (
+      typeof window !== "undefined" &&
+      axios.isAxiosError(error) &&
+      error.response?.status === 401
+    ) {
+      const hadAccessToken = Boolean(
+        window.localStorage.getItem("accessToken"),
+      );
+
+      window.localStorage.removeItem("accessToken");
+
+      if (hadAccessToken && window.location.pathname !== "/login") {
+        window.sessionStorage.setItem(
+          "authNotice",
+          "Сессия завершилась. Войдите ещё раз — теперь вход сохранится на 7 дней.",
+        );
+        window.location.replace("/login");
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);

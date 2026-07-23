@@ -16,9 +16,8 @@ type JwtAccessTokenTtl = `${number}${'s' | 'm' | 'h' | 'd'}`;
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
         signOptions: {
-          expiresIn: configService.getOrThrow<string>(
-            'JWT_ACCESS_TTL',
-          ) as JwtAccessTokenTtl,
+          expiresIn: (configService.get<string>('JWT_ACCESS_TTL') ??
+            '7d') as JwtAccessTokenTtl,
         },
       }),
     }),

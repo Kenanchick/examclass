@@ -5,7 +5,7 @@ import { loginFormSchema, type LoginFormValues } from "../model/login.schema";
 
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { type ApiErrorResponse, login as loginUser } from "@/shared/api/auth";
 import Link from "next/link";
 
@@ -21,6 +21,16 @@ export function LoginForm() {
     mode: "onBlur",
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [sessionNotice, setSessionNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    const notice = window.sessionStorage.getItem("authNotice");
+
+    if (notice) {
+      setSessionNotice(notice);
+      window.sessionStorage.removeItem("authNotice");
+    }
+  }, []);
 
   async function onSubmit(data: LoginFormValues) {
     setSubmitError(null);
@@ -29,6 +39,7 @@ export function LoginForm() {
       const response = await loginUser(data);
 
       window.localStorage.setItem("accessToken", response.accessToken);
+      setSessionNotice(null);
       router.replace("/dashboard");
     } catch (error) {
       if (axios.isAxiosError<ApiErrorResponse>(error)) {
@@ -88,6 +99,15 @@ export function LoginForm() {
           </p>
         )}
       </label>
+
+      {sessionNotice && (
+        <p
+          className="rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm leading-5 text-brand"
+          role="status"
+        >
+          {sessionNotice}
+        </p>
+      )}
 
       {submitError && (
         <p className="text-sm text-danger" role="alert">
