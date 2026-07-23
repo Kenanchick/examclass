@@ -68,10 +68,18 @@ export function TaskBankList() {
     <section className="relative overflow-hidden p-6 sm:p-8 lg:p-10">
       <div className="absolute right-0 top-0 hidden h-56 w-56 items-center justify-center lg:flex">
         <Image
-          alt="Помощник ExamClass"
-          className="h-auto w-40"
+          alt={
+            subjectData?.topics.length === 0
+              ? "Задумчивый помощник ExamClass"
+              : "Помощник ExamClass"
+          }
+          className={
+            subjectData?.topics.length === 0 ? "h-auto w-36" : "h-auto w-40"
+          }
           height={2000}
-          src="/cat.png"
+          src={
+            subjectData?.topics.length === 0 ? "/thinking-cat.png" : "/cat.png"
+          }
           width={2000}
         />
       </div>
@@ -92,7 +100,7 @@ export function TaskBankList() {
             return (
               <button
                 aria-pressed={isActive}
-                className={`rounded-xl border px-5 py-3 text-[15px] font-semibold transition ${
+                className={`cursor-pointer rounded-xl border px-5 py-3 text-[15px] font-semibold transition ${
                   isActive
                     ? "border-brand bg-brand/10 text-brand"
                     : "border-line bg-white text-ink hover:bg-panel"
@@ -143,7 +151,7 @@ export function TaskBankList() {
                 >
                   <button
                     aria-expanded={hasSubtopics ? isOpen : undefined}
-                    className="group flex min-h-16 w-full items-center gap-4 rounded-xl border border-line px-4 text-left transition hover:border-brand/40 hover:bg-panel"
+                    className="group flex min-h-16 w-full cursor-pointer items-center gap-4 rounded-xl border border-line px-4 text-left transition hover:border-brand/40 hover:bg-panel"
                     onClick={() => {
                       if (hasSubtopics) {
                         setOpenedTopicId(isOpen ? null : topic.id);
@@ -181,7 +189,7 @@ export function TaskBankList() {
                       <div className="mt-2 rounded-xl border border-brand/15 bg-brand/5 p-2">
                         {topic.children.map((subtopic) => (
                           <button
-                            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-white"
+                            className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-white"
                             key={subtopic.id}
                             type="button"
                           >
