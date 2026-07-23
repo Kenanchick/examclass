@@ -38,6 +38,11 @@ function normalizeAnswer(value: string) {
 function DifficultyDots({ difficulty }: { difficulty: number }) {
   const difficultyLevel = Math.min(Math.max(difficulty, 1), 3);
   const colors = ["bg-success", "bg-amber-400", "bg-danger"];
+  const glowClasses = [
+    "difficulty-dot--easy",
+    "difficulty-dot--medium",
+    "difficulty-dot--hard",
+  ];
 
   return (
     <div
@@ -51,19 +56,11 @@ function DifficultyDots({ difficulty }: { difficulty: number }) {
           <span
             className={`size-3 rounded-full ${
               isActive
-                ? `${colors[index]} ${
-                    difficultyLevel === 1
-                      ? "animate-[twinkle_2.6s_ease-in-out_infinite]"
-                      : ""
-                  }`
+                ? `${colors[index]} ${glowClasses[index]} animate-[twinkle_2.6s_ease-in-out_infinite]`
                 : "bg-line"
             }`}
             key={index}
-            style={
-              difficultyLevel === 1 && isActive
-                ? { animationDelay: `${index * 180}ms` }
-                : undefined
-            }
+            style={isActive ? { animationDelay: `${index * 180}ms` } : undefined}
           />
         );
       })}

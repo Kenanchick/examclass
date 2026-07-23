@@ -33,14 +33,26 @@ body {
 @keyframes twinkle {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgb(15 85 160 / 0%);
+    box-shadow: 0 0 0 0 var(--difficulty-glow);
     opacity: 0.7;
     transform: scale(0.9);
   }
 
   50% {
-    box-shadow: 0 0 0 5px rgb(15 85 160 / 12%);
+    box-shadow: 0 0 0 5px var(--difficulty-glow);
     opacity: 1;
     transform: scale(1.15);
   }
+}
+
+.difficulty-dot--easy {
+  --difficulty-glow: rgb(40 139 96 / 18%);
+}
+
+.difficulty-dot--medium {
+  --difficulty-glow: rgb(245 158 11 / 22%);
+}
+
+.difficulty-dot--hard {
+  --difficulty-glow: rgb(184 48 48 / 20%);
 }
