@@ -2,24 +2,20 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { ArrowRight, Star } from "lucide-react";
 import { useFavoritesQuery } from "@/entities/favorite/api/use-favorites-query";
 import { getTaskExamNumber } from "@/entities/task/model/task";
 import { useFavoritesFilter } from "@/features/favorites/filter/model/use-favorites-filter";
 import { FavoritesFilters } from "@/features/favorites/filter/ui/favorites-filters";
 import { MathText } from "@/shared/ui/math-text";
+import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
 export function StudentFavoritesPage() {
-  const [hasAccessToken, setHasAccessToken] = useState(false);
-  const favoritesQuery = useFavoritesQuery(hasAccessToken);
+  const hasAccessToken = useAccessToken();
+  const favoritesQuery = useFavoritesQuery(hasAccessToken === true);
   const favoritesFilter = useFavoritesFilter(favoritesQuery.data);
-
-  useEffect(() => {
-    setHasAccessToken(Boolean(window.localStorage.getItem("accessToken")));
-  }, []);
 
   const favorites = favoritesQuery.data;
   const hasFavorites = Boolean(favorites && favorites.length > 0);
@@ -52,7 +48,7 @@ export function StudentFavoritesPage() {
             />
           </section>
 
-          {!hasAccessToken && (
+          {hasAccessToken === false && (
             <div className="mt-6 rounded-3xl border border-line bg-white p-7 text-center">
               <p className="text-lg font-semibold text-ink">
                 Войдите, чтобы сохранять задачи
@@ -67,7 +63,7 @@ export function StudentFavoritesPage() {
             </div>
           )}
 
-          {hasAccessToken && favoritesQuery.isPending && (
+          {hasAccessToken === true && favoritesQuery.isPending && (
             <div className="mt-6">
               <RequestState
                 description="Собираем сохранённые задания в ваш личный список."
@@ -77,7 +73,7 @@ export function StudentFavoritesPage() {
             </div>
           )}
 
-          {hasAccessToken && favoritesQuery.isError && (
+          {hasAccessToken === true && favoritesQuery.isError && (
             <div className="mt-6">
               <RequestState
                 description="Сохранённые задачи временно недоступны. Попробуйте загрузить их ещё раз."

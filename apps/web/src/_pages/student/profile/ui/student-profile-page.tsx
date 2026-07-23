@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ArrowRight, CalendarDays, GraduationCap, Mail } from "lucide-react";
+import { useHomeworkQuery } from "@/entities/homework/api/use-homework-query";
+import { toHomeworkCalendarEvents } from "@/entities/homework/lib/to-homework-calendar-events";
 import { useCurrentUserQuery } from "@/entities/user/api/use-current-user-query";
 import { ProfileCalendar } from "@/features/profile/calendar/ui/profile-calendar";
 import { ProfileSettings } from "@/features/profile/settings/ui/profile-settings";
+import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
@@ -22,21 +25,17 @@ function getInitials(name: string) {
 
 export function StudentProfilePage() {
   const router = useRouter();
-  const [isAuthReady, setIsAuthReady] = useState(false);
-  const [hasAccessToken, setHasAccessToken] = useState(false);
-  const currentUserQuery = useCurrentUserQuery(hasAccessToken);
+  const hasAccessToken = useAccessToken();
+  const currentUserQuery = useCurrentUserQuery(hasAccessToken === true);
+  const homeworkQuery = useHomeworkQuery(hasAccessToken === true);
   const currentUser = currentUserQuery.data;
+  const calendarEvents = toHomeworkCalendarEvents(homeworkQuery.data ?? []);
 
   useEffect(() => {
-    const hasToken = Boolean(window.localStorage.getItem("accessToken"));
-
-    setHasAccessToken(hasToken);
-    setIsAuthReady(true);
-
-    if (!hasToken) {
+    if (hasAccessToken === false) {
       router.replace("/login");
     }
-  }, [router]);
+  }, [hasAccessToken, router]);
 
   const formattedCreatedAt = currentUser
     ? new Intl.DateTimeFormat("ru-RU", {
@@ -45,7 +44,10 @@ export function StudentProfilePage() {
       }).format(new Date(currentUser.createdAt))
     : "";
 
-  if (!isAuthReady || (hasAccessToken && currentUserQuery.isPending)) {
+  if (
+    hasAccessToken === null ||
+    (hasAccessToken && currentUserQuery.isPending)
+  ) {
     return (
       <StudentLayout>
         <main className="min-w-0 p-4 sm:p-7 lg:p-8">
@@ -61,7 +63,7 @@ export function StudentProfilePage() {
     );
   }
 
-  if (hasAccessToken && currentUserQuery.isError) {
+  if (hasAccessToken === true && currentUserQuery.isError) {
     return (
       <StudentLayout>
         <main className="min-w-0 p-4 sm:p-7 lg:p-8">
@@ -135,7 +137,7 @@ export function StudentProfilePage() {
           </section>
 
           <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(380px,0.65fr)]">
-            <ProfileCalendar />
+            <ProfileCalendar events={calendarEvents} />
             <ProfileSettings user={currentUser} />
           </div>
         </div>

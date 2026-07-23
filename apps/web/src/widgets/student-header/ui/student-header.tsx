@@ -15,6 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useCurrentUserQuery } from "@/entities/user/api/use-current-user-query";
+import { useAccessToken } from "@/shared/model/use-access-token";
 import { StudentMobileMenu } from "@/widgets/student-sidebar/ui/student-navigation-mobile";
 
 function getInitials(name?: string) {
@@ -37,15 +38,11 @@ export function StudentHeader() {
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
-  const [hasAccessToken, setHasAccessToken] = useState(false);
+  const hasAccessToken = useAccessToken();
   const [searchValue, setSearchValue] = useState("");
-  const currentUserQuery = useCurrentUserQuery(hasAccessToken);
+  const currentUserQuery = useCurrentUserQuery(hasAccessToken === true);
   const currentUser = currentUserQuery.data;
   const shortName = currentUser?.name.split(" ")[0] ?? "Профиль";
-
-  useEffect(() => {
-    setHasAccessToken(Boolean(window.localStorage.getItem("accessToken")));
-  }, []);
 
   useEffect(() => {
     if (!isProfileMenuOpen) {

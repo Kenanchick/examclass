@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import axios from "axios";
 import { ArrowLeft } from "lucide-react";
 import {
@@ -13,6 +12,7 @@ import {
 import { useTaskQuery } from "@/entities/task/api/use-task-query";
 import { getTaskExamNumber } from "@/entities/task/model/task";
 import { TaskCard } from "@/entities/task/ui/task-card";
+import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
@@ -82,16 +82,13 @@ function StudyHint({
 export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
   const router = useRouter();
   const taskQuery = useTaskQuery(publicId);
-  const [hasAccessToken, setHasAccessToken] = useState(false);
-  const favoritesQuery = useFavoritesQuery(hasAccessToken);
+  const hasAccessToken = useAccessToken();
+  const favoritesQuery = useFavoritesQuery(hasAccessToken === true);
   const { addMutation, removeMutation } = useFavoriteMutations();
   const task = taskQuery.data;
   const isTaskMissing =
-    axios.isAxiosError(taskQuery.error) && taskQuery.error.response?.status === 404;
-
-  useEffect(() => {
-    setHasAccessToken(Boolean(window.localStorage.getItem("accessToken")));
-  }, []);
+    axios.isAxiosError(taskQuery.error) &&
+    taskQuery.error.response?.status === 404;
 
   if (taskQuery.isPending) {
     return (
@@ -118,7 +115,9 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
                   ? "Проверьте ID задачи: возможно, в нём есть опечатка или это задание пока недоступно."
                   : "Не получилось получить задание с сервера. Попробуйте загрузить страницу ещё раз."
               }
-              onRetry={isTaskMissing ? undefined : () => void taskQuery.refetch()}
+              onRetry={
+                isTaskMissing ? undefined : () => void taskQuery.refetch()
+              }
               title={
                 isTaskMissing
                   ? "Такой задачи не нашлось"
@@ -140,7 +139,7 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
   const isFavoritePending = addMutation.isPending || removeMutation.isPending;
 
   const handleFavorite = () => {
-    if (!hasAccessToken) {
+    if (hasAccessToken !== true) {
       router.push("/login");
       return;
     }

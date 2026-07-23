@@ -9,18 +9,12 @@ import {
   Flag,
   Sparkles,
 } from "lucide-react";
-import { useMemo, useState } from "react";
-
-export type ProfileCalendarEvent = {
-  id: string;
-  title: string;
-  date: string;
-  time?: string;
-  kind: "homework" | "deadline" | "event";
-};
+import { useEffect, useMemo, useState } from "react";
+import { parseDateKey, toDateKey } from "@/shared/lib/date";
+import type { CalendarEvent } from "@/shared/model/calendar-event";
 
 type ProfileCalendarProps = {
-  events?: ProfileCalendarEvent[];
+  events?: CalendarEvent[];
 };
 
 const weekDays = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
@@ -42,14 +36,6 @@ const eventKinds = {
     icon: Sparkles,
   },
 } as const;
-
-function toDateKey(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
 
 function isSameDate(first: Date, second: Date) {
   return toDateKey(first) === toDateKey(second);
@@ -82,7 +68,7 @@ export function ProfileCalendar({ events = [] }: ProfileCalendarProps) {
     return result;
   }, [visibleMonth]);
   const eventsByDate = useMemo(() => {
-    return events.reduce<Record<string, ProfileCalendarEvent[]>>(
+    return events.reduce<Record<string, CalendarEvent[]>>(
       (accumulator, event) => {
         const dateEvents = accumulator[event.date] ?? [];
 
@@ -105,6 +91,19 @@ export function ProfileCalendar({ events = [] }: ProfileCalendarProps) {
     month: "long",
   }).format(selectedDate);
 
+  useEffect(() => {
+    const requestedDate = parseDateKey(
+      new URLSearchParams(window.location.search).get("date"),
+    );
+
+    if (requestedDate) {
+      setVisibleMonth(
+        new Date(requestedDate.getFullYear(), requestedDate.getMonth(), 1),
+      );
+      setSelectedDate(requestedDate);
+    }
+  }, []);
+
   const changeMonth = (offset: number) => {
     const nextMonth = new Date(
       visibleMonth.getFullYear(),
@@ -126,7 +125,10 @@ export function ProfileCalendar({ events = [] }: ProfileCalendarProps) {
   };
 
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-line bg-white">
+    <section
+      className="scroll-mt-6 overflow-hidden rounded-[2rem] border border-line bg-white"
+      id="calendar"
+    >
       <div className="border-b border-line px-6 py-6 sm:px-8 sm:py-7">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-4">

@@ -13,6 +13,7 @@ import {
 import { TaskCard } from "@/entities/task/ui/task-card";
 import { useTopicTasksQuery } from "@/entities/topic/api/use-topic-tasks-query";
 import { formatTaskCount } from "@/entities/topic/lib/format-task-count";
+import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 import { TaskBankSidebar } from "@/widgets/task-bank-sidebar/ui/task-bank-sidebar";
@@ -24,18 +25,14 @@ type StudentTopicTasksPageProps = {
 export function StudentTopicTasksPage({ topicId }: StudentTopicTasksPageProps) {
   const router = useRouter();
   const topicTasksQuery = useTopicTasksQuery(topicId);
-  const [hasAccessToken, setHasAccessToken] = useState(false);
+  const hasAccessToken = useAccessToken();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const favoritesQuery = useFavoritesQuery(hasAccessToken);
+  const favoritesQuery = useFavoritesQuery(hasAccessToken === true);
   const { addMutation, removeMutation } = useFavoriteMutations();
   const data = topicTasksQuery.data;
   const isTopicMissing =
     axios.isAxiosError(topicTasksQuery.error) &&
     topicTasksQuery.error.response?.status === 404;
-
-  useEffect(() => {
-    setHasAccessToken(Boolean(window.localStorage.getItem("accessToken")));
-  }, []);
 
   useEffect(() => {
     setIsMobileNavOpen(false);
@@ -89,7 +86,7 @@ export function StudentTopicTasksPage({ topicId }: StudentTopicTasksPageProps) {
   const isFavoritePending = addMutation.isPending || removeMutation.isPending;
 
   const handleToggleFavorite = (publicId: string, isFavorite: boolean) => {
-    if (!hasAccessToken) {
+    if (hasAccessToken !== true) {
       router.push("/login");
       return;
     }
@@ -131,7 +128,9 @@ export function StudentTopicTasksPage({ topicId }: StudentTopicTasksPageProps) {
                   type="button"
                 >
                   <ListTree className="size-5 text-brand" />
-                  <span className="flex-1">Все темы · {topic.subject.name}</span>
+                  <span className="flex-1">
+                    Все темы · {topic.subject.name}
+                  </span>
                 </button>
 
                 <div

@@ -20,7 +20,7 @@ export type StudentNavigationItem = {
 export const studentNavigation: StudentNavigationItem[] = [
   { label: "Главная", icon: House, href: "/dashboard" },
   { label: "Избранное", icon: Star, href: "/favorites" },
-  { label: "Домашние", icon: ClipboardCheck },
+  { label: "Домашние", icon: ClipboardCheck, href: "/homework" },
   { label: "Варианты", icon: FileText },
   { label: "Сообщения", icon: MessagesSquare },
   { label: "AI Помощник", icon: Bot },
