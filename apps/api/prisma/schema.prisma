@@ -56,9 +56,10 @@ model User {
   updatedAt    DateTime @updatedAt
   role         Role     @default(STUDENT)
 
-  ownedClassrooms      Classroom[]       @relation("ClassroomOwner")
+  ownedClassrooms      Classroom[]          @relation("ClassroomOwner")
   classroomMemberships ClassroomMember[]
   favoriteTasks        TaskFavorite[]
+  assignedHomework     HomeworkAssignment[] @relation("HomeworkAssignedBy")
 }
 
 model Subject {
@@ -89,7 +90,8 @@ model Classroom {
   owner   User    @relation("ClassroomOwner", fields: [ownerId], references: [id])
   subject Subject @relation(fields: [subjectId], references: [id])
 
-  members ClassroomMember[]
+  members             ClassroomMember[]
+  homeworkAssignments HomeworkAssignment[]
 
   @@index([ownerId])
   @@index([subjectId])
@@ -146,8 +148,9 @@ model Task {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  topic     Topic          @relation(fields: [topicId], references: [id], onDelete: Restrict)
-  favorites TaskFavorite[]
+  topic               Topic                    @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  favorites           TaskFavorite[]
+  homeworkAssignments HomeworkAssignmentTask[]
 
   @@index([topicId, status])
   @@index([examPart, status])
@@ -163,6 +166,37 @@ model TaskFavorite {
 
   @@id([userId, taskId])
   @@index([userId, createdAt])
+}
+
+model HomeworkAssignment {
+  id           String   @id @default(cuid())
+  publicId     String   @unique
+  title        String
+  description  String?
+  deadline     DateTime
+  classroomId  String
+  assignedById String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  classroom  Classroom                @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  assignedBy User                     @relation("HomeworkAssignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
+  tasks      HomeworkAssignmentTask[]
+
+  @@index([classroomId, deadline])
+  @@index([assignedById])
+}
+
+model HomeworkAssignmentTask {
+  homeworkId String
+  taskId     String
+  sortOrder  Int    @default(0)
+
+  homework HomeworkAssignment @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  task     Task               @relation(fields: [taskId], references: [id], onDelete: Restrict)
+
+  @@id([homeworkId, taskId])
+  @@index([taskId])
 }
 
 model TopicPrerequisite {
