@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo } from "react";
-import { ArrowRight, ChevronDown, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronDown } from "lucide-react";
 import { useSubjectsQuery } from "@/entities/subject/api/use-subjects-query";
 import { useSubjectTopicsQuery } from "@/entities/topic/api/use-subject-topics-query";
 import { useTaskBankStore } from "./model/task-bank-store";
@@ -13,9 +13,9 @@ type SubjectComingSoonProps = {
 
 function SubjectComingSoon({ subjectName }: SubjectComingSoonProps) {
   return (
-    <div className="flex flex-col items-start gap-5 rounded-2xl border border-dashed border-brand/30 bg-gradient-to-br from-brand/10 via-panel to-white p-6 sm:flex-row sm:items-center sm:p-8">
-      <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-white text-brand shadow-[0_4px_0_#c8d5e5,0_10px_20px_rgba(15,43,76,0.08)]">
-        <Sparkles className="size-7" />
+    <div className="flex flex-col items-start gap-5 rounded-2xl border-2 border-dashed border-[#c6ddf5] bg-[#eef6ff] p-6 sm:flex-row sm:items-center sm:p-8">
+      <span className="grid size-14 shrink-0 rotate-[-3deg] place-items-center rounded-[1.15rem] bg-[#d9ebff] text-brand shadow-[0_4px_0_#9fc8ee]">
+        <BookOpen className="size-7" strokeWidth={2.2} />
       </span>
 
       <div>
