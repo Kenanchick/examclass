@@ -133,7 +133,7 @@ export function TaskBankList() {
 
                     {hasSubtopics ? (
                       <ChevronDown
-                        className={`size-5 text-brand transition-transform ${
+                        className={`size-5 text-brand transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
                           isOpen ? "rotate-180" : ""
                         }`}
                       />
@@ -143,7 +143,7 @@ export function TaskBankList() {
                   </button>
 
                   <div
-                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                    className={`grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
                       isOpen
                         ? "grid-rows-[1fr] opacity-100"
                         : "grid-rows-[0fr] opacity-0"
