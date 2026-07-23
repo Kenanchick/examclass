@@ -51,12 +51,14 @@ function DifficultyDots({ difficulty }: { difficulty: number }) {
     >
       {Array.from({ length: 3 }, (_, index) => {
         const isActive = index < difficultyLevel;
+        const activeColor = colors[difficultyLevel - 1];
+        const activeGlowClass = glowClasses[difficultyLevel - 1];
 
         return (
           <span
             className={`size-3 rounded-full ${
               isActive
-                ? `${colors[index]} ${glowClasses[index]} animate-[twinkle_2.6s_ease-in-out_infinite]`
+                ? `${activeColor} ${activeGlowClass} animate-[twinkle_2.6s_ease-in-out_infinite]`
                 : "bg-line"
             }`}
             key={index}
