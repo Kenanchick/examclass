@@ -121,12 +121,32 @@ model Topic {
   subject  Subject @relation(fields: [subjectId], references: [id])
   parent   Topic?  @relation("TopicHierarchy", fields: [parentId], references: [id])
   children Topic[] @relation("TopicHierarchy")
+  tasks    Task[]
 
   prerequisiteLinks TopicPrerequisite[] @relation("DependentTopic")
   unlocksTopics     TopicPrerequisite[] @relation("PrerequisiteTopic")
 
   @@unique([subjectId, slug])
   @@index([subjectId, parentId])
+}
+
+model Task {
+  id                String     @id @default(cuid())
+  topicId           String
+  examPart          ExamPart
+  statement         String
+  correctAnswer     String?
+  referenceSolution String?
+  difficulty        Int        @default(1)
+  status            TaskStatus @default(DRAFT)
+  source            String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Restrict)
+
+  @@index([topicId, status])
+  @@index([examPart, status])
 }
 
 model TopicPrerequisite {
