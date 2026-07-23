@@ -61,16 +61,16 @@ function StudyHint({
 
       <svg
         aria-hidden="true"
-        className={`pointer-events-none absolute z-20 h-14 w-[94px] text-ink/80 ${
+        className={`pointer-events-none absolute z-20 h-14 w-[76px] text-ink/80 ${
           isMagnifierConnector
             ? "left-[125px] top-[104px]"
             : "left-[132px] top-[66px]"
         }`}
         fill="none"
-        viewBox="0 0 94 56"
+        viewBox="0 0 76 56"
       >
         <path
-          d="M2 23C17 5 27 43 43 27C58 12 71 8 92 21"
+          d="M2 23C15 6 24 42 37 28C49 15 59 10 74 21"
           stroke="currentColor"
           strokeLinecap="round"
           strokeWidth="1.8"
