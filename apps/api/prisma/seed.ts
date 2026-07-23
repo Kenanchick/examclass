@@ -1,9 +1,11 @@
 import 'dotenv/config';
 
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as argon2 from 'argon2';
 import {
   ExamPart,
   PrismaClient,
+  Role,
   TaskStatus,
   TopicStatus,
 } from '../src/generated/prisma/client';
@@ -17,6 +19,19 @@ if (!connectionString) {
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 });
+
+const demoStudent = {
+  email: 'demo@examclass.local',
+  name: 'Демо-ученик',
+  password: 'DemoPass123',
+};
+
+const passwordHashOptions: argon2.HashOptions = {
+  type: argon2.argon2id as 2,
+  memoryCost: 19_456,
+  timeCost: 2,
+  parallelism: 1,
+};
 
 const subjects = [
   {
@@ -372,6 +387,28 @@ const tasks = [
 ];
 
 async function main() {
+  const demoPasswordHash = (await argon2.hash(
+    demoStudent.password,
+    passwordHashOptions,
+  )) as string;
+
+  await prisma.user.upsert({
+    where: {
+      email: demoStudent.email,
+    },
+    update: {
+      name: demoStudent.name,
+      passwordHash: demoPasswordHash,
+      role: Role.STUDENT,
+    },
+    create: {
+      email: demoStudent.email,
+      name: demoStudent.name,
+      passwordHash: demoPasswordHash,
+      role: Role.STUDENT,
+    },
+  });
+
   const seededSubjects = new Map<string, string>();
 
   for (const subject of subjects) {
@@ -496,7 +533,7 @@ async function main() {
   }
 
   console.log(
-    'Seed completed: subjects, topics, and profile math tasks were added',
+    'Seed completed: demo student, subjects, topics, and profile math tasks were added',
   );
 }
 

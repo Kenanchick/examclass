@@ -25,6 +25,6 @@ type JwtAccessTokenTtl = `${number}${'s' | 'm' | 'h' | 'd'}`;
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtAuthGuard],
-  exports: [AuthService, JwtAuthGuard],
+  exports: [AuthService, JwtAuthGuard, JwtModule],
 })
 export class AuthModule {}

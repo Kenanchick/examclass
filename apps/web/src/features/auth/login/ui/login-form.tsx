@@ -4,14 +4,13 @@ import { useForm } from "react-hook-form";
 import { loginFormSchema, type LoginFormValues } from "../model/login.schema";
 
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import {
-  type ApiErrorResponse,
-  login as loginUser,
-} from "@/shared/api/auth";
+import { type ApiErrorResponse, login as loginUser } from "@/shared/api/auth";
 import Link from "next/link";
 
 export function LoginForm() {
+  const router = useRouter();
   const {
     register,
     formState: { errors, isSubmitting },
@@ -30,6 +29,7 @@ export function LoginForm() {
       const response = await loginUser(data);
 
       window.localStorage.setItem("accessToken", response.accessToken);
+      router.replace("/dashboard");
     } catch (error) {
       if (axios.isAxiosError<ApiErrorResponse>(error)) {
         const message = error.response?.data.message;
