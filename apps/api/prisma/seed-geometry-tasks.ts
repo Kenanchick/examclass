@@ -22,8 +22,9 @@ function geo(spec: unknown): string {
   return ['```geo', JSON.stringify(spec), '```'].join('\n');
 }
 
-/** Единый источник для всех задач этого набора. */
+/** Источники: ФИПИ/реальный экзамен — одно, прочие сайты — «ExamClass». */
 const SOURCE = 'Реальные задания (ЕГЭ, ФИПИ)';
+const EXAMCLASS = 'ExamClass';
 
 type GeometryTask = {
   publicId: string;
@@ -1145,6 +1146,379 @@ const centroidArea: GeometryTask = {
   ].join('\n\n'),
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · СЕЧЕНИЯ · СЕЧЕНИЕ ПИРАМИДЫ ЧЕРЕЗ СТОРОНУ ОСНОВАНИЯ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const sectionAbmn3dFigure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    A: [-2, 0],
+    B: [2, 0],
+    C: [3.2, 1.5],
+    D: [-0.8, 1.5],
+    S: [0.6, 4.5],
+    M: [1.9, 3],
+    N: [-0.1, 3],
+  },
+  fills: [{ points: ['A', 'B', 'M', 'N'] }],
+  edges: [
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'D', to: 'A', style: 'dashed' },
+    { from: 'S', to: 'A' },
+    { from: 'S', to: 'B' },
+    { from: 'S', to: 'C' },
+    { from: 'S', to: 'D', style: 'dashed' },
+    { from: 'A', to: 'B', style: 'section' },
+    { from: 'B', to: 'M', style: 'section' },
+    { from: 'M', to: 'N', style: 'section' },
+    { from: 'N', to: 'A', style: 'section' },
+  ],
+  labels: {
+    S: { dx: 0, dy: -12, anchor: 'middle' },
+    A: { dx: -8, dy: 14, anchor: 'end' },
+    B: { dx: 8, dy: 14, anchor: 'start' },
+    C: { dx: 12, dy: 4, anchor: 'start' },
+    D: { dx: -10, dy: -4, anchor: 'end' },
+    M: { dx: 11, dy: 2, anchor: 'start' },
+    N: { dx: -11, dy: -2, anchor: 'end' },
+  },
+};
+
+const sectionAbmnFlatFigure = {
+  maxWidth: 400,
+  maxHeight: 300,
+  points: {
+    A: [0, 0],
+    B: [4, 0],
+    M: [3, 4.243],
+    N: [1, 4.243],
+    P: [2, 0],
+    Q: [2, 4.243],
+  },
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'M', ticks: 1 },
+    { from: 'M', to: 'N' },
+    { from: 'N', to: 'A', ticks: 1 },
+    { from: 'P', to: 'Q', style: 'dashed' },
+  ],
+  rightAngles: [{ at: 'P', from: 'A', to: 'Q' }],
+  dims: [
+    { from: 'A', to: 'B', text: '4' },
+    { from: 'M', to: 'N', text: '2' },
+    { from: 'P', to: 'Q', text: '3√2' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 14, anchor: 'end' },
+    B: { dx: 8, dy: 14, anchor: 'start' },
+    M: { dx: 8, dy: -4, anchor: 'start' },
+    N: { dx: -8, dy: -4, anchor: 'end' },
+    P: false,
+    Q: false,
+  },
+};
+
+const pyramidSectionAbmn: GeometryTask = {
+  publicId: 'G14SEC2',
+  topicSlug: 'ege-14-sections',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 9√2',
+  statement: [
+    `В правильной четырёхугольной пирамиде $SABCD$ через сторону основания $AB$ и середину $M$ бокового ребра $SC$ проведено сечение.`,
+    `**а)** Докажите, что это сечение — трапеция.`,
+    `**б)** Найдите площадь сечения, если сторона основания равна $4$, а высота пирамиды равна $6$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(sectionAbmn3dFigure),
+    `Секущая плоскость проходит через сторону основания $AB$ и точку $M$ — середину ребра $SC$. Так как $AB \\parallel CD$, а прямая $AB$ лежит в секущей плоскости, то плоскость пересекает грань $SCD$ по прямой, проходящей через $M$ параллельно $CD$.`,
+    `Эта прямая — средняя линия треугольника $SCD$, поэтому она проходит через середину $N$ ребра $SD$, причём $MN \\parallel CD \\parallel AB$ и $MN = \\tfrac{1}{2}CD$.`,
+    `Итак, сечение — четырёхугольник $ABMN$, у которого $AB \\parallel MN$. Значит, сечение — трапеция. **Что и требовалось доказать.**`,
+    `## Пункт б). Площадь сечения`,
+    `Введём координаты с началом в центре основания $O$: $A(2;-2;0)$, $B(2;2;0)$, $C(-2;2;0)$, $D(-2;-2;0)$, $S(0;0;6)$. Тогда $M(-1;1;3)$ и $N(-1;-1;3)$.`,
+    `Основания трапеции: $AB = 4$ и $MN = \\tfrac{1}{2}CD = 2$. Пусть $P(2;0;0)$ и $Q(-1;0;3)$ — середины оснований $AB$ и $MN$. Вектор $\\vec{PQ}=(-3;0;3)$ перпендикулярен направлению оснований $(0;1;0)$, поэтому $PQ$ — высота трапеции:`,
+    `$$h = PQ = \\sqrt{(-3)^2 + 0^2 + 3^2} = 3\\sqrt{2}.$$`,
+    geo(sectionAbmnFlatFigure),
+    `$$S_{ABMN} = \\frac{AB + MN}{2}\\cdot h = \\frac{4 + 2}{2}\\cdot 3\\sqrt{2} = 9\\sqrt{2}.$$`,
+    `**Ответ:** б) $9\\sqrt{2}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · УГЛЫ И РАССТОЯНИЯ · РАССТОЯНИЕ ОТ ВЕРШИНЫ КУБА ДО ПЛОСКОСТИ (2 рис.)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const cubePlane3dFigure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    A: [0, 0],
+    B: [3, 0],
+    C: [4.2, 1.2],
+    D: [1.2, 1.2],
+    A1: [0, 3],
+    B1: [3, 3],
+    C1: [4.2, 4.2],
+    D1: [1.2, 4.2],
+  },
+  fills: [{ points: ['A1', 'B', 'D'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'D', to: 'A', style: 'dashed' },
+    { from: 'A1', to: 'B1' },
+    { from: 'B1', to: 'C1' },
+    { from: 'C1', to: 'D1' },
+    { from: 'D1', to: 'A1' },
+    { from: 'A', to: 'A1' },
+    { from: 'B', to: 'B1' },
+    { from: 'C', to: 'C1' },
+    { from: 'D', to: 'D1', style: 'dashed' },
+    { from: 'A1', to: 'B', style: 'section' },
+    { from: 'B', to: 'D', style: 'section' },
+    { from: 'D', to: 'A1', style: 'section' },
+    { from: 'A', to: 'C1', style: 'dashed' },
+  ],
+  labels: {
+    A: { dx: -6, dy: 16, anchor: 'end' },
+    B: { dx: 4, dy: 16, anchor: 'start' },
+    C: { dx: 12, dy: 4, anchor: 'start' },
+    D: { dx: -8, dy: -6, anchor: 'end' },
+    A1: { dx: -12, dy: 2, anchor: 'end' },
+    B1: { dx: 8, dy: 2, anchor: 'start' },
+    C1: { dx: 10, dy: -2, anchor: 'start' },
+    D1: { dx: -2, dy: -10, anchor: 'middle' },
+  },
+};
+
+const equilateralTriangleFigure = {
+  maxWidth: 360,
+  maxHeight: 340,
+  points: {
+    A1: [0, 0],
+    B: [4.243, 0],
+    D: [2.121, 3.674],
+  },
+  edges: [
+    { from: 'A1', to: 'B', ticks: 1 },
+    { from: 'B', to: 'D', ticks: 1 },
+    { from: 'D', to: 'A1', ticks: 1 },
+  ],
+  dims: [{ from: 'A1', to: 'B', text: '3√2' }],
+  labels: {
+    A1: { dx: -8, dy: 14, anchor: 'end' },
+    B: { dx: 8, dy: 14, anchor: 'start' },
+    D: { dx: 0, dy: -12, anchor: 'middle' },
+  },
+};
+
+const cubePlaneDistance: GeometryTask = {
+  publicId: 'G14ANG3',
+  topicSlug: 'ege-14-angles-distances',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) √3',
+  statement: [
+    `Дан куб $ABCDA_1B_1C_1D_1$ с ребром $3$.`,
+    `**а)** Докажите, что диагональ $AC_1$ перпендикулярна плоскости $A_1BD$.`,
+    `**б)** Найдите расстояние от точки $A$ до плоскости $A_1BD$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(cubePlane3dFigure),
+    `Введём систему координат с началом в точке $A$: оси направим вдоль рёбер $AB$, $AD$ и $AA_1$. Тогда`,
+    `$$B(3;0;0),\\ D(0;3;0),\\ A_1(0;0;3),\\ C_1(3;3;3).$$`,
+    `Точки $A_1$, $B$, $D$ удовлетворяют уравнению $x + y + z = 3$, поэтому это уравнение плоскости $A_1BD$, а её нормаль — вектор $(1;1;1)$.`,
+    `Направляющий вектор диагонали $\\vec{AC_1} = (3;3;3) = 3\\,(1;1;1)$ коллинеарен нормали, значит $AC_1 \\perp (A_1BD)$. **Что и требовалось доказать.**`,
+    `## Пункт б). Расстояние от точки $A$ до плоскости`,
+    `Найдём расстояние через объём тетраэдра $AA_1BD$. Рёбра $AB$, $AD$, $AA_1$ попарно перпендикулярны, поэтому`,
+    `$$V = \\frac{1}{6}\\,AB\\cdot AD\\cdot AA_1 = \\frac{1}{6}\\cdot 3\\cdot 3\\cdot 3 = \\frac{27}{6} = 4{,}5.$$`,
+    `Треугольник $A_1BD$ равносторонний: его стороны $A_1B = BD = DA_1 = 3\\sqrt{2}$ — диагонали граней куба. Его площадь`,
+    `$$S_{A_1BD} = \\frac{\\sqrt{3}}{4}\\,(3\\sqrt{2})^2 = \\frac{\\sqrt{3}}{4}\\cdot 18 = \\frac{9\\sqrt{3}}{2}.$$`,
+    geo(equilateralTriangleFigure),
+    `Тогда расстояние от $A$ до плоскости $A_1BD$ равно`,
+    `$$\\rho(A,\\,A_1BD) = \\frac{3V}{S_{A_1BD}} = \\frac{3\\cdot 4{,}5}{\\tfrac{9\\sqrt{3}}{2}} = \\frac{27}{9\\sqrt{3}} = \\frac{3}{\\sqrt{3}} = \\sqrt{3}.$$`,
+    `**Ответ:** б) $\\sqrt{3}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · МЕДИАНА, РАВНАЯ ПОЛОВИНЕ СТОРОНЫ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const medianCircleFigure = {
+  maxWidth: 400,
+  maxHeight: 340,
+  points: {
+    A: [3, 4],
+    B: [-5, 0],
+    C: [5, 0],
+    M: [0, 0],
+  },
+  circles: [{ cx: 0, cy: 0, r: 5 }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'A', to: 'C' },
+    { from: 'B', to: 'C' },
+    { from: 'A', to: 'M', style: 'section', ticks: 1 },
+    { from: 'B', to: 'M', ticks: 1 },
+    { from: 'M', to: 'C', ticks: 1 },
+  ],
+  rightAngles: [{ at: 'A', from: 'B', to: 'C' }],
+  labels: {
+    A: { dx: 0, dy: -12, anchor: 'middle' },
+    B: { dx: -8, dy: 14, anchor: 'end' },
+    C: { dx: 8, dy: 14, anchor: 'start' },
+    M: { dx: 0, dy: 16, anchor: 'middle' },
+  },
+};
+
+const rightTriangleAreaFigure = {
+  maxWidth: 360,
+  maxHeight: 360,
+  points: {
+    A: [0, 0],
+    B: [6, 0],
+    C: [0, 8],
+  },
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'A', to: 'C' },
+    { from: 'B', to: 'C' },
+  ],
+  rightAngles: [{ at: 'A', from: 'B', to: 'C' }],
+  dims: [
+    { from: 'A', to: 'B', text: '6' },
+    { from: 'A', to: 'C', text: '8' },
+    { from: 'B', to: 'C', text: '10' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 14, anchor: 'end' },
+    B: { dx: 8, dy: 14, anchor: 'start' },
+    C: { dx: -8, dy: -4, anchor: 'end' },
+  },
+};
+
+const medianRightAngle: GeometryTask = {
+  publicId: 'G17RTM1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 24',
+  statement: [
+    `Медиана $AM$ треугольника $ABC$, проведённая к стороне $BC$, равна половине этой стороны.`,
+    `**а)** Докажите, что $\\angle BAC = 90°$.`,
+    `**б)** Найдите площадь треугольника $ABC$, если $AB = 6$ и $AC = 8$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(medianCircleFigure),
+    `Точка $M$ — середина $BC$, поэтому $BM = CM = \\tfrac{1}{2}BC$. По условию $AM = \\tfrac{1}{2}BC$, значит`,
+    `$$AM = BM = CM.$$`,
+    `Точки $A$, $B$, $C$ равноудалены от $M$, поэтому лежат на окружности с центром $M$ и радиусом $\\tfrac{1}{2}BC$, для которой $BC$ — диаметр. Вписанный угол $\\angle BAC$ опирается на диаметр $BC$, следовательно $\\angle BAC = 90°$. **Что и требовалось доказать.**`,
+    `## Пункт б). Площадь треугольника`,
+    `Так как $\\angle BAC = 90°$, треугольник прямоугольный с катетами $AB$ и $AC$, поэтому`,
+    geo(rightTriangleAreaFigure),
+    `$$S_{ABC} = \\frac{1}{2}\\,AB\\cdot AC = \\frac{1}{2}\\cdot 6\\cdot 8 = 24.$$`,
+    `**Ответ:** б) $24$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · ПЕРЕСЕКАЮЩИЕСЯ ХОРДЫ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const chordsCircleFigure = {
+  maxWidth: 380,
+  maxHeight: 380,
+  points: {
+    A: [-4, -3],
+    B: [5, 0],
+    C: [-3, 4],
+    D: [4, -3],
+    E: [2, -1],
+  },
+  circles: [{ cx: 0, cy: 0, r: 5 }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'C', to: 'D' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 8, anchor: 'end' },
+    B: { dx: 10, dy: 2, anchor: 'start' },
+    C: { dx: -8, dy: -4, anchor: 'end' },
+    D: { dx: 8, dy: 8, anchor: 'start' },
+    E: { dx: 8, dy: 8, anchor: 'start' },
+  },
+};
+
+const chordsSimilarFigure = {
+  maxWidth: 380,
+  maxHeight: 340,
+  points: {
+    A: [-4, -3],
+    B: [5, 0],
+    C: [-3, 4],
+    D: [4, -3],
+    E: [2, -1],
+  },
+  fills: [{ points: ['A', 'E', 'C'] }, { points: ['D', 'E', 'B'] }],
+  edges: [
+    { from: 'A', to: 'E' },
+    { from: 'E', to: 'C' },
+    { from: 'C', to: 'A' },
+    { from: 'D', to: 'E' },
+    { from: 'E', to: 'B' },
+    { from: 'B', to: 'D' },
+  ],
+  angles: [
+    { at: 'A', from: 'E', to: 'C', label: 'α' },
+    { at: 'D', from: 'E', to: 'B', label: 'α' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 8, anchor: 'end' },
+    B: { dx: 10, dy: 2, anchor: 'start' },
+    C: { dx: -8, dy: -4, anchor: 'end' },
+    D: { dx: 8, dy: 8, anchor: 'start' },
+    E: { dx: 6, dy: 10, anchor: 'start' },
+  },
+};
+
+const intersectingChords: GeometryTask = {
+  publicId: 'G17CHD1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: EXAMCLASS,
+  correctAnswer: 'б) 8',
+  statement: [
+    `Хорды $AB$ и $CD$ окружности пересекаются в точке $E$.`,
+    `**а)** Докажите, что $AE \\cdot BE = CE \\cdot DE$.`,
+    `**б)** Найдите $DE$, если $AE = 4$, $BE = 6$, $CE = 3$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(chordsCircleFigure),
+    `Рассмотрим треугольники $AEC$ и $DEB$. Углы $\\angle AEC$ и $\\angle DEB$ равны как вертикальные. Углы $\\angle CAE$ и $\\angle BDE$ равны как вписанные, опирающиеся на одну и ту же дугу $BC$.`,
+    geo(chordsSimilarFigure),
+    `Значит, $\\triangle AEC \\sim \\triangle DEB$ по двум углам, откуда`,
+    `$$\\frac{AE}{DE} = \\frac{CE}{BE} \\quad\\Rightarrow\\quad AE \\cdot BE = CE \\cdot DE.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Вычисление $DE$`,
+    `Подставим $AE = 4$, $BE = 6$, $CE = 3$ в доказанное равенство:`,
+    `$$4 \\cdot 6 = 3 \\cdot DE \\quad\\Rightarrow\\quad DE = \\frac{24}{3} = 8.$$`,
+    `**Ответ:** б) $8$.`,
+  ].join('\n\n'),
+};
+
 const geometryTasks: GeometryTask[] = [
   stereometrySection,
   prismSection,
@@ -1154,12 +1528,16 @@ const geometryTasks: GeometryTask[] = [
   pyramidDistance,
   cubeDiagonal,
   pyramidDihedral,
+  pyramidSectionAbmn,
+  cubePlaneDistance,
   planimetrySimilarity,
   planimetryMedian,
   trapezoidMidline,
   incircleTangents,
   medianHypotenuse,
   centroidArea,
+  medianRightAngle,
+  intersectingChords,
 ];
 
 async function main() {
@@ -1197,7 +1575,7 @@ async function main() {
       referenceSolution: task.referenceSolution,
       difficulty: task.difficulty,
       status: TaskStatus.PUBLISHED,
-      source: SOURCE,
+      source: task.source,
     };
 
     await prisma.task.upsert({
