@@ -2,13 +2,7 @@ import 'dotenv/config';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as argon2 from 'argon2';
-import {
-  ExamPart,
-  PrismaClient,
-  Role,
-  TaskStatus,
-  TopicStatus,
-} from '../src/generated/prisma/client';
+import { PrismaClient, Role, TopicStatus } from '../src/generated/prisma/client';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -334,58 +328,6 @@ const subtopicGroups = [
   },
 ];
 
-const tasks = [
-  {
-    publicId: 'A7K2M9',
-    topicSlug: 'ege-01-triangles',
-    statement:
-      'В треугольнике ABC сторона AB равна 8, а угол C равен 30°. Найдите радиус описанной около этого треугольника окружности.',
-    correctAnswer: '8',
-    referenceSolution:
-      'По теореме синусов AB = 2R sin C. Поэтому 8 = 2R · 1/2, откуда R = 8.',
-    difficulty: 1,
-  },
-  {
-    publicId: 'Q4N8VX',
-    topicSlug: 'ege-02-dot-product',
-    statement:
-      'Даны векторы a = (2; −1) и b = (1; 4). Найдите скалярное произведение векторов a и b.',
-    correctAnswer: '−2',
-    referenceSolution:
-      'Скалярное произведение равно 2 · 1 + (−1) · 4 = 2 − 4 = −2.',
-    difficulty: 1,
-  },
-  {
-    publicId: 'H5R9L2',
-    topicSlug: 'ege-03-cube',
-    statement: 'Ребро куба равно 3. Найдите длину диагонали куба.',
-    correctAnswer: '3√3',
-    referenceSolution:
-      'Диагональ куба вычисляется по формуле d = a√3. При a = 3 получаем d = 3√3.',
-    difficulty: 2,
-  },
-  {
-    publicId: 'P6T1CW',
-    topicSlug: 'ege-04-classical-definition',
-    statement:
-      'В коробке лежат 7 белых и 3 чёрных шара. Наугад выбирают один шар. Найдите вероятность того, что он окажется белым.',
-    correctAnswer: '0,7',
-    referenceSolution:
-      'Всего шаров 10, благоприятных исходов 7. Вероятность равна 7/10 = 0,7.',
-    difficulty: 1,
-  },
-  {
-    publicId: 'M8D3JF',
-    topicSlug: 'ege-05-independent-events',
-    statement:
-      'Вероятность того, что в отдельный день пойдёт дождь, равна 0,2. Считайте события в разные дни независимыми. Найдите вероятность дождя в оба из двух выбранных дней.',
-    correctAnswer: '0,04',
-    referenceSolution:
-      'Для независимых событий вероятность их совместного наступления равна произведению: 0,2 · 0,2 = 0,04.',
-    difficulty: 2,
-  },
-];
-
 async function main() {
   const demoPasswordHash = (await argon2.hash(
     demoStudent.password,
@@ -497,43 +439,8 @@ async function main() {
     }
   }
 
-  for (const task of tasks) {
-    const topicId = topicIds.get(task.topicSlug);
-
-    if (!topicId) {
-      throw new Error(`Topic ${task.topicSlug} was not created`);
-    }
-
-    await prisma.task.upsert({
-      where: {
-        publicId: task.publicId,
-      },
-      update: {
-        topicId,
-        examPart: ExamPart.FIRST,
-        statement: task.statement,
-        correctAnswer: task.correctAnswer,
-        referenceSolution: task.referenceSolution,
-        difficulty: task.difficulty,
-        status: TaskStatus.PUBLISHED,
-        source: 'ExamClass',
-      },
-      create: {
-        publicId: task.publicId,
-        topicId,
-        examPart: ExamPart.FIRST,
-        statement: task.statement,
-        correctAnswer: task.correctAnswer,
-        referenceSolution: task.referenceSolution,
-        difficulty: task.difficulty,
-        status: TaskStatus.PUBLISHED,
-        source: 'ExamClass',
-      },
-    });
-  }
-
   console.log(
-    'Seed completed: demo student, subjects, topics, and profile math tasks were added',
+    'Seed completed: demo student, subjects, and topics were added',
   );
 }
 
