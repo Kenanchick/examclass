@@ -15,7 +15,7 @@ const prisma = new PrismaClient({
 
 const prototypeTasks = [
   {
-    publicId: 'PROTO01',
+    publicId: 'K9M2XP',
     topicSlug: 'ege-01-circles',
     statement: `На рисунке изображён вписанный угол $\\angle BAC$, опирающийся на дугу $BC$ окружности с центром в точке $O$.
 
@@ -39,7 +39,7 @@ $$\\angle BAC = \\frac{1}{2} \\cdot 120° = 60°$$
     difficulty: 1,
   },
   {
-    publicId: 'PROTO02',
+    publicId: 'V4N8QT',
     topicSlug: 'ege-01-triangles',
     statement: `Дан прямоугольный треугольник $ABC$ с прямым углом при вершине $B$.
 
@@ -67,7 +67,7 @@ $$AC = \\sqrt{100} = 10$$
     difficulty: 1,
   },
   {
-    publicId: 'PROTO03',
+    publicId: 'L5R9CW',
     topicSlug: 'ege-03-parallelepiped',
     statement: `Дан прямоугольный параллелепипед $ABCDA_1B_1C_1D_1$ с рёбрами:
 
