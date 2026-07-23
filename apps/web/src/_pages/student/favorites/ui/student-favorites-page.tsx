@@ -38,7 +38,7 @@ export function StudentFavoritesPage() {
               <h1 className="mt-2 text-3xl font-bold tracking-[-0.05em] text-ink sm:text-4xl">
                 Избранные задачи
               </h1>
-              <p className="mt-3 text-[15px] leading-6 text-muted sm:text-base">
+              <p className="mt-3 text-base leading-7 text-muted sm:text-lg">
                 Сохраняйте интересные задания, чтобы вернуться к ним в удобный
                 момент.
               </p>
@@ -124,24 +124,24 @@ export function StudentFavoritesPage() {
           )}
 
           {visibleTasks.length > 0 && (
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid items-start gap-4 md:grid-cols-2">
               {visibleTasks.map((task) => (
                 <Link
-                  className="group cursor-pointer rounded-2xl border border-line bg-white p-5 transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-[0_12px_24px_rgba(15,43,76,0.08)]"
+                  className="group flex h-[250px] cursor-pointer flex-col overflow-hidden rounded-2xl border border-line bg-white p-6 transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-[0_12px_24px_rgba(15,43,76,0.08)]"
                   href={`/tasks/${task.publicId}`}
                   key={task.publicId}
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <span className="rounded-lg bg-brand/10 px-2.5 py-1.5 text-sm font-bold text-brand">
+                    <span className="rounded-xl bg-brand/10 px-3 py-2 text-[15px] font-bold text-brand">
                       Задача {getTaskExamNumber(task)}
                     </span>
                     <Star className="size-5 fill-amber-400 text-amber-400" />
                   </div>
                   <MathText
-                    className="mt-4 text-[15px] font-semibold leading-6 text-ink [&_p]:mb-0"
+                    className="mt-4 max-h-[84px] overflow-hidden text-base font-semibold leading-7 text-ink [&_img]:hidden [&_p]:mb-0"
                     content={task.statement}
                   />
-                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand">
+                  <span className="mt-auto inline-flex items-center gap-2 pt-4 text-[15px] font-bold text-brand">
                     Открыть задачу
                     <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                   </span>

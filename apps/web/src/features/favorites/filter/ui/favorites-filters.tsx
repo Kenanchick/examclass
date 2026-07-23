@@ -8,7 +8,7 @@ type FavoritesFiltersProps = {
 };
 
 const pillClassName = (isActive: boolean) =>
-  `cursor-pointer rounded-lg border px-3 py-1.5 text-sm font-bold transition ${
+  `cursor-pointer rounded-lg border px-4 py-2 text-[15px] font-bold transition ${
     isActive
       ? "border-brand bg-brand/10 text-brand"
       : "border-line bg-white text-muted hover:border-brand/40 hover:text-ink"
@@ -32,14 +32,14 @@ export function FavoritesFilters({ filter }: FavoritesFiltersProps) {
   return (
     <section
       aria-label="Фильтры избранного"
-      className="rounded-3xl border border-line bg-white p-5 sm:p-6"
+      className="rounded-3xl border border-line bg-white p-6 sm:p-7"
     >
       <div className="flex flex-col gap-3 lg:flex-row">
         <div className="relative min-w-0 flex-1">
           <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-muted" />
           <input
             aria-label="Поиск по условию задачи"
-            className="w-full rounded-xl border border-line bg-white py-3 pl-12 pr-4 text-[15px] text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/10"
+            className="w-full rounded-xl border border-line bg-white py-3.5 pl-12 pr-4 text-base text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/10"
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Поиск по условию задачи…"
             type="search"
@@ -51,7 +51,7 @@ export function FavoritesFilters({ filter }: FavoritesFiltersProps) {
           <div className="relative lg:w-96">
             <select
               aria-label="Подтема"
-              className="w-full cursor-pointer appearance-none rounded-xl border border-line bg-white py-3 pl-4 pr-10 text-[15px] font-medium text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10"
+              className="w-full cursor-pointer appearance-none rounded-xl border border-line bg-white py-3.5 pl-4 pr-10 text-base font-medium text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/10"
               onChange={(event) => setSubtopicId(event.target.value || null)}
               value={subtopicId ?? ""}
             >
@@ -62,12 +62,12 @@ export function FavoritesFilters({ filter }: FavoritesFiltersProps) {
                 </option>
               ))}
             </select>
-            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-muted" />
+            <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-muted" />
           </div>
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2">
+      <div className="mt-5 flex flex-wrap items-center gap-2.5">
         <button
           aria-pressed={taskNumber === null}
           className={pillClassName(taskNumber === null)}
@@ -92,7 +92,7 @@ export function FavoritesFilters({ filter }: FavoritesFiltersProps) {
 
         {isFiltering && (
           <button
-            className="ml-auto inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-semibold text-muted transition hover:text-brand"
+            className="ml-auto inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1.5 text-[15px] font-semibold text-muted transition hover:text-brand"
             onClick={reset}
             type="button"
           >
@@ -103,7 +103,7 @@ export function FavoritesFilters({ filter }: FavoritesFiltersProps) {
       </div>
 
       {isFiltering && (
-        <p className="mt-3 text-sm text-muted">
+        <p className="mt-3.5 text-[15px] text-muted">
           Найдено: {filteredTasks.length}
         </p>
       )}
