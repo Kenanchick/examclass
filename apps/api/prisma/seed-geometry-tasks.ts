@@ -2689,6 +2689,554 @@ const altitudeGeometricMean: GeometryTask = {
   ].join('\n\n'),
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · УГЛЫ И РАССТОЯНИЯ · УГОЛ МЕЖДУ ДИАГОНАЛЬЮ И ОСНОВАНИЕМ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const prismAngle3dFigure = {
+  maxWidth: 440,
+  maxHeight: 440,
+  points: {
+    A: [0, 0],
+    B: [3, 0],
+    C: [4.2, 1.2],
+    D: [1.2, 1.2],
+    A1: [0, 3.6],
+    B1: [3, 3.6],
+    C1: [4.2, 4.8],
+    D1: [1.2, 4.8],
+  },
+  fills: [{ points: ['A1', 'A', 'C'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'D', to: 'A', style: 'dashed' },
+    { from: 'A1', to: 'B1' },
+    { from: 'B1', to: 'C1' },
+    { from: 'C1', to: 'D1' },
+    { from: 'D1', to: 'A1' },
+    { from: 'A', to: 'A1' },
+    { from: 'B', to: 'B1' },
+    { from: 'C', to: 'C1' },
+    { from: 'D', to: 'D1', style: 'dashed' },
+    { from: 'A1', to: 'C', style: 'section' },
+    { from: 'A', to: 'C', style: 'dashed' },
+  ],
+  rightAngles: [{ at: 'A', from: 'A1', to: 'C' }],
+  angles: [{ at: 'C', from: 'A1', to: 'A', label: '45°' }],
+  labels: {
+    A: { dx: -6, dy: 16, anchor: 'end' },
+    B: { dx: 2, dy: 16, anchor: 'start' },
+    C: { dx: 12, dy: 6, anchor: 'start' },
+    D: { dx: -8, dy: -6, anchor: 'end' },
+    A1: { dx: -12, dy: 2, anchor: 'end' },
+    B1: { dx: 8, dy: 2, anchor: 'start' },
+    C1: { dx: 10, dy: -2, anchor: 'start' },
+    D1: { dx: -2, dy: -10, anchor: 'middle' },
+  },
+};
+
+const prismAngleFlatFigure = {
+  maxWidth: 340,
+  maxHeight: 320,
+  points: {
+    A: [0, 0],
+    A1: [0, 4],
+    C: [4, 0],
+  },
+  edges: [
+    { from: 'A', to: 'A1' },
+    { from: 'A', to: 'C' },
+    { from: 'A1', to: 'C' },
+  ],
+  rightAngles: [{ at: 'A', from: 'A1', to: 'C' }],
+  angles: [{ at: 'C', from: 'A1', to: 'A', label: '45°' }],
+  dims: [
+    { from: 'A', to: 'A1', text: '√2' },
+    { from: 'A', to: 'C', text: '√2' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 4, anchor: 'end' },
+    A1: { dx: -8, dy: -4, anchor: 'end' },
+    C: { dx: 10, dy: 8, anchor: 'start' },
+  },
+};
+
+const prismDiagonalAngle: GeometryTask = {
+  publicId: 'G14ANG6',
+  topicSlug: 'ege-14-angles-distances',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: STATGRAD,
+  correctAnswer: 'б) 45°',
+  statement: [
+    `В правильной четырёхугольной призме $ABCDA_1B_1C_1D_1$ сторона основания равна $1$, а боковое ребро равно $\\sqrt{2}$.`,
+    `**а)** Докажите, что угол между прямой $A_1C$ и плоскостью основания равен $\\angle A_1CA$.`,
+    `**б)** Найдите угол между прямой $A_1C$ и плоскостью основания.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(prismAngle3dFigure),
+    `Боковое ребро $AA_1$ перпендикулярно плоскости основания, поэтому точка $A$ — проекция точки $A_1$ на основание. Тогда $AC$ — проекция наклонной $A_1C$ на плоскость основания.`,
+    `Угол между наклонной и её проекцией — это и есть угол между прямой $A_1C$ и плоскостью. Значит, искомый угол равен $\\angle A_1CA$. **Что и требовалось доказать.**`,
+    `## Пункт б). Величина угла`,
+    `Диагональ основания $AC = \\sqrt{1^2 + 1^2} = \\sqrt{2}$, а $AA_1 = \\sqrt{2}$. В прямоугольном треугольнике $A_1AC$ ($\\angle A = 90°$):`,
+    geo(prismAngleFlatFigure),
+    `$$\\operatorname{tg}\\angle A_1CA = \\frac{AA_1}{AC} = \\frac{\\sqrt{2}}{\\sqrt{2}} = 1 \\;\\Rightarrow\\; \\angle A_1CA = 45°.$$`,
+    `**Ответ:** б) $45°$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · УГЛЫ И РАССТОЯНИЯ · ДВУГРАННЫЙ УГОЛ В ТРЕУГОЛЬНОЙ ПИРАМИДЕ (2 рис.)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const triPyramidDihedral3dFigure = {
+  maxWidth: 440,
+  maxHeight: 440,
+  points: {
+    A: [-2, 0],
+    B: [2, 0],
+    C: [0.4, 1.8],
+    S: [0.13, 4.2],
+    O: [0.13, 0.6],
+    K: [1.2, 0.9],
+  },
+  fills: [{ points: ['S', 'B', 'C'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'A', style: 'dashed' },
+    { from: 'S', to: 'A' },
+    { from: 'S', to: 'B' },
+    { from: 'S', to: 'C' },
+    { from: 'S', to: 'K', style: 'section' },
+    { from: 'S', to: 'O', style: 'dashed' },
+    { from: 'O', to: 'K', style: 'dashed' },
+  ],
+  angles: [{ at: 'K', from: 'S', to: 'O', label: '60°' }],
+  labels: {
+    A: { dx: -8, dy: 12, anchor: 'end' },
+    B: { dx: 8, dy: 12, anchor: 'start' },
+    C: { dx: -10, dy: -2, anchor: 'end' },
+    S: { dx: 0, dy: -12, anchor: 'middle' },
+    O: { dx: -10, dy: 4, anchor: 'end' },
+    K: { dx: 10, dy: 4, anchor: 'start' },
+  },
+};
+
+const triPyramidDihedralFlatFigure = {
+  maxWidth: 320,
+  maxHeight: 320,
+  points: {
+    O: [0, 0],
+    S: [0, 3],
+    K: [1.732, 0],
+  },
+  edges: [
+    { from: 'O', to: 'S' },
+    { from: 'O', to: 'K' },
+    { from: 'S', to: 'K' },
+  ],
+  rightAngles: [{ at: 'O', from: 'S', to: 'K' }],
+  angles: [{ at: 'K', from: 'S', to: 'O', label: '60°' }],
+  dims: [
+    { from: 'O', to: 'S', text: '3' },
+    { from: 'O', to: 'K', text: '√3' },
+  ],
+  labels: {
+    O: { dx: -8, dy: 14, anchor: 'end' },
+    S: { dx: -8, dy: -4, anchor: 'end' },
+    K: { dx: 10, dy: 8, anchor: 'start' },
+  },
+};
+
+const triPyramidDihedral: GeometryTask = {
+  publicId: 'G14ANG7',
+  topicSlug: 'ege-14-angles-distances',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: YASHCHENKO,
+  correctAnswer: 'б) 60°',
+  statement: [
+    `В правильной треугольной пирамиде $SABC$ сторона основания равна $6$, а высота $SO = 3$ ($O$ — центр основания). Точка $K$ — середина ребра $BC$.`,
+    `**а)** Докажите, что $\\angle SKO$ — линейный угол двугранного угла между боковой гранью $SBC$ и плоскостью основания.`,
+    `**б)** Найдите двугранный угол при основании.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(triPyramidDihedral3dFigure),
+    `Ребро двугранного угла — прямая $BC$, $K$ — её середина. В равнобедренном треугольнике $SBC$ ($SB = SC$) медиана $SK$ является высотой: $SK \\perp BC$. Отрезок $OK$ — часть медианы основания, проведённой из вершины $A$; в правильном треугольнике эта медиана перпендикулярна $BC$, поэтому $OK \\perp BC$.`,
+    `Обе прямые $SK$ и $OK$ перпендикулярны ребру $BC$ в точке $K$, значит $\\angle SKO$ — линейный угол искомого двугранного угла. **Что и требовалось доказать.**`,
+    `## Пункт б). Величина угла`,
+    `Отрезок $OK$ — радиус вписанной в основание окружности: $OK = \\dfrac{6}{2\\sqrt{3}} = \\sqrt{3}$. В прямоугольном треугольнике $SOK$ ($\\angle SOK = 90°$):`,
+    geo(triPyramidDihedralFlatFigure),
+    `$$\\operatorname{tg}\\angle SKO = \\frac{SO}{OK} = \\frac{3}{\\sqrt{3}} = \\sqrt{3} \\;\\Rightarrow\\; \\angle SKO = 60°.$$`,
+    `**Ответ:** б) $60°$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · ДОКАЗАТЕЛЬСТВО · РАССТОЯНИЕ ОТ ТОЧКИ ДО ДИАГОНАЛИ КУБА (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const cubeDistLine3dFigure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    A: [0, 0],
+    B: [3, 0],
+    C: [4.2, 1.2],
+    D: [1.2, 1.2],
+    A1: [0, 3],
+    B1: [3, 3],
+    C1: [4.2, 4.2],
+    D1: [1.2, 4.2],
+    H: [2.4, 1.4],
+  },
+  fills: [{ points: ['A', 'B', 'D1'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'D', to: 'A', style: 'dashed' },
+    { from: 'A1', to: 'B1' },
+    { from: 'B1', to: 'C1' },
+    { from: 'C1', to: 'D1' },
+    { from: 'D1', to: 'A1' },
+    { from: 'A', to: 'A1' },
+    { from: 'B', to: 'B1' },
+    { from: 'C', to: 'C1' },
+    { from: 'D', to: 'D1', style: 'dashed' },
+    { from: 'B', to: 'D1', style: 'section' },
+    { from: 'D1', to: 'A', style: 'section' },
+    { from: 'A', to: 'H', style: 'dashed' },
+  ],
+  rightAngles: [
+    { at: 'A', from: 'B', to: 'D1' },
+    { at: 'H', from: 'A', to: 'D1' },
+  ],
+  labels: {
+    A: { dx: -6, dy: 16, anchor: 'end' },
+    B: { dx: 2, dy: 16, anchor: 'start' },
+    C: { dx: 12, dy: 4, anchor: 'start' },
+    D: { dx: -8, dy: -6, anchor: 'end' },
+    A1: { dx: -12, dy: 2, anchor: 'end' },
+    B1: { dx: 8, dy: 2, anchor: 'start' },
+    C1: { dx: 10, dy: -2, anchor: 'start' },
+    D1: { dx: -2, dy: -10, anchor: 'middle' },
+    H: { dx: 8, dy: 8, anchor: 'start' },
+  },
+};
+
+const cubeDistLineFlatFigure = {
+  maxWidth: 400,
+  maxHeight: 360,
+  points: {
+    A: [0, 0],
+    B: [6, 0],
+    D1: [0, 8.485],
+    H: [4, 2],
+  },
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'A', to: 'D1' },
+    { from: 'B', to: 'D1' },
+    { from: 'A', to: 'H', style: 'section' },
+  ],
+  rightAngles: [
+    { at: 'A', from: 'B', to: 'D1' },
+    { at: 'H', from: 'A', to: 'B' },
+  ],
+  dims: [
+    { from: 'A', to: 'B', text: '6' },
+    { from: 'A', to: 'D1', text: '6√2' },
+    { from: 'A', to: 'H', text: '2√6' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 4, anchor: 'end' },
+    B: { dx: 8, dy: 12, anchor: 'start' },
+    D1: { dx: -8, dy: -4, anchor: 'end' },
+    H: { dx: 10, dy: 0, anchor: 'start' },
+  },
+};
+
+const cubeDistanceToDiagonal: GeometryTask = {
+  publicId: 'G14PRP4',
+  topicSlug: 'ege-14-proofs',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: STATGRAD,
+  correctAnswer: 'б) 2√6',
+  statement: [
+    `Дан куб $ABCDA_1B_1C_1D_1$ с ребром $6$.`,
+    `**а)** Докажите, что треугольник $ABD_1$ прямоугольный.`,
+    `**б)** Найдите расстояние от точки $A$ до прямой $BD_1$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(cubeDistLine3dFigure),
+    `Ребро $AB$ перпендикулярно грани $ADD_1A_1$, поэтому $AB \\perp AD_1$. Значит, треугольник $ABD_1$ прямоугольный с прямым углом при вершине $A$. **Что и требовалось доказать.**`,
+    `## Пункт б). Расстояние от точки $A$ до прямой $BD_1$`,
+    `Найдём стороны прямоугольного треугольника $ABD_1$: катет $AB = 6$, катет $AD_1 = \\sqrt{6^2 + 6^2} = 6\\sqrt{2}$ (диагональ грани), гипотенуза $BD_1 = \\sqrt{6^2 + (6\\sqrt2)^2} = 6\\sqrt{3}$ (диагональ куба).`,
+    `Расстояние от вершины прямого угла $A$ до гипотенузы $BD_1$ — это высота $AH$:`,
+    geo(cubeDistLineFlatFigure),
+    `$$AH = \\frac{AB\\cdot AD_1}{BD_1} = \\frac{6\\cdot 6\\sqrt{2}}{6\\sqrt{3}} = \\frac{6\\sqrt{2}}{\\sqrt{3}} = 2\\sqrt{6}.$$`,
+    `**Ответ:** б) $2\\sqrt{6}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · ДВЕ КАСАТЕЛЬНЫЕ ИЗ ТОЧКИ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const twoTangentsFigure = {
+  maxWidth: 440,
+  maxHeight: 360,
+  points: {
+    O: [0, 0],
+    A: [13, 0],
+    B: [1.92, 4.62],
+    C: [1.92, -4.62],
+  },
+  circles: [{ cx: 0, cy: 0, r: 5 }],
+  edges: [
+    { from: 'A', to: 'B', style: 'section' },
+    { from: 'A', to: 'C', style: 'section' },
+    { from: 'O', to: 'B', style: 'dashed' },
+    { from: 'O', to: 'C', style: 'dashed' },
+    { from: 'O', to: 'A', style: 'dashed' },
+  ],
+  rightAngles: [
+    { at: 'B', from: 'A', to: 'O' },
+    { at: 'C', from: 'A', to: 'O' },
+  ],
+  labels: {
+    O: { dx: -6, dy: 14, anchor: 'end' },
+    A: { dx: 10, dy: 4, anchor: 'start' },
+    B: { dx: 4, dy: -8, anchor: 'start' },
+    C: { dx: 4, dy: 12, anchor: 'start' },
+  },
+};
+
+const twoTangentsFlatFigure = {
+  maxWidth: 360,
+  maxHeight: 340,
+  points: {
+    B: [0, 0],
+    O: [5, 0],
+    A: [0, 12],
+  },
+  edges: [
+    { from: 'B', to: 'O' },
+    { from: 'B', to: 'A' },
+    { from: 'O', to: 'A' },
+  ],
+  rightAngles: [{ at: 'B', from: 'O', to: 'A' }],
+  dims: [
+    { from: 'B', to: 'O', text: '5' },
+    { from: 'B', to: 'A', text: 'AB' },
+    { from: 'O', to: 'A', text: '13' },
+  ],
+  labels: {
+    B: { dx: -8, dy: 14, anchor: 'end' },
+    O: { dx: 8, dy: 14, anchor: 'start' },
+    A: { dx: -8, dy: -4, anchor: 'end' },
+  },
+};
+
+const twoTangentsFromPoint: GeometryTask = {
+  publicId: 'G17TAN2',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: LYSENKO,
+  correctAnswer: 'б) 12',
+  statement: [
+    `Из точки $A$, лежащей вне окружности с центром $O$ и радиусом $5$, проведены две касательные $AB$ и $AC$ ($B$ и $C$ — точки касания). Известно, что $AO = 13$.`,
+    `**а)** Докажите, что $AB = AC$.`,
+    `**б)** Найдите $AB$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(twoTangentsFigure),
+    `Радиус, проведённый в точку касания, перпендикулярен касательной, поэтому $\\angle OBA = \\angle OCA = 90°$. Рассмотрим прямоугольные треугольники $OBA$ и $OCA$: у них общая гипотенуза $OA$ и равные катеты $OB = OC = 5$ (радиусы).`,
+    `Значит, $\\triangle OBA = \\triangle OCA$ (по гипотенузе и катету), откуда $AB = AC$. **Что и требовалось доказать.**`,
+    `## Пункт б). Длина $AB$`,
+    `Из прямоугольного треугольника $OBA$ ($\\angle OBA = 90°$) по теореме Пифагора:`,
+    geo(twoTangentsFlatFigure),
+    `$$AB = \\sqrt{OA^2 - OB^2} = \\sqrt{13^2 - 5^2} = \\sqrt{144} = 12.$$`,
+    `**Ответ:** б) $12$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · СТЕПЕНЬ ТОЧКИ (ДВЕ СЕКУЩИЕ) (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const secantSecantFigure = {
+  maxWidth: 440,
+  maxHeight: 340,
+  points: {
+    O: [0, 0],
+    P: [-8, 0],
+    A: [-5, 0],
+    B: [5, 0],
+    C: [-4, 3],
+    D: [-1.76, 4.68],
+  },
+  circles: [{ cx: 0, cy: 0, r: 5 }],
+  edges: [
+    { from: 'P', to: 'B' },
+    { from: 'P', to: 'D' },
+  ],
+  labels: {
+    O: { dx: 2, dy: 14, anchor: 'start' },
+    P: { dx: -8, dy: 4, anchor: 'end' },
+    A: { dx: -2, dy: 15, anchor: 'end' },
+    B: { dx: 8, dy: 6, anchor: 'start' },
+    C: { dx: -8, dy: 2, anchor: 'end' },
+    D: { dx: 4, dy: -8, anchor: 'start' },
+  },
+};
+
+const secantSecantSimilarFigure = {
+  maxWidth: 440,
+  maxHeight: 320,
+  points: {
+    P: [-8, 0],
+    A: [-5, 0],
+    B: [5, 0],
+    C: [-4, 3],
+    D: [-1.76, 4.68],
+  },
+  fills: [{ points: ['P', 'A', 'C'] }, { points: ['P', 'D', 'B'] }],
+  edges: [
+    { from: 'P', to: 'B' },
+    { from: 'P', to: 'D' },
+    { from: 'A', to: 'C' },
+    { from: 'D', to: 'B' },
+  ],
+  angles: [
+    { at: 'A', from: 'P', to: 'C', label: 'α' },
+    { at: 'D', from: 'P', to: 'B', label: 'α' },
+  ],
+  labels: {
+    P: { dx: -8, dy: 4, anchor: 'end' },
+    A: { dx: -2, dy: 15, anchor: 'end' },
+    B: { dx: 8, dy: 6, anchor: 'start' },
+    C: { dx: -8, dy: 2, anchor: 'end' },
+    D: { dx: 4, dy: -8, anchor: 'start' },
+  },
+};
+
+const secantSecantPower: GeometryTask = {
+  publicId: 'G17PWR1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: STATGRAD,
+  correctAnswer: 'б) 8',
+  statement: [
+    `Через точку $P$, лежащую вне окружности, проведены две секущие. Одна пересекает окружность в точках $A$ и $B$, другая — в точках $C$ и $D$ (точки $A$ и $C$ ближе к $P$).`,
+    `**а)** Докажите, что $PA \\cdot PB = PC \\cdot PD$.`,
+    `**б)** Найдите $PB$, если $PA = 3$, $PC = 4$, $PD = 6$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(secantSecantFigure),
+    `Рассмотрим треугольники $PAC$ и $PDB$. Угол $P$ у них общий. Углы $\\angle PAC$ и $\\angle PDB$ равны: $\\angle BAC$ и $\\angle BDC$ — вписанные, опирающиеся на одну дугу $BC$ (а $\\angle PAC$ и $\\angle BAC$ — смежные, как и $\\angle PDB$ и $\\angle BDC$).`,
+    geo(secantSecantSimilarFigure),
+    `Значит, $\\triangle PAC \\sim \\triangle PDB$ по двум углам, откуда`,
+    `$$\\frac{PA}{PD} = \\frac{PC}{PB} \\quad\\Rightarrow\\quad PA \\cdot PB = PC \\cdot PD.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Вычисление $PB$`,
+    `$$PA \\cdot PB = PC \\cdot PD \\;\\Rightarrow\\; 3\\cdot PB = 4\\cdot 6 \\;\\Rightarrow\\; PB = \\frac{24}{3} = 8.$$`,
+    `**Ответ:** б) $8$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · ТЕОРЕМА СИНУСОВ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const sineRuleFigure = {
+  maxWidth: 380,
+  maxHeight: 380,
+  points: {
+    O: [0, 0],
+    A: [-4, -3],
+    B: [-5, 0],
+    C: [3, 4],
+  },
+  circles: [{ cx: 0, cy: 0, r: 5 }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C', style: 'section' },
+    { from: 'C', to: 'A' },
+  ],
+  angles: [{ at: 'A', from: 'B', to: 'C', label: 'α' }],
+  dims: [{ from: 'B', to: 'C', text: 'a' }],
+  labels: {
+    O: { dx: 6, dy: 4, anchor: 'start' },
+    A: { dx: -8, dy: 6, anchor: 'end' },
+    B: { dx: -8, dy: 2, anchor: 'end' },
+    C: { dx: 8, dy: -4, anchor: 'start' },
+  },
+};
+
+const sineRuleDiameterFigure = {
+  maxWidth: 380,
+  maxHeight: 380,
+  points: {
+    O: [0, 0],
+    B: [-5, 0],
+    A1: [5, 0],
+    C: [3, 4],
+  },
+  circles: [{ cx: 0, cy: 0, r: 5 }],
+  edges: [
+    { from: 'B', to: 'A1', style: 'dashed' },
+    { from: 'B', to: 'C', style: 'section' },
+    { from: 'C', to: 'A1' },
+  ],
+  rightAngles: [{ at: 'C', from: 'B', to: 'A1' }],
+  angles: [{ at: 'A1', from: 'B', to: 'C', label: 'α' }],
+  labels: {
+    O: { dx: -2, dy: 15, anchor: 'end' },
+    B: { dx: -8, dy: 2, anchor: 'end' },
+    A1: { dx: 8, dy: 2, anchor: 'start' },
+    C: { dx: 8, dy: -4, anchor: 'start' },
+  },
+};
+
+const sineRule: GeometryTask = {
+  publicId: 'G17SIN1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: YASHCHENKO,
+  correctAnswer: 'б) 6',
+  statement: [
+    `Около треугольника $ABC$ описана окружность радиуса $R$. Сторона $BC = a$ лежит против угла $A$.`,
+    `**а)** Докажите, что $a = 2R\\sin A$.`,
+    `**б)** Найдите $R$, если $BC = 6$, а $\\angle A = 30°$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(sineRuleFigure),
+    `Проведём диаметр $BA_1$ (точка $A_1$ — на окружности, $BA_1 = 2R$). Вписанный угол $\\angle BCA_1$ опирается на диаметр, поэтому $\\angle BCA_1 = 90°$.`,
+    geo(sineRuleDiameterFigure),
+    `Вписанные углы $\\angle A$ и $\\angle BA_1C$ опираются на одну дугу $BC$, поэтому $\\angle BA_1C = \\angle A$. Из прямоугольного треугольника $BCA_1$:`,
+    `$$\\sin A = \\sin\\angle BA_1C = \\frac{BC}{BA_1} = \\frac{a}{2R} \\quad\\Rightarrow\\quad a = 2R\\sin A.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Радиус описанной окружности`,
+    `$$R = \\frac{a}{2\\sin A} = \\frac{6}{2\\sin 30°} = \\frac{6}{2\\cdot 0{,}5} = 6.$$`,
+    `**Ответ:** б) $6$.`,
+  ].join('\n\n'),
+};
+
 const geometryTasks: GeometryTask[] = [
   stereometrySection,
   prismSection,
@@ -2706,6 +3254,9 @@ const geometryTasks: GeometryTask[] = [
   cubeDiagPlane,
   prismTriangleSection,
   pyramidMidSection,
+  prismDiagonalAngle,
+  triPyramidDihedral,
+  cubeDistanceToDiagonal,
   planimetrySimilarity,
   planimetryMedian,
   trapezoidMidline,
@@ -2720,6 +3271,9 @@ const geometryTasks: GeometryTask[] = [
   bisectorProperty,
   trapezoidMidlineSegment,
   altitudeGeometricMean,
+  twoTangentsFromPoint,
+  secantSecantPower,
+  sineRule,
 ];
 
 async function main() {
