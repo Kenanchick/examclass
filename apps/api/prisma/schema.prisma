@@ -133,6 +133,7 @@ model Topic {
 
 model Task {
   id                String     @id @default(cuid())
+  publicId          String     @unique
   topicId           String
   examPart          ExamPart
   statement         String

@@ -10,7 +10,7 @@ export function StudentSidebar() {
 
           return (
             <button
-              className={`flex w-full items-center gap-4 rounded-xl px-4 py-4 text-left text-[15px] font-medium transition ${item.active ? "bg-brand/10 text-brand" : "text-ink hover:bg-panel"}`}
+              className={`flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-4 text-left text-[15px] font-medium transition ${item.active ? "bg-brand/10 text-brand" : "text-ink hover:bg-panel"}`}
               key={item.label}
               type="button"
             >

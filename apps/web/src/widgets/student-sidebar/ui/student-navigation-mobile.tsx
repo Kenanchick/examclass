@@ -26,7 +26,7 @@ export function StudentMobileMenu({ onClose }: StudentMobileMenuProps) {
   return (
     <div className="fixed inset-0 z-50 lg:hidden">
       <button
-        className="absolute inset-0 bg-ink/20 backdrop-blur-[1px]"
+        className="absolute inset-0 cursor-pointer bg-ink/20 backdrop-blur-[1px]"
         onClick={onClose}
         type="button"
       />
@@ -38,7 +38,7 @@ export function StudentMobileMenu({ onClose }: StudentMobileMenuProps) {
           </p>
 
           <button
-            className="grid size-10 place-items-center rounded-xl text-muted transition hover:bg-panel hover:text-ink"
+            className="grid size-10 cursor-pointer place-items-center rounded-xl text-muted transition hover:bg-panel hover:text-ink"
             onClick={onClose}
             type="button"
           >
@@ -52,7 +52,7 @@ export function StudentMobileMenu({ onClose }: StudentMobileMenuProps) {
 
             return (
               <button
-                className={`flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-left text-[15px] font-medium transition ${
+                className={`flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-3.5 text-left text-[15px] font-medium transition ${
                   item.active
                     ? "bg-brand/10 text-brand"
                     : "text-ink hover:bg-panel"

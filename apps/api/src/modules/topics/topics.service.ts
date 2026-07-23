@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { TopicStatus } from '../../generated/prisma/client';
+import { TaskStatus, TopicStatus } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
 
 @Injectable()
@@ -40,6 +40,17 @@ export class TopicsService {
                 slug: true,
                 name: true,
                 sortOrder: true,
+                tasks: {
+                  where: {
+                    status: TaskStatus.PUBLISHED,
+                  },
+                  orderBy: {
+                    createdAt: 'asc',
+                  },
+                  select: {
+                    publicId: true,
+                  },
+                },
               },
             },
           },

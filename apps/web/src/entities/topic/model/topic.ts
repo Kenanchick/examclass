@@ -5,8 +5,12 @@ export type Topic = {
   sortOrder: number;
 };
 
+export type TopicTask = {
+  publicId: string;
+};
+
 export type TopicWithChildren = Topic & {
-  children: Topic[];
+  children: Array<Topic & { tasks: TopicTask[] }>;
 };
 
 export type SubjectTopics = {

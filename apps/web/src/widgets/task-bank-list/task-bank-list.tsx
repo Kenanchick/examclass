@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { ArrowRight, BookOpen, ChevronDown } from "lucide-react";
 import { useSubjectsQuery } from "@/entities/subject/api/use-subjects-query";
@@ -33,6 +34,7 @@ function SubjectComingSoon({ subjectName }: SubjectComingSoonProps) {
 }
 
 export function TaskBankList() {
+  const router = useRouter();
   const selectedSubjectCode = useTaskBankStore(
     (state) => state.selectedSubjectCode,
   );
@@ -191,6 +193,13 @@ export function TaskBankList() {
                           <button
                             className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-white"
                             key={subtopic.id}
+                            onClick={() => {
+                              const task = subtopic.tasks[0];
+
+                              if (task) {
+                                router.push(`/tasks/${task.publicId}`);
+                              }
+                            }}
                             type="button"
                           >
                             <span className="size-1.5 rounded-full bg-brand" />

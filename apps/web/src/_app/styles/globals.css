@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @theme {
   --color-page: oklch(0.99 0.003 240);
@@ -22,4 +22,19 @@ body {
   background: var(--color-page);
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(15 85 160 / 0%);
+    opacity: 0.7;
+    transform: scale(0.9);
+  }
+
+  50% {
+    box-shadow: 0 0 0 5px rgb(15 85 160 / 12%);
+    opacity: 1;
+    transform: scale(1.15);
+  }
 }
