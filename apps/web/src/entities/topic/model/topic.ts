@@ -1,3 +1,5 @@
+import type { Task } from "@/entities/task/model/task";
+
 export type Topic = {
   id: string;
   slug: string;
@@ -5,14 +7,9 @@ export type Topic = {
   sortOrder: number;
 };
 
-export type TopicTask = {
-  publicId: string;
-};
-
 export type TopicWithChildren = Topic & {
   taskCount: number;
-  tasks: TopicTask[];
-  children: Array<Topic & { taskCount: number; tasks: TopicTask[] }>;
+  children: Array<Topic & { taskCount: number }>;
 };
 
 export type SubjectTopics = {
@@ -21,4 +18,9 @@ export type SubjectTopics = {
   name: string;
   totalTaskCount: number;
   topics: TopicWithChildren[];
+};
+
+export type TopicTasksResponse = {
+  topic: Task["topic"];
+  tasks: Task[];
 };

@@ -6,27 +6,13 @@ import { useEffect, useMemo } from "react";
 import { ArrowRight, BookOpen, ChevronDown } from "lucide-react";
 import { useSubjectsQuery } from "@/entities/subject/api/use-subjects-query";
 import { useSubjectTopicsQuery } from "@/entities/topic/api/use-subject-topics-query";
+import { formatTaskCount } from "@/entities/topic/lib/format-task-count";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { useTaskBankStore } from "./model/task-bank-store";
 
 type SubjectComingSoonProps = {
   subjectName: string;
 };
-
-function formatTaskCount(count: number) {
-  const lastTwoDigits = count % 100;
-  const lastDigit = count % 10;
-  const word =
-    lastTwoDigits >= 11 && lastTwoDigits <= 14
-      ? "задач"
-      : lastDigit === 1
-        ? "задача"
-        : lastDigit >= 2 && lastDigit <= 4
-          ? "задачи"
-          : "задач";
-
-  return `${count} ${word}`;
-}
 
 function SubjectComingSoon({ subjectName }: SubjectComingSoonProps) {
   return (
@@ -180,7 +166,7 @@ export function TaskBankList() {
             {subjectData.topics.map((topic) => {
               const hasSubtopics = topic.children.length > 0;
               const isOpen = openedTopicId === topic.id;
-              const firstTopicTask = topic.tasks[0];
+              const hasTasks = topic.taskCount > 0;
 
               return (
                 <div
@@ -202,8 +188,8 @@ export function TaskBankList() {
                     onClick={() => {
                       if (hasSubtopics) {
                         setOpenedTopicId(isOpen ? null : topic.id);
-                      } else if (firstTopicTask) {
-                        router.push(`/tasks/${firstTopicTask.publicId}`);
+                      } else if (hasTasks) {
+                        router.push(`/bank/${topic.id}`);
                       }
                     }}
                     type="button"
@@ -226,7 +212,7 @@ export function TaskBankList() {
                           isOpen ? "rotate-180" : ""
                         }`}
                       />
-                    ) : firstTopicTask ? (
+                    ) : hasTasks ? (
                       <ArrowRight className="size-5 text-brand transition-transform group-hover:translate-x-1" />
                     ) : null}
                   </button>
@@ -241,19 +227,19 @@ export function TaskBankList() {
                     <div className="min-h-0 overflow-hidden">
                       <div className="mt-2 rounded-xl border border-brand/15 bg-brand/5 p-2">
                         {topic.children.map((subtopic) => {
-                          const firstTask = subtopic.tasks[0];
+                          const subtopicHasTasks = subtopic.taskCount > 0;
 
                           return (
                             <button
                               className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
-                                firstTask
+                                subtopicHasTasks
                                   ? "cursor-pointer text-ink hover:bg-white"
                                   : "cursor-default text-muted"
                               }`}
                               key={subtopic.id}
                               onClick={() => {
-                                if (firstTask) {
-                                  router.push(`/tasks/${firstTask.publicId}`);
+                                if (subtopicHasTasks) {
+                                  router.push(`/bank/${subtopic.id}`);
                                 }
                               }}
                               type="button"
@@ -263,7 +249,7 @@ export function TaskBankList() {
                               <span className="shrink-0 rounded-full border border-brand/10 bg-white px-2.5 py-1 text-xs font-bold text-muted">
                                 {formatTaskCount(subtopic.taskCount)}
                               </span>
-                              {firstTask && (
+                              {subtopicHasTasks && (
                                 <ArrowRight className="size-4 text-brand" />
                               )}
                             </button>

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { TaskStatus, TopicStatus } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
+import { taskDetailsSelect } from '../tasks/task-details.select';
 
 @Injectable()
 export class TopicsService {
@@ -37,18 +38,6 @@ export class TopicsService {
                 },
               },
             },
-            tasks: {
-              where: {
-                status: TaskStatus.PUBLISHED,
-              },
-              orderBy: {
-                createdAt: 'asc',
-              },
-              take: 1,
-              select: {
-                publicId: true,
-              },
-            },
             children: {
               where: {
                 status: TopicStatus.PUBLISHED,
@@ -68,18 +57,6 @@ export class TopicsService {
                         status: TaskStatus.PUBLISHED,
                       },
                     },
-                  },
-                },
-                tasks: {
-                  where: {
-                    status: TaskStatus.PUBLISHED,
-                  },
-                  orderBy: {
-                    createdAt: 'asc',
-                  },
-                  take: 1,
-                  select: {
-                    publicId: true,
                   },
                 },
               },
@@ -120,5 +97,49 @@ export class TopicsService {
       ),
       topics,
     };
+  }
+
+  async getPublishedTopicTasks(topicId: string) {
+    const topic = await this.prisma.topic.findFirst({
+      where: {
+        id: topicId,
+        status: TopicStatus.PUBLISHED,
+      },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        sortOrder: true,
+        parent: {
+          select: {
+            name: true,
+            sortOrder: true,
+          },
+        },
+        subject: {
+          select: {
+            code: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!topic) {
+      throw new NotFoundException('Тема не найдена');
+    }
+
+    const tasks = await this.prisma.task.findMany({
+      where: {
+        topicId: topic.id,
+        status: TaskStatus.PUBLISHED,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+      select: taskDetailsSelect,
+    });
+
+    return { topic, tasks };
   }
 }
