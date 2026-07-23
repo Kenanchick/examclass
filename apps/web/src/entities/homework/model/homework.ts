@@ -20,3 +20,8 @@ export type HomeworkAssignment = {
   taskCount: number;
   tasks: HomeworkTask[];
 };
+
+export type HomeworkAssignmentDetails = Omit<HomeworkAssignment, "tasks"> & {
+  tasks: Task[];
+};
+import type { Task } from "@/entities/task/model/task";

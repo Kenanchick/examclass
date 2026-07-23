@@ -2,16 +2,10 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useHomeworkQuery } from "@/entities/homework/api/use-homework-query";
-import { getDeadlineMeta } from "@/entities/homework/lib/homework-deadline";
 import type { HomeworkAssignment } from "@/entities/homework/model/homework";
 import { HomeworkAssignmentRow } from "@/entities/homework/ui/homework-assignment-row";
-import {
-  type HomeworkFilter,
-  useHomeworkFilterStore,
-} from "@/features/homework/filter/model/use-homework-filter-store";
-import { HomeworkOverview } from "@/features/homework/overview/ui/homework-overview";
 import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
@@ -22,35 +16,7 @@ export function StudentHomeworkPage() {
   const router = useRouter();
   const hasAccessToken = useAccessToken();
   const homeworkQuery = useHomeworkQuery(hasAccessToken === true);
-  const filter = useHomeworkFilterStore((state) => state.filter);
-  const setFilter = useHomeworkFilterStore((state) => state.setFilter);
   const homework = homeworkQuery.data ?? emptyHomework;
-  const preparedHomework = useMemo(
-    () =>
-      homework.map((assignment) => ({
-        assignment,
-        isOverdue: getDeadlineMeta(assignment.deadline).isOverdue,
-      })),
-    [homework],
-  );
-  const upcomingCount = preparedHomework.filter(
-    (item) => !item.isOverdue,
-  ).length;
-  const overdueCount = preparedHomework.length - upcomingCount;
-  const taskCount = homework.reduce(
-    (total, assignment) => total + assignment.taskCount,
-    0,
-  );
-  const visibleHomework = preparedHomework.filter(({ isOverdue }) => {
-    if (filter === "upcoming") return !isOverdue;
-    if (filter === "overdue") return isOverdue;
-    return true;
-  });
-  const filterCounts: Record<HomeworkFilter, number> = {
-    all: homework.length,
-    upcoming: upcomingCount,
-    overdue: overdueCount,
-  };
 
   useEffect(() => {
     if (hasAccessToken === false) {
@@ -119,36 +85,16 @@ export function StudentHomeworkPage() {
           </header>
 
           {homework.length > 0 ? (
-            <>
-              <HomeworkOverview
-                activeFilter={filter}
-                filterCounts={filterCounts}
-                onFilterChange={setFilter}
-                taskCount={taskCount}
-              />
-
-              <div className="bg-white px-6 sm:px-8 lg:px-10">
-                {visibleHomework.length > 0 ? (
-                  <section aria-label="Список домашних заданий">
-                    {visibleHomework.map(({ assignment }) => (
-                      <HomeworkAssignmentRow
-                        assignment={assignment}
-                        key={assignment.publicId}
-                      />
-                    ))}
-                  </section>
-                ) : (
-                  <div className="py-14 text-center">
-                    <p className="text-xl font-bold text-ink">
-                      В этом разделе пока пусто
-                    </p>
-                    <p className="mt-2 text-sm text-muted">
-                      Выберите другой фильтр, чтобы увидеть задания.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </>
+            <div className="bg-white px-6 sm:px-8 lg:px-10">
+              <section aria-label="Список домашних заданий">
+                {homework.map((assignment) => (
+                  <HomeworkAssignmentRow
+                    assignment={assignment}
+                    key={assignment.publicId}
+                  />
+                ))}
+              </section>
+            </div>
           ) : (
             <div className="mt-6">
               <RequestState
