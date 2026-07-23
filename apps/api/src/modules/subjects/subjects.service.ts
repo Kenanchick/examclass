@@ -11,7 +11,7 @@ export class SubjectsService {
         isActive: true,
       },
       orderBy: {
-        name: 'asc',
+        sortOrder: 'asc',
       },
       select: {
         id: true,

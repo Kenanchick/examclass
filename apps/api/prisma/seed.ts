@@ -13,6 +13,33 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 });
 
+const subjects = [
+  {
+    code: 'profile-math-ege',
+    name: 'Профильная математика',
+    description: 'Подготовка к ЕГЭ по профильной математике',
+    sortOrder: 1,
+  },
+  {
+    code: 'russian-language-ege',
+    name: 'Русский язык',
+    description: 'Подготовка к ЕГЭ по русскому языку',
+    sortOrder: 2,
+  },
+  {
+    code: 'physics-ege',
+    name: 'Физика',
+    description: 'Подготовка к ЕГЭ по физике',
+    sortOrder: 3,
+  },
+  {
+    code: 'informatics-ege',
+    name: 'Информатика',
+    description: 'Подготовка к ЕГЭ по информатике',
+    sortOrder: 4,
+  },
+];
+
 const rootTopics = [
   { number: 1, slug: 'ege-01-planimetry', name: 'Планиметрия' },
   { number: 2, slug: 'ege-02-vectors', name: 'Векторы' },
@@ -288,21 +315,30 @@ const subtopicGroups = [
 ];
 
 async function main() {
-  const subject = await prisma.subject.upsert({
-    where: {
-      code: 'profile-math-ege',
-    },
-    update: {
-      name: 'Профильная математика',
-      description: 'Подготовка к ЕГЭ по профильной математике',
-      isActive: true,
-    },
-    create: {
-      code: 'profile-math-ege',
-      name: 'Профильная математика',
-      description: 'Подготовка к ЕГЭ по профильной математике',
-    },
-  });
+  const seededSubjects = new Map<string, string>();
+
+  for (const subject of subjects) {
+    const savedSubject = await prisma.subject.upsert({
+      where: {
+        code: subject.code,
+      },
+      update: {
+        name: subject.name,
+        description: subject.description,
+        sortOrder: subject.sortOrder,
+        isActive: true,
+      },
+      create: subject,
+    });
+
+    seededSubjects.set(subject.code, savedSubject.id);
+  }
+
+  const subjectId = seededSubjects.get('profile-math-ege');
+
+  if (!subjectId) {
+    throw new Error('Profile math subject was not created');
+  }
 
   const topicIds = new Map<string, string>();
 
@@ -310,7 +346,7 @@ async function main() {
     const savedTopic = await prisma.topic.upsert({
       where: {
         subjectId_slug: {
-          subjectId: subject.id,
+          subjectId,
           slug: topic.slug,
         },
       },
@@ -321,7 +357,7 @@ async function main() {
         status: TopicStatus.PUBLISHED,
       },
       create: {
-        subjectId: subject.id,
+        subjectId,
         slug: topic.slug,
         name: topic.name,
         sortOrder: topic.number,
@@ -343,7 +379,7 @@ async function main() {
       await prisma.topic.upsert({
         where: {
           subjectId_slug: {
-            subjectId: subject.id,
+            subjectId,
             slug: subtopic.slug,
           },
         },
@@ -354,7 +390,7 @@ async function main() {
           status: TopicStatus.PUBLISHED,
         },
         create: {
-          subjectId: subject.id,
+          subjectId,
           parentId,
           slug: subtopic.slug,
           name: subtopic.name,
@@ -365,7 +401,7 @@ async function main() {
     }
   }
 
-  console.log('Seed completed: profile math topics were added');
+  console.log('Seed completed: subjects and profile math topics were added');
 }
 
 main()

@@ -65,6 +65,7 @@ model Subject {
   code        String   @unique
   name        String
   description String?
+  sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

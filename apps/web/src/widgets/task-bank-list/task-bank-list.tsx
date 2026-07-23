@@ -2,10 +2,35 @@
 
 import Image from "next/image";
 import { useEffect, useMemo } from "react";
-import { ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown, Sparkles } from "lucide-react";
 import { useSubjectsQuery } from "@/entities/subject/api/use-subjects-query";
 import { useSubjectTopicsQuery } from "@/entities/topic/api/use-subject-topics-query";
 import { useTaskBankStore } from "./model/task-bank-store";
+
+type SubjectComingSoonProps = {
+  subjectName: string;
+};
+
+function SubjectComingSoon({ subjectName }: SubjectComingSoonProps) {
+  return (
+    <div className="flex flex-col items-start gap-5 rounded-2xl border border-dashed border-brand/30 bg-gradient-to-br from-brand/10 via-panel to-white p-6 sm:flex-row sm:items-center sm:p-8">
+      <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-white text-brand shadow-[0_4px_0_#c8d5e5,0_10px_20px_rgba(15,43,76,0.08)]">
+        <Sparkles className="size-7" />
+      </span>
+
+      <div>
+        <p className="text-sm font-semibold text-brand">Скоро</p>
+        <h2 className="mt-1 text-xl font-bold tracking-[-0.03em] text-ink">
+          Банк задач по предмету «{subjectName}» в разработке
+        </h2>
+        <p className="mt-2 max-w-xl text-[15px] leading-6 text-muted">
+          Мы готовим темы, задачи и разборы. Пока продолжайте подготовку по
+          профильной математике.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export function TaskBankList() {
   const selectedSubjectCode = useTaskBankStore(
@@ -21,6 +46,9 @@ export function TaskBankList() {
   const subjects = useMemo(
     () => subjectsQuery.data ?? [],
     [subjectsQuery.data],
+  );
+  const selectedSubject = subjects.find(
+    (subject) => subject.code === selectedSubjectCode,
   );
   const subjectData = topicsQuery.data;
   const isLoading =
@@ -54,7 +82,7 @@ export function TaskBankList() {
         </h1>
 
         <p className="mt-2 text-base text-muted sm:text-lg">
-          {subjectData?.name ?? "Профильная математика"} · ЕГЭ
+          {selectedSubject?.name ?? "Профильная математика"} · ЕГЭ
         </p>
 
         <div className="mt-7 flex flex-wrap gap-3">
@@ -93,7 +121,7 @@ export function TaskBankList() {
           <p className="text-[15px] text-muted">Предметы пока не добавлены</p>
         )}
 
-        {subjectData && !hasError && (
+        {subjectData && !hasError && subjectData.topics.length > 0 && (
           <div className="grid gap-3 md:grid-cols-2 md:gap-x-6">
             {subjectData.topics.map((topic) => {
               const hasSubtopics = topic.children.length > 0;
@@ -169,6 +197,10 @@ export function TaskBankList() {
               );
             })}
           </div>
+        )}
+
+        {subjectData && !hasError && subjectData.topics.length === 0 && (
+          <SubjectComingSoon subjectName={subjectData.name} />
         )}
       </div>
     </section>
