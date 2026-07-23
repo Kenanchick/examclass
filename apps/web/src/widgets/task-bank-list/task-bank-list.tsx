@@ -6,6 +6,7 @@ import { useEffect, useMemo } from "react";
 import { ArrowRight, BookOpen, ChevronDown } from "lucide-react";
 import { useSubjectsQuery } from "@/entities/subject/api/use-subjects-query";
 import { useSubjectTopicsQuery } from "@/entities/topic/api/use-subject-topics-query";
+import { RequestState } from "@/shared/ui/request-state/request-state";
 import { useTaskBankStore } from "./model/task-bank-store";
 
 type SubjectComingSoonProps = {
@@ -57,6 +58,14 @@ export function TaskBankList() {
     subjectsQuery.isPending ||
     (Boolean(selectedSubjectCode) && topicsQuery.isPending);
   const hasError = subjectsQuery.isError || topicsQuery.isError;
+
+  const handleRetry = () => {
+    void subjectsQuery.refetch();
+
+    if (selectedSubjectCode) {
+      void topicsQuery.refetch();
+    }
+  };
 
   useEffect(() => {
     const firstSubject = subjects[0];
@@ -119,16 +128,23 @@ export function TaskBankList() {
       </div>
 
       <div className="relative z-10 mt-10">
-        {isLoading && <p className="text-[15px] text-muted">Загружаем темы…</p>}
+        {isLoading && <RequestState variant="loading" />}
 
         {hasError && (
-          <p className="text-[15px] text-danger" role="alert">
-            Не удалось загрузить банк задач
-          </p>
+          <RequestState
+            description="Темы и задания временно недоступны. Попробуйте получить их ещё раз."
+            onRetry={handleRetry}
+            title="Не удалось загрузить банк задач"
+            variant="error"
+          />
         )}
 
         {!isLoading && !hasError && subjects.length === 0 && (
-          <p className="text-[15px] text-muted">Предметы пока не добавлены</p>
+          <RequestState
+            description="Скоро здесь появятся предметы, темы и задачи для подготовки к ЕГЭ."
+            title="Банк задач пока пуст"
+            variant="empty"
+          />
         )}
 
         {subjectData && !hasError && subjectData.topics.length > 0 && (

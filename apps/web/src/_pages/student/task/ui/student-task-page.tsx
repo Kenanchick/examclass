@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   ArrowLeft,
   Check,
@@ -18,6 +19,7 @@ import {
   useFavoritesQuery,
 } from "@/entities/favorite/api/use-favorites-query";
 import { useTaskQuery } from "@/entities/task/api/use-task-query";
+import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
 type StudentTaskPageProps = {
@@ -82,6 +84,8 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
   const favoritesQuery = useFavoritesQuery(hasAccessToken);
   const { addMutation, removeMutation } = useFavoriteMutations();
   const task = taskQuery.data;
+  const isTaskMissing =
+    axios.isAxiosError(taskQuery.error) && taskQuery.error.response?.status === 404;
 
   useEffect(() => {
     setHasAccessToken(Boolean(window.localStorage.getItem("accessToken")));
@@ -108,26 +112,36 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
   if (taskQuery.isPending) {
     return (
       <StudentLayout>
-        <main className="grid place-items-center p-8 text-muted">
-          Загружаем задачу…
+        <main className="min-w-0 p-4 sm:p-7 lg:p-8">
+          <div className="mx-auto max-w-[1040px]">
+            <RequestState variant="loading" />
+          </div>
         </main>
       </StudentLayout>
     );
   }
 
-  if (!task) {
+  if (taskQuery.isError || !task) {
     return (
       <StudentLayout>
-        <main className="grid place-items-center p-8">
-          <div className="rounded-2xl border border-line bg-white p-8 text-center">
-            <p className="text-lg font-semibold text-ink">Задача не найдена</p>
-            <Link
-              className="mt-4 inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-brand"
-              href="/dashboard"
-            >
-              <ArrowLeft className="size-4" />
-              Вернуться к банку задач
-            </Link>
+        <main className="min-w-0 p-4 sm:p-7 lg:p-8">
+          <div className="mx-auto max-w-[1040px]">
+            <RequestState
+              backHref="/dashboard"
+              backLabel="К банку задач"
+              description={
+                isTaskMissing
+                  ? "Проверьте ID задачи: возможно, в нём есть опечатка или это задание пока недоступно."
+                  : "Не получилось получить задание с сервера. Попробуйте загрузить страницу ещё раз."
+              }
+              onRetry={isTaskMissing ? undefined : () => void taskQuery.refetch()}
+              title={
+                isTaskMissing
+                  ? "Такой задачи не нашлось"
+                  : "Не удалось загрузить задачу"
+              }
+              variant={isTaskMissing ? "not-found" : "error"}
+            />
           </div>
         </main>
       </StudentLayout>

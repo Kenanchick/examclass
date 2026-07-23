@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, Star } from "lucide-react";
 import { useFavoritesQuery } from "@/entities/favorite/api/use-favorites-query";
+import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
 export function StudentFavoritesPage() {
@@ -58,13 +59,24 @@ export function StudentFavoritesPage() {
           )}
 
           {hasAccessToken && favoritesQuery.isPending && (
-            <p className="mt-6 text-[15px] text-muted">Загружаем избранное…</p>
+            <div className="mt-6">
+              <RequestState
+                description="Собираем сохранённые задания в ваш личный список."
+                title="Загружаем избранное…"
+                variant="loading"
+              />
+            </div>
           )}
 
           {hasAccessToken && favoritesQuery.isError && (
-            <p className="mt-6 text-[15px] text-danger">
-              Не удалось загрузить избранные задачи
-            </p>
+            <div className="mt-6">
+              <RequestState
+                description="Сохранённые задачи временно недоступны. Попробуйте загрузить их ещё раз."
+                onRetry={() => void favoritesQuery.refetch()}
+                title="Не удалось загрузить избранное"
+                variant="error"
+              />
+            </div>
           )}
 
           {favoritesQuery.data && favoritesQuery.data.length === 0 && (
