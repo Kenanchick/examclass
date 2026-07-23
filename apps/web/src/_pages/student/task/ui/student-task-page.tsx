@@ -31,6 +31,8 @@ type StudyHintProps = {
   imageAlt: string;
   title: string;
   children: string;
+  connectorOrigin: "head" | "magnifier";
+  className?: string;
 };
 
 function StudyHint({
@@ -38,12 +40,20 @@ function StudyHint({
   imageAlt,
   title,
   children,
+  connectorOrigin,
+  className = "",
 }: StudyHintProps) {
+  const isMagnifierConnector = connectorOrigin === "magnifier";
+
   return (
-    <div className="relative grid grid-cols-[160px_minmax(0,1fr)] items-center gap-8">
+    <div
+      className={`relative grid grid-cols-[176px_minmax(0,1fr)] items-center gap-10 ${className}`}
+    >
       <Image
         alt={imageAlt}
-        className="relative z-10 h-auto w-40 shrink-0"
+        className={`relative z-10 h-auto w-44 shrink-0 ${
+          isMagnifierConnector ? "-scale-x-100" : ""
+        }`}
         height={1448}
         src={imageSrc}
         width={1086}
@@ -51,21 +61,25 @@ function StudyHint({
 
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute left-[132px] top-1/2 h-12 w-[68px] -translate-y-1/2 text-ink/75"
+        className={`pointer-events-none absolute z-20 h-14 w-[94px] text-ink/80 ${
+          isMagnifierConnector
+            ? "left-[125px] top-[104px]"
+            : "left-[132px] top-[66px]"
+        }`}
         fill="none"
-        viewBox="0 0 68 48"
+        viewBox="0 0 94 56"
       >
         <path
-          d="M2 31C13 8 25 8 32 27C39 46 51 45 66 19"
+          d="M2 23C17 5 27 43 43 27C58 12 71 8 92 21"
           stroke="currentColor"
           strokeLinecap="round"
-          strokeWidth="2"
+          strokeWidth="1.8"
         />
       </svg>
 
       <div className="relative z-10 min-w-0">
-        <p className="text-base font-bold leading-6 text-ink">{title}</p>
-        <p className="mt-2 text-sm leading-6 text-muted">{children}</p>
+        <p className="text-lg font-bold leading-7 text-ink">{title}</p>
+        <p className="mt-2 text-base leading-7 text-muted">{children}</p>
       </div>
     </div>
   );
@@ -246,7 +260,7 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
             />
           </section>
 
-          <div className="mt-6 grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
+          <div className="mt-6 grid gap-6 2xl:grid-cols-[minmax(0,1fr)_400px]">
             <article className="overflow-hidden rounded-3xl border border-line bg-white shadow-[0_16px_35px_rgba(15,43,76,0.06)]">
               <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line px-7 py-6 sm:px-9">
                 <div className="flex items-center gap-3">
@@ -398,6 +412,7 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
 
             <aside className="hidden 2xl:flex 2xl:flex-col 2xl:gap-6 2xl:py-2">
               <StudyHint
+                connectorOrigin="head"
                 imageAlt="Ёжик изучает геометрию"
                 imageSrc="/hedgehog.png"
                 title="Геометрический настрой"
@@ -406,6 +421,8 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
               </StudyHint>
 
               <StudyHint
+                className="mt-8"
+                connectorOrigin="magnifier"
                 imageAlt="Лисёнок проверяет ответ"
                 imageSrc="/fox.png"
                 title="Проверка"
