@@ -1,0 +1,12 @@
+<svg width="400" height="320" viewBox="0 0 400 320" xmlns="http://www.w3.org/2000/svg">
+  <!-- Основание конуса: задняя дуга пунктиром, передняя сплошная -->
+  <path d="M 100 240 A 100 25 0 0 1 300 240" fill="none" stroke="#1f2937" stroke-width="1.8" stroke-dasharray="6 4"/>
+  <path d="M 100 240 A 100 25 0 0 0 300 240" fill="none" stroke="#1f2937" stroke-width="2"/>
+
+  <!-- Образующие -->
+  <line x1="100" y1="240" x2="200" y2="60" stroke="#1f2937" stroke-width="2"/>
+  <line x1="300" y1="240" x2="200" y2="60" stroke="#1f2937" stroke-width="2"/>
+
+  <!-- Вершина -->
+  <circle cx="200" cy="60" r="3.5" fill="#1f2937"/>
+</svg>
