@@ -3546,8 +3546,9 @@ const parallelogramBisector: GeometryTask = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const twoInternalCirclesFigure = {
-  maxWidth: 520,
-  maxHeight: 500,
+  maxWidth: 540,
+  maxHeight: 520,
+  pad: 30,
   points: {
     O: [0, 0],
     Q: [17, 0],
@@ -3557,7 +3558,6 @@ const twoInternalCirclesFigure = {
     P: [30, -10.95],
     K: [23.3, -15.79],
     M: [33.62, -3.55],
-    L: [32, -5.48],
   },
   circles: [
     { cx: 0, cy: 0, r: 34 },
@@ -3567,20 +3567,20 @@ const twoInternalCirclesFigure = {
     { from: 'A', to: 'B' },
     { from: 'A', to: 'C' },
     { from: 'B', to: 'C' },
-    { from: 'K', to: 'M', style: 'section' },
-    { from: 'A', to: 'P', style: 'section' },
     { from: 'O', to: 'A', style: 'dashed' },
+    { from: 'O', to: 'K', style: 'dashed' },
+    { from: 'K', to: 'M', style: 'section' },
   ],
+  rightAngles: [{ at: 'K', from: 'A', to: 'O' }],
   labels: {
-    O: { dx: -6, dy: 4, anchor: 'end' },
-    Q: { dx: -2, dy: -8, anchor: 'end' },
-    A: { dx: 8, dy: 0, anchor: 'start' },
-    B: { dx: -8, dy: 8, anchor: 'end' },
-    C: { dx: 10, dy: 4, anchor: 'start' },
-    P: { dx: -2, dy: 14, anchor: 'end' },
-    K: { dx: -10, dy: 2, anchor: 'end' },
-    M: { dx: 10, dy: -2, anchor: 'start' },
-    L: { dx: 8, dy: -6, anchor: 'start' },
+    O: { dx: -11, dy: 2, anchor: 'end' },
+    Q: { dx: 0, dy: -12, anchor: 'middle' },
+    A: { dx: 13, dy: -6, anchor: 'start' },
+    B: { dx: -12, dy: 8, anchor: 'end' },
+    C: { dx: 14, dy: 12, anchor: 'start' },
+    P: { dx: 14, dy: 2, anchor: 'start' },
+    K: { dx: -13, dy: 2, anchor: 'end' },
+    M: { dx: 14, dy: 0, anchor: 'start' },
   },
 };
 
