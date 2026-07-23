@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardCheck,
-  Clock3,
-  Flag,
-  Sparkles,
-} from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { parseDateKey, toDateKey } from "@/shared/lib/date";
 import type { CalendarEvent } from "@/shared/model/calendar-event";
@@ -23,17 +15,14 @@ const eventKinds = {
   homework: {
     label: "Домашнее задание",
     dotClassName: "bg-brand",
-    icon: ClipboardCheck,
   },
   deadline: {
     label: "Дедлайн",
     dotClassName: "bg-danger",
-    icon: Flag,
   },
   event: {
     label: "Событие",
     dotClassName: "bg-amber-400",
-    icon: Sparkles,
   },
 } as const;
 
@@ -79,18 +68,10 @@ export function ProfileCalendar({ events = [] }: ProfileCalendarProps) {
       {},
     );
   }, [events]);
-  const selectedDateKey = toDateKey(selectedDate);
-  const selectedEvents = eventsByDate[selectedDateKey] ?? [];
   const monthTitle = new Intl.DateTimeFormat("ru-RU", {
     month: "long",
     year: "numeric",
   }).format(visibleMonth);
-  const selectedDateTitle = new Intl.DateTimeFormat("ru-RU", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(selectedDate);
-
   useEffect(() => {
     const requestedDate = parseDateKey(
       new URLSearchParams(window.location.search).get("date"),
@@ -156,73 +137,75 @@ export function ProfileCalendar({ events = [] }: ProfileCalendarProps) {
         </div>
       </div>
 
-      <div className="grid xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="p-4 sm:p-6 lg:p-8">
-          <div className="flex items-center justify-between gap-4">
-            <button
-              aria-label="Предыдущий месяц"
-              className="grid size-12 cursor-pointer place-items-center rounded-2xl border border-line text-ink transition hover:border-brand/30 hover:bg-panel"
-              onClick={() => changeMonth(-1)}
-              type="button"
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="flex items-center justify-between gap-4">
+          <button
+            aria-label="Предыдущий месяц"
+            className="grid size-12 cursor-pointer place-items-center rounded-2xl border border-line text-ink transition hover:border-brand/30 hover:bg-panel"
+            onClick={() => changeMonth(-1)}
+            type="button"
+          >
+            <ChevronLeft className="size-6" />
+          </button>
+
+          <h3 className="text-center text-xl font-bold capitalize text-ink sm:text-2xl">
+            {monthTitle}
+          </h3>
+
+          <button
+            aria-label="Следующий месяц"
+            className="grid size-12 cursor-pointer place-items-center rounded-2xl border border-line text-ink transition hover:border-brand/30 hover:bg-panel"
+            onClick={() => changeMonth(1)}
+            type="button"
+          >
+            <ChevronRight className="size-6" />
+          </button>
+        </div>
+
+        <div className="mt-7 grid grid-cols-7 gap-1 sm:gap-2">
+          {weekDays.map((day) => (
+            <div
+              className="pb-2 text-center text-sm font-bold text-muted"
+              key={day}
             >
-              <ChevronLeft className="size-6" />
-            </button>
+              {day}
+            </div>
+          ))}
 
-            <h3 className="text-center text-xl font-bold capitalize text-ink sm:text-2xl">
-              {monthTitle}
-            </h3>
+          {days.map((date, index) => {
+            if (!date) {
+              return <div aria-hidden="true" key={`empty-${index}`} />;
+            }
 
-            <button
-              aria-label="Следующий месяц"
-              className="grid size-12 cursor-pointer place-items-center rounded-2xl border border-line text-ink transition hover:border-brand/30 hover:bg-panel"
-              onClick={() => changeMonth(1)}
-              type="button"
-            >
-              <ChevronRight className="size-6" />
-            </button>
-          </div>
+            const dateKey = toDateKey(date);
+            const dayEvents = eventsByDate[dateKey] ?? [];
+            const isSelected = isSameDate(date, selectedDate);
+            const isToday = isSameDate(date, today);
+            const tooltipId = `calendar-events-${dateKey}`;
 
-          <div className="mt-7 grid grid-cols-7 gap-1 sm:gap-2">
-            {weekDays.map((day) => (
-              <div
-                className="pb-2 text-center text-sm font-bold text-muted"
-                key={day}
+            return (
+              <button
+                aria-describedby={dayEvents.length > 0 ? tooltipId : undefined}
+                aria-label={new Intl.DateTimeFormat("ru-RU", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                }).format(date)}
+                aria-pressed={isSelected}
+                className={`group relative flex aspect-square min-h-12 cursor-pointer flex-col items-center justify-center rounded-2xl border text-base font-bold transition sm:min-h-16 ${
+                  isSelected
+                    ? "border-brand bg-brand text-white shadow-[0_8px_18px_rgba(19,66,112,0.2)]"
+                    : isToday
+                      ? "border-brand/35 bg-brand/5 text-brand"
+                      : "border-transparent text-ink hover:border-line hover:bg-panel"
+                }`}
+                key={dateKey}
+                onClick={() => setSelectedDate(date)}
+                type="button"
               >
-                {day}
-              </div>
-            ))}
-
-            {days.map((date, index) => {
-              if (!date) {
-                return <div aria-hidden="true" key={`empty-${index}`} />;
-              }
-
-              const dateKey = toDateKey(date);
-              const dayEvents = eventsByDate[dateKey] ?? [];
-              const isSelected = isSameDate(date, selectedDate);
-              const isToday = isSameDate(date, today);
-
-              return (
-                <button
-                  aria-label={new Intl.DateTimeFormat("ru-RU", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  }).format(date)}
-                  aria-pressed={isSelected}
-                  className={`relative flex aspect-square min-h-12 cursor-pointer flex-col items-center justify-center rounded-2xl border text-base font-bold transition sm:min-h-16 ${
-                    isSelected
-                      ? "border-brand bg-brand text-white shadow-[0_8px_18px_rgba(19,66,112,0.2)]"
-                      : isToday
-                        ? "border-brand/35 bg-brand/5 text-brand"
-                        : "border-transparent text-ink hover:border-line hover:bg-panel"
-                  }`}
-                  key={dateKey}
-                  onClick={() => setSelectedDate(date)}
-                  type="button"
-                >
-                  {date.getDate()}
-                  {dayEvents.length > 0 && (
+                {date.getDate()}
+                {dayEvents.length > 0 && (
+                  <>
                     <span className="absolute bottom-2 flex gap-1">
                       {dayEvents.slice(0, 3).map((event) => (
                         <span
@@ -235,76 +218,47 @@ export function ProfileCalendar({ events = [] }: ProfileCalendarProps) {
                         />
                       ))}
                     </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-line pt-5">
-            {Object.entries(eventKinds).map(([kind, config]) => (
-              <span
-                className="inline-flex items-center gap-2 text-sm font-semibold text-muted"
-                key={kind}
-              >
-                <span
-                  className={`size-2.5 rounded-full ${config.dotClassName}`}
-                />
-                {config.label}
-              </span>
-            ))}
-          </div>
+                    <span
+                      className="pointer-events-none absolute left-1/2 top-[calc(100%+0.6rem)] z-30 w-56 -translate-x-1/2 rounded-2xl border border-line bg-white p-4 text-left text-ink opacity-0 shadow-[0_16px_32px_rgba(15,43,76,0.16)] transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+                      id={tooltipId}
+                      role="tooltip"
+                    >
+                      {dayEvents.slice(0, 3).map((event) => (
+                        <span className="mb-3 block last:mb-0" key={event.id}>
+                          <span className="text-xs font-bold text-brand">
+                            {eventKinds[event.kind].label}
+                          </span>
+                          <span className="mt-1 block text-sm font-bold leading-5 text-ink">
+                            {event.title}
+                          </span>
+                          {event.time && (
+                            <span className="mt-1 block text-xs font-medium text-muted">
+                              {event.time}
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </span>
+                  </>
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        <aside className="border-t border-line bg-panel/55 p-6 sm:p-8 xl:border-l xl:border-t-0">
-          <p className="text-sm font-bold uppercase tracking-[0.08em] text-brand">
-            Выбранный день
-          </p>
-          <h3 className="mt-2 text-xl font-bold capitalize leading-7 text-ink">
-            {selectedDateTitle}
-          </h3>
-
-          {selectedEvents.length > 0 ? (
-            <div className="mt-6 space-y-3">
-              {selectedEvents.map((event) => {
-                const config = eventKinds[event.kind];
-                const Icon = config.icon;
-
-                return (
-                  <article
-                    className="rounded-2xl border border-line bg-white p-4"
-                    key={event.id}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
-                        <Icon className="size-5" />
-                      </span>
-                      <div>
-                        <p className="text-base font-bold text-ink">
-                          {event.title}
-                        </p>
-                        <p className="mt-1 text-sm text-muted">
-                          {event.time ?? config.label}
-                        </p>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="mt-6 rounded-3xl border border-dashed border-brand/25 bg-white p-5">
-              <span className="grid size-12 place-items-center rounded-2xl bg-brand/10 text-brand">
-                <Clock3 className="size-6" />
-              </span>
-              <p className="mt-4 text-lg font-bold text-ink">Событий нет</p>
-              <p className="mt-2 text-sm leading-6 text-muted">
-                Когда преподаватель назначит домашнее задание или занятие, оно
-                появится здесь автоматически.
-              </p>
-            </div>
-          )}
-        </aside>
+        <div className="mt-7 flex flex-wrap gap-x-5 gap-y-3 border-t border-line pt-5">
+          {Object.entries(eventKinds).map(([kind, config]) => (
+            <span
+              className="inline-flex items-center gap-2 text-sm font-semibold text-muted"
+              key={kind}
+            >
+              <span
+                className={`size-2.5 rounded-full ${config.dotClassName}`}
+              />
+              {config.label}
+            </span>
+          ))}
+        </div>
       </div>
     </section>
   );
