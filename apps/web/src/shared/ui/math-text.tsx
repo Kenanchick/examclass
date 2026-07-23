@@ -14,7 +14,6 @@ type MathTextProps = {
   className?: string;
 };
 
-/** Достаёт сырой текст из детей fenced-блока react-markdown. */
 function rawText(node: ReactNode): string {
   if (typeof node === "string") {
     return node;
@@ -23,7 +22,9 @@ function rawText(node: ReactNode): string {
     return node.map(rawText).join("");
   }
   if (node && typeof node === "object" && "props" in node) {
-    return rawText((node as { props: { children?: ReactNode } }).props.children);
+    return rawText(
+      (node as { props: { children?: ReactNode } }).props.children,
+    );
   }
   return "";
 }
@@ -63,13 +64,15 @@ export function MathText({ content, className = "" }: MathTextProps) {
             const child = Array.isArray(children) ? children[0] : children;
             const cls =
               child && typeof child === "object" && "props" in child
-                ? ((child as { props: { className?: string } }).props.className ?? "")
+                ? ((child as { props: { className?: string } }).props
+                    .className ?? "")
                 : "";
             if (cls.includes("language-geo")) {
               return (
                 <GeoBlock
                   source={rawText(
-                    (child as { props: { children?: ReactNode } }).props.children,
+                    (child as { props: { children?: ReactNode } }).props
+                      .children,
                   )}
                 />
               );
@@ -78,7 +81,8 @@ export function MathText({ content, className = "" }: MathTextProps) {
               return (
                 <CircleBlock
                   source={rawText(
-                    (child as { props: { children?: ReactNode } }).props.children,
+                    (child as { props: { children?: ReactNode } }).props
+                      .children,
                   )}
                 />
               );
@@ -93,7 +97,7 @@ export function MathText({ content, className = "" }: MathTextProps) {
             if (!src || typeof src !== "string") {
               return null;
             }
-            
+
             return (
               <Image
                 src={src}
