@@ -15,6 +15,7 @@ type RequestStateProps = {
   title?: string;
   description?: string;
   onRetry?: () => void;
+  retryLabel?: string;
   backHref?: string;
   backLabel?: string;
 };
@@ -48,6 +49,7 @@ export function RequestState({
   title,
   description,
   onRetry,
+  retryLabel = "Попробовать снова",
   backHref,
   backLabel = "Вернуться назад",
 }: RequestStateProps) {
@@ -60,7 +62,7 @@ export function RequestState({
       aria-busy={isLoading}
       className="overflow-hidden rounded-3xl border border-[#c6ddf5] bg-[#f4f9ff] p-6 sm:p-8"
     >
-      <div className="flex flex-col items-center gap-7 sm:flex-row sm:items-end sm:gap-9">
+      <div className="flex flex-col items-center gap-7 sm:flex-row sm:items-center sm:gap-9">
         <Image
           alt="Лисёнок ищет нужные материалы"
           className="h-auto w-44 shrink-0 sm:w-52"
@@ -70,7 +72,7 @@ export function RequestState({
           width={1024}
         />
 
-        <div className="max-w-2xl text-center sm:pb-6 sm:text-left">
+        <div className="max-w-2xl text-center sm:text-left">
           <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-white text-brand shadow-[0_4px_0_#c1d9f1]">
             <Icon
               className={`size-5 ${isLoading ? "animate-spin" : ""}`}
@@ -93,7 +95,7 @@ export function RequestState({
                   type="button"
                 >
                   <RefreshCw className="size-4" />
-                  Попробовать снова
+                  {retryLabel}
                 </button>
               )}
               {backHref && (
