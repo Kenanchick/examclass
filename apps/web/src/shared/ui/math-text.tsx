@@ -7,6 +7,7 @@ import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { GeometryFigure } from "./geometry-figure";
+import { UnitCircle } from "./unit-circle";
 
 type MathTextProps = {
   content: string;
@@ -39,6 +40,18 @@ function GeoBlock({ source }: { source: string }) {
   }
 }
 
+function CircleBlock({ source }: { source: string }) {
+  try {
+    return <UnitCircle spec={JSON.parse(source)} />;
+  } catch {
+    return (
+      <pre className="not-prose my-4 overflow-x-auto rounded-xl border border-danger/30 bg-danger/5 p-3 text-xs text-danger">
+        Не удалось разобрать окружность (проверьте JSON в блоке ```circle).
+      </pre>
+    );
+  }
+}
+
 export function MathText({ content, className = "" }: MathTextProps) {
   return (
     <div className={`prose prose-slate max-w-none ${className}`}>
@@ -55,6 +68,15 @@ export function MathText({ content, className = "" }: MathTextProps) {
             if (cls.includes("language-geo")) {
               return (
                 <GeoBlock
+                  source={rawText(
+                    (child as { props: { children?: ReactNode } }).props.children,
+                  )}
+                />
+              );
+            }
+            if (cls.includes("language-circle")) {
+              return (
+                <CircleBlock
                   source={rawText(
                     (child as { props: { children?: ReactNode } }).props.children,
                   )}
