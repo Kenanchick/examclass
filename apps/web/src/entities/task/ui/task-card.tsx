@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import {
+  BookMarked,
   Check,
   ChevronDown,
   Clipboard,
@@ -148,6 +149,13 @@ export function TaskCard({
           className="max-w-4xl text-xl leading-9 text-ink sm:text-[1.35rem]"
           content={task.statement}
         />
+
+        {task.source && (
+          <p className="mt-4 inline-flex items-center gap-1.5 text-xs text-muted">
+            <BookMarked className="size-3.5 shrink-0" />
+            Источник: {task.source}
+          </p>
+        )}
 
         <div className="mt-9 rounded-2xl border border-line bg-panel/60 p-4 sm:p-5">
           <label

@@ -22,6 +22,9 @@ function geo(spec: unknown): string {
   return ['```geo', JSON.stringify(spec), '```'].join('\n');
 }
 
+/** Единый источник для всех задач этого набора. */
+const SOURCE = 'Реальные задания (ЕГЭ, ФИПИ)';
+
 type GeometryTask = {
   publicId: string;
   topicSlug: string;
@@ -510,12 +513,386 @@ const cubeSection: GeometryTask = {
   ].join('\n\n'),
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · СТЕРЕОМЕТРИЯ · СЕЧЕНИЕ ПИРАМИДЫ И ОТНОШЕНИЕ ОБЪЁМОВ
+// ─────────────────────────────────────────────────────────────────────────────
+
+const pyramidFigure = {
+  maxWidth: 520,
+  maxHeight: 440,
+  points: {
+    S: [0, 2.4],
+    A: [2.5, -0.1],
+    B: [0.5, 1.1],
+    C: [-2.5, 0.1],
+    D: [-0.5, -1.1],
+    O: [0, 0],
+    F: [1.25, 1.15],
+    M: [2, 0.2],
+    K: [-0.125, 1.525],
+    T: [-2, -0.2],
+    P: [4, 0.4],
+  },
+  fills: [{ points: ['M', 'F', 'K', 'T'] }],
+  edges: [
+    { from: 'D', to: 'A' },
+    { from: 'C', to: 'D' },
+    { from: 'A', to: 'B', style: 'dashed' },
+    { from: 'B', to: 'C', style: 'dashed' },
+    { from: 'S', to: 'A' },
+    { from: 'S', to: 'C' },
+    { from: 'S', to: 'D' },
+    { from: 'S', to: 'B', style: 'dashed' },
+    { from: 'A', to: 'C', style: 'dashed' },
+    { from: 'B', to: 'D', style: 'dashed' },
+    { from: 'F', to: 'O', style: 'dashed' },
+    { from: 'A', to: 'P', style: 'dashed' },
+    { from: 'M', to: 'P', style: 'dashed' },
+    { from: 'M', to: 'F', style: 'section' },
+    { from: 'F', to: 'K', style: 'section' },
+    { from: 'K', to: 'T', style: 'section' },
+    { from: 'T', to: 'M', style: 'section' },
+  ],
+  labels: {
+    S: { dx: 0, dy: -12, anchor: 'middle' },
+    A: { dx: 10, dy: 8, anchor: 'start' },
+    B: { dx: -9, dy: -4, anchor: 'end' },
+    C: { dx: -10, dy: 4, anchor: 'end' },
+    D: { dx: -8, dy: 14, anchor: 'end' },
+    O: { dx: -7, dy: 13, anchor: 'end' },
+    F: { dx: 9, dy: 2, anchor: 'start' },
+    M: { dx: 8, dy: 12, anchor: 'start' },
+    K: { dx: -10, dy: -2, anchor: 'end' },
+    T: { dx: -10, dy: 2, anchor: 'end' },
+    P: { dx: 10, dy: 2, anchor: 'start' },
+  },
+};
+
+const pyramidVolumeRatio: GeometryTask = {
+  publicId: 'G14PYR1',
+  topicSlug: 'ege-14-sections',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 25/39',
+  statement: [
+    `Точка $F$ — середина бокового ребра $SA$ правильной четырёхугольной пирамиды $SABCD$, точка $M$ лежит на стороне основания $AB$. Плоскость $\\beta$ проходит через точки $F$ и $M$ параллельно боковому ребру $SC$.`,
+    `**а)** Плоскость $\\beta$ пересекает ребро $SD$ в точке $K$. Докажите, что $BM : MA = DK : KS$.`,
+    `**б)** Пусть $BM : MA = 3 : 1$. Найдите отношение объёмов многогранников, на которые плоскость $\\beta$ разбивает пирамиду.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(pyramidFigure),
+    `Пусть $O$ — точка пересечения диагоналей основания (центр квадрата $ABCD$); тогда $SO$ — высота пирамиды.`,
+    `Построим сечение. Плоскость $\\beta$ пересекает грань $ASB$ по прямой $FM$. Так как $\\beta \\parallel SC$, а прямая $SC$ лежит в плоскости $ASC$, то $\\beta$ пересекает эту плоскость по прямой, параллельной $SC$. Эта прямая проходит через середину $SA$ — точку $F$, поэтому она является средней линией треугольника $ASC$ и проходит через середину $AC$, то есть через точку $O$. Значит, $FO \\parallel SC$ и $O \\in \\beta$.`,
+    `Продолжим $MO$ до пересечения с прямой $CD$ в точке $T$. В грани $CSD$ проведём $TK \\parallel CS$ ($K \\in SD$). Четырёхугольник $MFKT$ — искомое сечение.`,
+    `Рассмотрим треугольники $COT$ и $AOM$: $CO = AO$ (диагонали квадрата точкой пересечения делятся пополам), $\\angle COT = \\angle AOM$ (вертикальные), $\\angle OCT = \\angle OAM$ (накрест лежащие при $CD \\parallel AB$ и секущей $CA$). Значит, $\\triangle COT = \\triangle AOM$, откуда $CT = AM$ и`,
+    `$$DT = DC - CT = AB - AM = BM.$$`,
+    `В треугольнике $DSC$ прямая $TK \\parallel SC$, поэтому по теореме о пропорциональных отрезках $DK : KS = DT : TC$. Учитывая, что $DT = BM$ и $TC = AM$, получаем`,
+    `$$DK : KS = DT : TC = BM : MA.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Отношение объёмов`,
+    `Введём обозначения $AB = 4t$, $SO = 2h$. По условию $BM : MA = 3 : 1$, поэтому $BM = 3t$, $MA = t$. Пусть $P$ — точка пересечения плоскости $\\beta$ с прямой $AD$ (она лежит на продолжении ребра $AD$ за точку $A$).`,
+    `Опустим из $F$ и $K$ перпендикуляры на плоскость основания. Так как $F$ — середина $SA$, отрезок $FH$ ($H$ — середина $AO$) — средняя линия треугольника $ASO$, поэтому $FH \\parallel SO$ и $FH = \\tfrac{1}{2}SO = h$. Аналогично $KL \\parallel SO$, а из $DK : KS = 3 : 1$ следует $DK : DS = 3 : 4$, поэтому $KL = \\tfrac{3}{4}SO = \\tfrac{3}{2}h$.`,
+    `Плоскость $\\beta$ отсекает многогранник объёма $V_1$, который удобно представить как разность двух пирамид с общей вершиной $P$:`,
+    `$$V_1 = V_{KDTP} - V_{FAMP} = \\tfrac{1}{3}\\left(S_{DTP}\\cdot KL - S_{AMP}\\cdot FH\\right).$$`,
+    `Так как $DT \\parallel AM$ (обе прямые лежат на параллельных сторонах $CD$ и $AB$), треугольники $PDT$ и $PAM$ подобны с коэффициентом $\\dfrac{DT}{AM} = \\dfrac{BM}{MA} = 3$. Значит, $\\dfrac{PD}{PA} = 3$. Так как $PD = PA + AD = PA + 4t$, получаем $PA + 4t = 3\\,PA$, откуда $PA = 2t$, $PD = 6t$.`,
+    `Учитывая, что углы $A$ и $D$ квадрата прямые,`,
+    `$$S_{DTP} = \\tfrac{1}{2}\\,DT\\cdot DP = \\tfrac{1}{2}\\cdot 3t\\cdot 6t = 9t^2, \\qquad S_{AMP} = \\tfrac{1}{2}\\,AM\\cdot AP = \\tfrac{1}{2}\\cdot t\\cdot 2t = t^2.$$`,
+    `$$V_1 = \\tfrac{1}{3}\\left(9t^2\\cdot \\tfrac{3}{2}h - t^2\\cdot h\\right) = \\tfrac{1}{3}\\cdot \\tfrac{25}{2}t^2h = \\tfrac{25}{6}t^2h.$$`,
+    `Объём всей пирамиды равен $V = \\tfrac{1}{3}\\,S_{ABCD}\\cdot SO = \\tfrac{1}{3}\\,(4t)^2\\cdot 2h = \\tfrac{32}{3}t^2h$. Тогда`,
+    `$$V_2 = V - V_1 = \\tfrac{32}{3}t^2h - \\tfrac{25}{6}t^2h = \\tfrac{13}{2}t^2h,$$`,
+    `$$\\frac{V_1}{V_2} = \\frac{25/6}{13/2} = \\frac{25}{39}.$$`,
+    `**Ответ:** б) $\\dfrac{25}{39}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · ДОКАЗАТЕЛЬСТВО · BD ⊥ (ASC) В ПРАВИЛЬНОЙ ПИРАМИДЕ
+// ─────────────────────────────────────────────────────────────────────────────
+
+const pyramidPerpFigure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    S: [0, 2.4],
+    A: [2.5, -0.1],
+    B: [0.5, 1.1],
+    C: [-2.5, 0.1],
+    D: [-0.5, -1.1],
+    O: [0, 0],
+  },
+  fills: [{ points: ['A', 'S', 'C'] }],
+  edges: [
+    { from: 'D', to: 'A' },
+    { from: 'C', to: 'D' },
+    { from: 'A', to: 'B', style: 'dashed' },
+    { from: 'B', to: 'C', style: 'dashed' },
+    { from: 'S', to: 'A' },
+    { from: 'S', to: 'C' },
+    { from: 'S', to: 'D' },
+    { from: 'S', to: 'B', style: 'dashed' },
+    { from: 'A', to: 'C', style: 'section' },
+    { from: 'B', to: 'D', style: 'dashed' },
+  ],
+  labels: {
+    S: { dx: 0, dy: -12, anchor: 'middle' },
+    A: { dx: 10, dy: 8, anchor: 'start' },
+    B: { dx: -8, dy: -4, anchor: 'end' },
+    C: { dx: -10, dy: 4, anchor: 'end' },
+    D: { dx: -6, dy: 14, anchor: 'end' },
+    O: { dx: 9, dy: 10, anchor: 'start' },
+  },
+};
+
+const pyramidPerp: GeometryTask = {
+  publicId: 'G14PRP1',
+  topicSlug: 'ege-14-proofs',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 2√2',
+  statement: [
+    `В правильной четырёхугольной пирамиде $SABCD$ все рёбра равны $4$.`,
+    `**а)** Докажите, что прямая $BD$ перпендикулярна плоскости $ASC$.`,
+    `**б)** Найдите расстояние от точки $B$ до плоскости $ASC$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(pyramidPerpFigure),
+    `Пусть $O$ — точка пересечения диагоналей основания (центр квадрата $ABCD$). Тогда $SO$ — высота пирамиды, то есть $SO \\perp (ABC)$.`,
+    `Диагонали квадрата взаимно перпендикулярны, поэтому $BD \\perp AC$. Кроме того, прямая $BD$ лежит в плоскости основания, а $SO \\perp (ABC)$, поэтому $SO \\perp BD$.`,
+    `Плоскость $ASC$ содержит прямые $AC$ и $SO$ (точка $O$ лежит на диагонали $AC$). Прямая $BD$ перпендикулярна двум пересекающимся прямым $AC$ и $SO$ этой плоскости, следовательно`,
+    `$$BD \\perp (ASC).$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Расстояние от точки $B$ до плоскости`,
+    `Так как $BD \\perp (ASC)$ и точка $O \\in (ASC)$ (она лежит на диагонали $AC$), перпендикуляр из $B$ на плоскость $ASC$ — это отрезок $BO$. Значит, расстояние от $B$ до плоскости равно $BO$.`,
+    `Отрезок $BO$ — половина диагонали $BD$ квадрата со стороной $4$. Диагональ равна $BD = 4\\sqrt{2}$, поэтому`,
+    `$$\\rho(B,\\,ASC) = BO = \\frac{1}{2}\\cdot 4\\sqrt{2} = 2\\sqrt{2}.$$`,
+    `**Ответ:** б) $2\\sqrt{2}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · УГЛЫ И РАССТОЯНИЯ · РАССТОЯНИЕ ОТ ЦЕНТРА ДО БОКОВОЙ ГРАНИ
+// ─────────────────────────────────────────────────────────────────────────────
+
+const pyramidDistFigure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    S: [0, 2.4],
+    A: [2.5, -0.1],
+    B: [0.5, 1.1],
+    C: [-2.5, 0.1],
+    D: [-0.5, -1.1],
+    O: [0, 0],
+    K: [-1.5, -0.5],
+  },
+  fills: [{ points: ['S', 'C', 'D'] }],
+  edges: [
+    { from: 'D', to: 'A' },
+    { from: 'C', to: 'D' },
+    { from: 'A', to: 'B', style: 'dashed' },
+    { from: 'B', to: 'C', style: 'dashed' },
+    { from: 'S', to: 'A' },
+    { from: 'S', to: 'C' },
+    { from: 'S', to: 'D' },
+    { from: 'S', to: 'B', style: 'dashed' },
+    { from: 'S', to: 'K', style: 'section' },
+    { from: 'O', to: 'K', style: 'dashed' },
+  ],
+  rightAngles: [{ at: 'K', from: 'S', to: 'D' }],
+  labels: {
+    S: { dx: 0, dy: -12, anchor: 'middle' },
+    A: { dx: 10, dy: 8, anchor: 'start' },
+    B: { dx: 8, dy: -2, anchor: 'start' },
+    C: { dx: -10, dy: 2, anchor: 'end' },
+    D: { dx: 4, dy: 16, anchor: 'start' },
+    O: { dx: 9, dy: 8, anchor: 'start' },
+    K: { dx: -9, dy: 10, anchor: 'end' },
+  },
+};
+
+const pyramidDistance: GeometryTask = {
+  publicId: 'G14ANG1',
+  topicSlug: 'ege-14-angles-distances',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 2√5/5',
+  statement: [
+    `В правильной четырёхугольной пирамиде $SABCD$ сторона основания $AB = 2$, а высота $SO = 2$ ($O$ — центр основания). Точка $K$ — середина ребра $CD$.`,
+    `**а)** Докажите, что $SK \\perp CD$.`,
+    `**б)** Найдите расстояние от точки $O$ до плоскости $SCD$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(pyramidDistFigure),
+    `Боковые рёбра правильной пирамиды равны, поэтому треугольник $SCD$ равнобедренный: $SC = SD$. Точка $K$ — середина основания $CD$, значит $SK$ — медиана этого треугольника, а в равнобедренном треугольнике медиана, проведённая к основанию, является и высотой. Поэтому`,
+    `$$SK \\perp CD.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Расстояние от точки $O$ до плоскости $SCD$`,
+    `Отрезок $OK$ соединяет центр квадрата с серединой стороны $CD$, поэтому $OK \\perp CD$ и $OK = \\tfrac{1}{2}AB = 1$.`,
+    `Прямая $CD$ перпендикулярна двум пересекающимся прямым $SK$ и $OK$, поэтому $CD \\perp (SOK)$. Плоскость $SCD$ содержит прямую $CD$, значит $(SCD) \\perp (SOK)$, и расстояние от $O$ до плоскости $SCD$ равно расстоянию от точки $O$ до прямой $SK$ в плоскости $SOK$.`,
+    `В прямоугольном треугольнике $SOK$ ($\\angle SOK = 90°$, так как $SO \\perp (ABC) \\supset OK$) по теореме Пифагора`,
+    `$$SK = \\sqrt{SO^2 + OK^2} = \\sqrt{4 + 1} = \\sqrt{5}.$$`,
+    `Расстояние от вершины прямого угла $O$ до гипотенузы $SK$ равно`,
+    `$$\\rho(O,\\,SCD) = \\frac{SO \\cdot OK}{SK} = \\frac{2 \\cdot 1}{\\sqrt{5}} = \\frac{2}{\\sqrt{5}} = \\frac{2\\sqrt{5}}{5}.$$`,
+    `**Ответ:** б) $\\dfrac{2\\sqrt{5}}{5}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · ОТРЕЗОК ЧЕРЕЗ ТОЧКУ ПЕРЕСЕЧЕНИЯ ДИАГОНАЛЕЙ ТРАПЕЦИИ
+// ─────────────────────────────────────────────────────────────────────────────
+
+const trapezoidMnFigure = {
+  maxWidth: 420,
+  maxHeight: 280,
+  points: {
+    A: [0, 0],
+    D: [6, 0],
+    B: [1, 3],
+    C: [5, 3],
+    O: [3, 1.8],
+    M: [0.6, 1.8],
+    N: [5.4, 1.8],
+  },
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D' },
+    { from: 'D', to: 'A' },
+    { from: 'A', to: 'C', style: 'dashed' },
+    { from: 'B', to: 'D', style: 'dashed' },
+    { from: 'M', to: 'N', style: 'section' },
+  ],
+  dims: [
+    { from: 'B', to: 'C', text: '4' },
+    { from: 'A', to: 'D', text: '6' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 14, anchor: 'end' },
+    D: { dx: 8, dy: 14, anchor: 'start' },
+    B: { dx: -8, dy: -6, anchor: 'end' },
+    C: { dx: 8, dy: -6, anchor: 'start' },
+    O: { dx: 2, dy: 15, anchor: 'start' },
+    M: { dx: -12, dy: 2, anchor: 'end' },
+    N: { dx: 12, dy: 2, anchor: 'start' },
+  },
+};
+
+const trapezoidMidline: GeometryTask = {
+  publicId: 'G17TRP1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 4,8',
+  statement: [
+    `Диагонали трапеции $ABCD$ с основаниями $BC$ и $AD$ пересекаются в точке $O$. Через точку $O$ проведена прямая, параллельная основаниям и пересекающая боковые стороны $AB$ и $CD$ в точках $M$ и $N$ соответственно.`,
+    `**а)** Докажите, что $O$ — середина отрезка $MN$.`,
+    `**б)** Найдите $MN$, если $BC = 4$ и $AD = 6$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(trapezoidMnFigure),
+    `Треугольники $BOC$ и $DOA$ подобны (углы при вершине $O$ вертикальные, а углы $\\angle OBC = \\angle ODA$ накрест лежащие при $BC \\parallel AD$), поэтому`,
+    `$$\\frac{BO}{OD} = \\frac{BC}{AD} \\quad\\Rightarrow\\quad \\frac{BO}{BD} = \\frac{BC}{BC + AD}.$$`,
+    `В треугольнике $ABD$ отрезок $MO \\parallel AD$, поэтому $\\dfrac{MO}{AD} = \\dfrac{BO}{BD} = \\dfrac{BC}{BC + AD}$.`,
+    `Аналогично из подобия ($CO : OA = BC : AD$) в треугольнике $ACD$ отрезок $NO \\parallel AD$ даёт $\\dfrac{NO}{AD} = \\dfrac{CO}{CA} = \\dfrac{BC}{BC + AD}$.`,
+    `Значит, $MO = NO$, то есть $O$ — середина отрезка $MN$. **Что и требовалось доказать.**`,
+    `## Пункт б). Длина отрезка $MN$`,
+    `Из полученных равенств $MO = NO = \\dfrac{BC \\cdot AD}{BC + AD}$, поэтому`,
+    `$$MN = 2\\cdot MO = \\frac{2\\,BC\\cdot AD}{BC + AD} = \\frac{2\\cdot 4\\cdot 6}{4 + 6} = \\frac{48}{10} = 4{,}8.$$`,
+    `**Ответ:** б) $4{,}8$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · ОТРЕЗКИ КАСАТЕЛЬНЫХ ВПИСАННОЙ ОКРУЖНОСТИ
+// ─────────────────────────────────────────────────────────────────────────────
+
+const incircleFigure = {
+  maxWidth: 420,
+  maxHeight: 380,
+  points: {
+    A: [5, 12],
+    B: [0, 0],
+    C: [14, 0],
+    P: [2.31, 5.54],
+    Q: [9.2, 6.4],
+    R: [6, 0],
+    I: [6, 4],
+  },
+  circles: [{ cx: 6, cy: 4, r: 4 }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'A' },
+    { from: 'A', to: 'P', style: 'section' },
+    { from: 'A', to: 'Q', style: 'section' },
+    { from: 'I', to: 'P', style: 'dashed' },
+    { from: 'I', to: 'Q', style: 'dashed' },
+    { from: 'I', to: 'R', style: 'dashed' },
+  ],
+  rightAngles: [
+    { at: 'P', from: 'A', to: 'I' },
+    { at: 'Q', from: 'C', to: 'I' },
+    { at: 'R', from: 'B', to: 'I' },
+  ],
+  labels: {
+    A: { dx: 0, dy: -12, anchor: 'middle' },
+    B: { dx: -8, dy: 14, anchor: 'end' },
+    C: { dx: 8, dy: 14, anchor: 'start' },
+    P: { dx: -12, dy: 0, anchor: 'end' },
+    Q: { dx: 12, dy: 0, anchor: 'start' },
+    R: { dx: 0, dy: 16, anchor: 'middle' },
+    I: { dx: 10, dy: 2, anchor: 'start' },
+  },
+};
+
+const incircleTangents: GeometryTask = {
+  publicId: 'G17INC1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: SOURCE,
+  correctAnswer: 'б) 7',
+  statement: [
+    `Вписанная в треугольник $ABC$ окружность касается сторон $AB$ и $CA$ в точках $P$ и $Q$ соответственно.`,
+    `**а)** Докажите, что $AP = AQ = \\dfrac{AB + CA - BC}{2}$.`,
+    `**б)** Найдите $AP$, если $AB = 13$, $BC = 14$, $CA = 15$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(incircleFigure),
+    `Пусть окружность касается сторон $AB$, $BC$ и $CA$ в точках $P$, $R$ и $Q$. Отрезки касательных, проведённых к окружности из одной точки, равны, поэтому`,
+    `$$AP = AQ = x, \\qquad BP = BR = y, \\qquad CQ = CR = z.$$`,
+    `Тогда стороны треугольника выражаются так:`,
+    `$$AB = x + y, \\qquad BC = y + z, \\qquad CA = z + x.$$`,
+    `Сложив три равенства, получим $AB + BC + CA = 2(x + y + z)$, откуда $x + y + z = \\dfrac{AB + BC + CA}{2}$. Вычитая отсюда $BC = y + z$, находим`,
+    `$$AP = x = \\frac{AB + BC + CA}{2} - BC = \\frac{AB + CA - BC}{2}.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Вычисление $AP$`,
+    `Подставим $AB = 13$, $BC = 14$, $CA = 15$:`,
+    `$$AP = \\frac{AB + CA - BC}{2} = \\frac{13 + 15 - 14}{2} = \\frac{14}{2} = 7.$$`,
+    `**Ответ:** б) $7$.`,
+  ].join('\n\n'),
+};
+
 const geometryTasks: GeometryTask[] = [
   stereometrySection,
   prismSection,
   cubeSection,
+  pyramidVolumeRatio,
+  pyramidPerp,
+  pyramidDistance,
   planimetrySimilarity,
   planimetryMedian,
+  trapezoidMidline,
+  incircleTangents,
 ];
 
 async function main() {
@@ -553,7 +930,7 @@ async function main() {
       referenceSolution: task.referenceSolution,
       difficulty: task.difficulty,
       status: TaskStatus.PUBLISHED,
-      source: task.source,
+      source: SOURCE,
     };
 
     await prisma.task.upsert({
