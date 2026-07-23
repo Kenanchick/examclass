@@ -3410,28 +3410,29 @@ const apexPlane3dFigure = {
 };
 
 const apexPlaneRightTriangleFigure = {
-  maxWidth: 440,
-  maxHeight: 200,
+  maxWidth: 460,
+  maxHeight: 210,
+  pad: 34,
   points: {
-    A: [-23.47, 0],
-    K: [0, 0],
-    C: [0, 5],
+    A: [0, 5],
+    K: [23.47, 5],
+    C: [23.47, 0],
   },
   edges: [
     { from: 'A', to: 'K' },
     { from: 'K', to: 'C' },
     { from: 'C', to: 'A' },
   ],
-  rightAngles: [{ at: 'K', from: 'A', to: 'C' }],
-  angles: [{ at: 'A', from: 'K', to: 'C', label: 'μ', radius: 40 }],
+  rightAngles: [{ at: 'K', from: 'A', to: 'C', size: 11 }],
+  angles: [{ at: 'A', from: 'K', to: 'C', label: 'μ', radius: 30 }],
   dims: [
-    { from: 'K', to: 'C', text: '5' },
-    { from: 'A', to: 'C', text: '24' },
+    { from: 'K', to: 'C', text: '5', gap: 16 },
+    { from: 'A', to: 'C', text: '24', gap: 16 },
   ],
   labels: {
-    A: { dx: -8, dy: 4, anchor: 'end' },
-    K: { dx: 4, dy: 14, anchor: 'start' },
-    C: { dx: 8, dy: -2, anchor: 'start' },
+    A: { dx: -10, dy: 2, anchor: 'end' },
+    K: { dx: 8, dy: -6, anchor: 'start' },
+    C: { dx: 10, dy: 6, anchor: 'start' },
   },
 };
 
