@@ -50,7 +50,7 @@ function DifficultyDots({ difficulty }: { difficulty: number }) {
       className="flex gap-2"
     >
       {Array.from({ length: 3 }, (_, index) => {
-        const isActive = index === difficultyLevel - 1;
+        const isActive = index < difficultyLevel;
 
         return (
           <span
