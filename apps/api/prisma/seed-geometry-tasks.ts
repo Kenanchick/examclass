@@ -22,9 +22,12 @@ function geo(spec: unknown): string {
   return ['```geo', JSON.stringify(spec), '```'].join('\n');
 }
 
-/** Источники: ФИПИ/реальный экзамен — одно, прочие сайты — «ExamClass». */
+/** Источники: ФИПИ/реальный экзамен — одно, прочие — по названию сборника. */
 const SOURCE = 'Реальные задания (ЕГЭ, ФИПИ)';
 const EXAMCLASS = 'ExamClass';
+const STATGRAD = 'Статград';
+const YASHCHENKO = 'Ященко (сборник ЕГЭ)';
+const LYSENKO = 'Лысенко (сборник ЕГЭ)';
 
 type GeometryTask = {
   publicId: string;
@@ -1519,6 +1522,608 @@ const intersectingChords: GeometryTask = {
   ].join('\n\n'),
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · ДОКАЗАТЕЛЬСТВО · РОМБ В КУБЕ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const rhombusCubeFigure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    A: [0, 0],
+    B: [3, 0],
+    C: [4.2, 1.2],
+    D: [1.2, 1.2],
+    A1: [0, 3],
+    B1: [3, 3],
+    C1: [4.2, 4.2],
+    D1: [1.2, 4.2],
+    E: [3, 1.5],
+    F: [1.2, 2.7],
+  },
+  fills: [{ points: ['A', 'E', 'C1', 'F'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'D', to: 'A', style: 'dashed' },
+    { from: 'A1', to: 'B1' },
+    { from: 'B1', to: 'C1' },
+    { from: 'C1', to: 'D1' },
+    { from: 'D1', to: 'A1' },
+    { from: 'A', to: 'A1' },
+    { from: 'B', to: 'B1' },
+    { from: 'C', to: 'C1' },
+    { from: 'D', to: 'D1', style: 'dashed' },
+    { from: 'A', to: 'E', style: 'section' },
+    { from: 'E', to: 'C1', style: 'section' },
+    { from: 'C1', to: 'F', style: 'section' },
+    { from: 'F', to: 'A', style: 'section' },
+  ],
+  labels: {
+    A: { dx: -6, dy: 14, anchor: 'end' },
+    B: { dx: 2, dy: 16, anchor: 'start' },
+    C: { dx: 12, dy: 4, anchor: 'start' },
+    D: { dx: -8, dy: -6, anchor: 'end' },
+    A1: { dx: -12, dy: 2, anchor: 'end' },
+    B1: { dx: 8, dy: 2, anchor: 'start' },
+    C1: { dx: 10, dy: -2, anchor: 'start' },
+    D1: { dx: -2, dy: -10, anchor: 'middle' },
+    E: { dx: 11, dy: 2, anchor: 'start' },
+    F: { dx: -11, dy: 2, anchor: 'end' },
+  },
+};
+
+const rhombusFlatFigure = {
+  maxWidth: 380,
+  maxHeight: 320,
+  points: {
+    A: [-1.732, 0],
+    C1: [1.732, 0],
+    E: [0, 1.414],
+    F: [0, -1.414],
+    O: [0, 0],
+  },
+  fills: [{ points: ['A', 'E', 'C1', 'F'] }],
+  edges: [
+    { from: 'A', to: 'E' },
+    { from: 'E', to: 'C1' },
+    { from: 'C1', to: 'F' },
+    { from: 'F', to: 'A' },
+    { from: 'A', to: 'C1', style: 'dashed' },
+    { from: 'E', to: 'F', style: 'dashed' },
+  ],
+  rightAngles: [{ at: 'O', from: 'C1', to: 'E' }],
+  dims: [
+    { from: 'A', to: 'C1', text: '2√3' },
+    { from: 'E', to: 'F', text: '2√2' },
+  ],
+  labels: {
+    A: { dx: -10, dy: 4, anchor: 'end' },
+    C1: { dx: 10, dy: 4, anchor: 'start' },
+    E: { dx: 0, dy: -10, anchor: 'middle' },
+    F: { dx: 0, dy: 16, anchor: 'middle' },
+    O: false,
+  },
+};
+
+const rhombusInCube: GeometryTask = {
+  publicId: 'G14PRP2',
+  topicSlug: 'ege-14-proofs',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: YASHCHENKO,
+  correctAnswer: 'б) 2√6',
+  statement: [
+    `В кубе $ABCDA_1B_1C_1D_1$ с ребром $2$ точки $E$ и $F$ — середины рёбер $BB_1$ и $DD_1$ соответственно.`,
+    `**а)** Докажите, что четырёхугольник $AEC_1F$ — ромб.`,
+    `**б)** Найдите площадь четырёхугольника $AEC_1F$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(rhombusCubeFigure),
+    `Введём координаты с началом в $A$: $A(0;0;0)$, $E(2;0;1)$, $C_1(2;2;2)$, $F(0;2;1)$.`,
+    `Найдём стороны четырёхугольника: $\\vec{AE}=(2;0;1)$, $\\vec{FC_1}=(2;0;1)$ — значит $AE \\parallel FC_1$ и $AE = FC_1$, то есть $AEC_1F$ — параллелограмм. Далее`,
+    `$$AE = \\sqrt{2^2+0^2+1^2} = \\sqrt{5}, \\qquad EC_1 = \\sqrt{0^2+2^2+1^2} = \\sqrt{5}.$$`,
+    `Соседние стороны равны, поэтому параллелограмм $AEC_1F$ — ромб. **Что и требовалось доказать.**`,
+    `## Пункт б). Площадь ромба`,
+    `Площадь ромба равна половине произведения диагоналей. Диагонали:`,
+    `$$AC_1 = \\sqrt{2^2+2^2+2^2} = 2\\sqrt{3}, \\qquad EF = \\sqrt{2^2+2^2+0^2} = 2\\sqrt{2}.$$`,
+    geo(rhombusFlatFigure),
+    `$$S_{AEC_1F} = \\frac{1}{2}\\,AC_1\\cdot EF = \\frac{1}{2}\\cdot 2\\sqrt{3}\\cdot 2\\sqrt{2} = 2\\sqrt{6}.$$`,
+    `**Ответ:** б) $2\\sqrt{6}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · СЕЧЕНИЯ · ПРАВИЛЬНЫЙ ШЕСТИУГОЛЬНИК В СЕЧЕНИИ КУБА (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const hexSection3dFigure = {
+  maxWidth: 460,
+  maxHeight: 420,
+  points: {
+    A: [0, 0],
+    B: [3, 0],
+    C: [4.2, 1.2],
+    D: [1.2, 1.2],
+    A1: [0, 3],
+    B1: [3, 3],
+    C1: [4.2, 4.2],
+    D1: [1.2, 4.2],
+    P1: [1.5, 0],
+    P2: [3.6, 0.6],
+    P3: [4.2, 2.7],
+    P4: [2.7, 4.2],
+    P5: [0.6, 3.6],
+    P6: [0, 1.5],
+  },
+  fills: [{ points: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'D', to: 'A', style: 'dashed' },
+    { from: 'A1', to: 'B1' },
+    { from: 'B1', to: 'C1' },
+    { from: 'C1', to: 'D1' },
+    { from: 'D1', to: 'A1' },
+    { from: 'A', to: 'A1' },
+    { from: 'B', to: 'B1' },
+    { from: 'C', to: 'C1' },
+    { from: 'D', to: 'D1', style: 'dashed' },
+    { from: 'P1', to: 'P2', style: 'section' },
+    { from: 'P2', to: 'P3', style: 'section' },
+    { from: 'P3', to: 'P4', style: 'section' },
+    { from: 'P4', to: 'P5', style: 'section' },
+    { from: 'P5', to: 'P6', style: 'section' },
+    { from: 'P6', to: 'P1', style: 'section' },
+  ],
+  labels: {
+    A: { dx: -6, dy: 14, anchor: 'end' },
+    B: { dx: 2, dy: 16, anchor: 'start' },
+    C: { dx: 12, dy: 4, anchor: 'start' },
+    D: { dx: -8, dy: -6, anchor: 'end' },
+    A1: { dx: -12, dy: 2, anchor: 'end' },
+    B1: { dx: 8, dy: 2, anchor: 'start' },
+    C1: { dx: 10, dy: -2, anchor: 'start' },
+    D1: { dx: -2, dy: -10, anchor: 'middle' },
+    P1: false,
+    P2: false,
+    P3: false,
+    P4: false,
+    P5: false,
+    P6: false,
+  },
+};
+
+const hexFlatFigure = {
+  maxWidth: 360,
+  maxHeight: 340,
+  points: {
+    V1: [4.243, 0],
+    V2: [2.121, 3.674],
+    V3: [-2.121, 3.674],
+    V4: [-4.243, 0],
+    V5: [-2.121, -3.674],
+    V6: [2.121, -3.674],
+  },
+  edges: [
+    { from: 'V1', to: 'V2', ticks: 1 },
+    { from: 'V2', to: 'V3', ticks: 1 },
+    { from: 'V3', to: 'V4', ticks: 1 },
+    { from: 'V4', to: 'V5', ticks: 1 },
+    { from: 'V5', to: 'V6', ticks: 1 },
+    { from: 'V6', to: 'V1', ticks: 1 },
+  ],
+  dims: [{ from: 'V1', to: 'V2', text: '3√2' }],
+  labels: {
+    V1: false,
+    V2: false,
+    V3: false,
+    V4: false,
+    V5: false,
+    V6: false,
+  },
+};
+
+const hexSection: GeometryTask = {
+  publicId: 'G14SEC3',
+  topicSlug: 'ege-14-sections',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: STATGRAD,
+  correctAnswer: 'б) 27√3',
+  statement: [
+    `В кубе $ABCDA_1B_1C_1D_1$ с ребром $6$ проведено сечение плоскостью, проходящей через середины рёбер $AB$, $BC$, $CC_1$, $C_1D_1$, $D_1A_1$ и $A_1A$.`,
+    `**а)** Докажите, что это сечение — правильный шестиугольник.`,
+    `**б)** Найдите площадь сечения.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(hexSection3dFigure),
+    `Введём координаты с началом в $A$ (ребро $6$). Середины указанных рёбер:`,
+    `$$(3;0;0),\\ (6;3;0),\\ (6;6;3),\\ (3;6;6),\\ (0;3;6),\\ (0;0;3).$$`,
+    `Все шесть точек удовлетворяют уравнению $x - y + z = 3$, то есть лежат в одной плоскости с нормалью $(1;-1;1)$. Это направление — диагональ куба, а плоскость проходит через его центр $(3;3;3)$ перпендикулярно диагонали.`,
+    `Каждая сторона шестиугольника соединяет середины двух смежных рёбер одной грани и равна половине диагонали грани: $\\tfrac{1}{2}\\cdot 6\\sqrt{2} = 3\\sqrt{2}$. Все стороны равны, а из симметрии куба относительно диагонали равны и все углы. Значит, сечение — правильный шестиугольник. **Что и требовалось доказать.**`,
+    `## Пункт б). Площадь сечения`,
+    `Площадь правильного шестиугольника со стороной $a = 3\\sqrt{2}$:`,
+    geo(hexFlatFigure),
+    `$$S = \\frac{3\\sqrt{3}}{2}\\,a^2 = \\frac{3\\sqrt{3}}{2}\\cdot (3\\sqrt{2})^2 = \\frac{3\\sqrt{3}}{2}\\cdot 18 = 27\\sqrt{3}.$$`,
+    `**Ответ:** б) $27\\sqrt{3}$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 14 · УГЛЫ И РАССТОЯНИЯ · ПЕРПЕНДИКУЛЯРНОЕ БОКОВОЕ РЕБРО (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const perpEdgePyramid3dFigure = {
+  maxWidth: 460,
+  maxHeight: 430,
+  points: {
+    A: [0, 0],
+    B: [3, 0],
+    C: [4.2, 1.2],
+    D: [1.2, 1.2],
+    S: [0, 3.6],
+  },
+  fills: [{ points: ['S', 'B', 'C'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D', style: 'dashed' },
+    { from: 'D', to: 'A', style: 'dashed' },
+    { from: 'S', to: 'A' },
+    { from: 'S', to: 'B' },
+    { from: 'S', to: 'C' },
+    { from: 'S', to: 'D', style: 'dashed' },
+  ],
+  rightAngles: [
+    { at: 'A', from: 'S', to: 'B' },
+    { at: 'B', from: 'S', to: 'C' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 12, anchor: 'end' },
+    B: { dx: 2, dy: 16, anchor: 'start' },
+    C: { dx: 12, dy: 4, anchor: 'start' },
+    D: { dx: -8, dy: -6, anchor: 'end' },
+    S: { dx: 0, dy: -12, anchor: 'middle' },
+  },
+};
+
+const perpEdgeFlatFigure = {
+  maxWidth: 360,
+  maxHeight: 320,
+  points: {
+    A: [0, 0],
+    S: [0, 3],
+    B: [4, 0],
+    H: [1.44, 1.92],
+  },
+  edges: [
+    { from: 'A', to: 'S' },
+    { from: 'A', to: 'B' },
+    { from: 'S', to: 'B' },
+    { from: 'A', to: 'H', style: 'dashed' },
+  ],
+  rightAngles: [
+    { at: 'A', from: 'S', to: 'B' },
+    { at: 'H', from: 'A', to: 'S' },
+  ],
+  dims: [
+    { from: 'A', to: 'S', text: '3' },
+    { from: 'A', to: 'B', text: '4' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 4, anchor: 'end' },
+    S: { dx: -8, dy: -4, anchor: 'end' },
+    B: { dx: 10, dy: 8, anchor: 'start' },
+    H: { dx: 10, dy: -2, anchor: 'start' },
+  },
+};
+
+const perpEdgePyramid: GeometryTask = {
+  publicId: 'G14ANG4',
+  topicSlug: 'ege-14-angles-distances',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: YASHCHENKO,
+  correctAnswer: 'б) 2,4',
+  statement: [
+    `В основании пирамиды $SABCD$ лежит квадрат $ABCD$ со стороной $4$. Боковое ребро $SA$ перпендикулярно плоскости основания и равно $3$.`,
+    `**а)** Докажите, что грань $SBC$ — прямоугольный треугольник.`,
+    `**б)** Найдите расстояние от точки $A$ до плоскости $SBC$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(perpEdgePyramid3dFigure),
+    `Сторона основания $BC \\perp AB$ (стороны квадрата). Кроме того, $SA \\perp$ плоскости основания, поэтому $SA \\perp BC$.`,
+    `Прямая $BC$ перпендикулярна двум пересекающимся прямым $AB$ и $SA$ плоскости $SAB$, значит $BC \\perp (SAB)$, а следовательно $BC \\perp SB$. Поэтому треугольник $SBC$ прямоугольный с прямым углом при вершине $B$. **Что и требовалось доказать.**`,
+    `## Пункт б). Расстояние от точки $A$ до плоскости $SBC$`,
+    `Так как $BC \\perp (SAB)$, то плоскость $SBC$ перпендикулярна плоскости $SAB$. Значит, расстояние от $A$ до плоскости $SBC$ равно расстоянию от $A$ до прямой $SB$ в треугольнике $SAB$.`,
+    `Треугольник $SAB$ прямоугольный ($\\angle SAB = 90°$) с катетами $SA = 3$ и $AB = 4$, поэтому $SB = 5$. Расстояние от вершины прямого угла $A$ до гипотенузы $SB$:`,
+    geo(perpEdgeFlatFigure),
+    `$$\\rho(A,\\,SBC) = \\frac{SA\\cdot AB}{SB} = \\frac{3\\cdot 4}{5} = \\frac{12}{5} = 2{,}4.$$`,
+    `**Ответ:** б) $2{,}4$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · ДВЕ КАСАЮЩИЕСЯ ОКРУЖНОСТИ И ОБЩАЯ КАСАТЕЛЬНАЯ (2 рис.)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const twoCirclesFigure = {
+  maxWidth: 480,
+  maxHeight: 360,
+  points: {
+    O1: [0, 0],
+    O2: [13, 0],
+    K: [9, 0],
+    A: [3.46, 8.31],
+    B: [14.54, 3.69],
+    M: [9, 6],
+  },
+  circles: [
+    { cx: 0, cy: 0, r: 9 },
+    { cx: 13, cy: 0, r: 4 },
+  ],
+  edges: [
+    { from: 'A', to: 'B', style: 'section' },
+    { from: 'A', to: 'K' },
+    { from: 'B', to: 'K' },
+    { from: 'K', to: 'M', style: 'dashed' },
+    { from: 'O1', to: 'O2', style: 'dashed' },
+  ],
+  rightAngles: [{ at: 'K', from: 'A', to: 'B' }],
+  labels: {
+    O1: { dx: -6, dy: 14, anchor: 'end' },
+    O2: { dx: 6, dy: 14, anchor: 'start' },
+    K: { dx: -2, dy: 15, anchor: 'end' },
+    A: { dx: -6, dy: -8, anchor: 'end' },
+    B: { dx: 10, dy: 0, anchor: 'start' },
+    M: { dx: 10, dy: 2, anchor: 'start' },
+  },
+};
+
+const twoCirclesFlatFigure = {
+  maxWidth: 400,
+  maxHeight: 300,
+  points: {
+    O1: [0, 0],
+    A: [0, 9],
+    B: [12, 9],
+    O2: [12, 5],
+    T: [0, 5],
+  },
+  edges: [
+    { from: 'O1', to: 'A' },
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'O2' },
+    { from: 'O2', to: 'O1' },
+    { from: 'O2', to: 'T', style: 'dashed' },
+  ],
+  rightAngles: [
+    { at: 'A', from: 'O1', to: 'B' },
+    { at: 'B', from: 'A', to: 'O2' },
+    { at: 'T', from: 'O1', to: 'O2' },
+  ],
+  dims: [
+    { from: 'O1', to: 'A', text: '9' },
+    { from: 'B', to: 'O2', text: '4' },
+    { from: 'A', to: 'B', text: 'AB' },
+    { from: 'O1', to: 'O2', text: '13' },
+  ],
+  labels: {
+    O1: { dx: -8, dy: 4, anchor: 'end' },
+    A: { dx: -8, dy: -4, anchor: 'end' },
+    B: { dx: 8, dy: -4, anchor: 'start' },
+    O2: { dx: 10, dy: 4, anchor: 'start' },
+    T: false,
+  },
+};
+
+const twoTangentCircles: GeometryTask = {
+  publicId: 'G17TAN1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: STATGRAD,
+  correctAnswer: 'б) 12',
+  statement: [
+    `Две окружности с центрами $O_1$ и $O_2$ и радиусами $9$ и $4$ касаются внешним образом в точке $K$. Их общая внешняя касательная касается окружностей в точках $A$ и $B$ соответственно.`,
+    `**а)** Докажите, что $\\angle AKB = 90°$.`,
+    `**б)** Найдите $AB$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(twoCirclesFigure),
+    `Проведём общую касательную в точке $K$; пусть она пересекает прямую $AB$ в точке $M$. Отрезки касательных, проведённых из точки $M$ к первой окружности, равны: $MA = MK$. Аналогично для второй окружности $MB = MK$.`,
+    `Значит, $MA = MK = MB$, то есть точка $K$ лежит на окружности с диаметром $AB$ и центром $M$. Вписанный угол $\\angle AKB$ опирается на диаметр $AB$, поэтому $\\angle AKB = 90°$. **Что и требовалось доказать.**`,
+    `## Пункт б). Длина $AB$`,
+    `Так как $O_1A \\perp AB$ и $O_2B \\perp AB$, четырёхугольник $O_1ABO_2$ — прямоугольная трапеция. Опустим из $O_2$ перпендикуляр $O_2T$ на прямую $O_1A$; тогда $O_2T = AB$, а $O_1T = O_1A - O_2B = 9 - 4 = 5$.`,
+    geo(twoCirclesFlatFigure),
+    `Расстояние между центрами $O_1O_2 = 9 + 4 = 13$. Из прямоугольного треугольника $O_1TO_2$ по теореме Пифагора`,
+    `$$AB = O_2T = \\sqrt{O_1O_2^2 - O_1T^2} = \\sqrt{13^2 - 5^2} = \\sqrt{144} = 12.$$`,
+    `**Ответ:** б) $12$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · КАСАТЕЛЬНАЯ И СЕКУЩАЯ (2 рисунка)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const tangentSecantFigure = {
+  maxWidth: 420,
+  maxHeight: 340,
+  points: {
+    O: [0, 0],
+    P: [-7, 0],
+    A: [-1.29, 2.71],
+    B: [-3, 0],
+    C: [3, 0],
+  },
+  circles: [{ cx: 0, cy: 0, r: 3 }],
+  edges: [
+    { from: 'P', to: 'A', style: 'section' },
+    { from: 'P', to: 'C' },
+    { from: 'O', to: 'A', style: 'dashed' },
+  ],
+  rightAngles: [{ at: 'A', from: 'P', to: 'O' }],
+  labels: {
+    O: { dx: 4, dy: 14, anchor: 'start' },
+    P: { dx: -8, dy: 4, anchor: 'end' },
+    A: { dx: -4, dy: -10, anchor: 'end' },
+    B: { dx: -2, dy: 15, anchor: 'end' },
+    C: { dx: 8, dy: 8, anchor: 'start' },
+  },
+};
+
+const tangentSecantSimilarFigure = {
+  maxWidth: 420,
+  maxHeight: 320,
+  points: {
+    P: [-7, 0],
+    A: [-1.29, 2.71],
+    B: [-3, 0],
+    C: [3, 0],
+  },
+  fills: [{ points: ['P', 'A', 'B'] }, { points: ['P', 'C', 'A'] }],
+  edges: [
+    { from: 'P', to: 'A' },
+    { from: 'A', to: 'B' },
+    { from: 'P', to: 'C' },
+    { from: 'C', to: 'A' },
+  ],
+  angles: [
+    { at: 'A', from: 'P', to: 'B', label: 'α' },
+    { at: 'C', from: 'A', to: 'P', label: 'α' },
+  ],
+  labels: {
+    P: { dx: -8, dy: 4, anchor: 'end' },
+    A: { dx: 0, dy: -10, anchor: 'middle' },
+    B: { dx: -2, dy: 15, anchor: 'end' },
+    C: { dx: 8, dy: 8, anchor: 'start' },
+  },
+};
+
+const tangentSecant: GeometryTask = {
+  publicId: 'G17TSC1',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: LYSENKO,
+  correctAnswer: 'б) 6',
+  statement: [
+    `Из точки $P$, лежащей вне окружности, проведены касательная $PA$ ($A$ — точка касания) и секущая, пересекающая окружность в точках $B$ и $C$ (точка $B$ лежит между $P$ и $C$).`,
+    `**а)** Докажите, что $PA^2 = PB \\cdot PC$.`,
+    `**б)** Найдите $PA$, если $PB = 4$ и $PC = 9$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(tangentSecantFigure),
+    `Рассмотрим треугольники $PAB$ и $PCA$. Угол $P$ у них общий. Угол между касательной $PA$ и хордой $AB$ равен вписанному углу $\\angle ACB$, опирающемуся на ту же дугу $AB$, то есть $\\angle PAB = \\angle PCA$.`,
+    geo(tangentSecantSimilarFigure),
+    `Значит, $\\triangle PAB \\sim \\triangle PCA$ по двум углам, откуда`,
+    `$$\\frac{PA}{PC} = \\frac{PB}{PA} \\quad\\Rightarrow\\quad PA^2 = PB \\cdot PC.$$`,
+    `**Что и требовалось доказать.**`,
+    `## Пункт б). Вычисление $PA$`,
+    `$$PA = \\sqrt{PB \\cdot PC} = \\sqrt{4 \\cdot 9} = \\sqrt{36} = 6.$$`,
+    `**Ответ:** б) $6$.`,
+  ].join('\n\n'),
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗАДАЧА 17 · ПЛАНИМЕТРИЯ · ПЛОЩАДЬ ТРАПЕЦИИ ЧЕРЕЗ ПЛОЩАДИ ТРЕУГОЛЬНИКОВ (2 рис.)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const trapezoidAreaFigure = {
+  maxWidth: 420,
+  maxHeight: 300,
+  points: {
+    A: [0, 0],
+    D: [6, 0],
+    B: [1, 3],
+    C: [5, 3],
+    O: [3, 1.8],
+  },
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'B', to: 'C' },
+    { from: 'C', to: 'D' },
+    { from: 'D', to: 'A' },
+    { from: 'A', to: 'C', style: 'dashed' },
+    { from: 'B', to: 'D', style: 'dashed' },
+  ],
+  dims: [
+    { from: 'B', to: 'C', text: '4' },
+    { from: 'A', to: 'D', text: '6' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 14, anchor: 'end' },
+    D: { dx: 8, dy: 14, anchor: 'start' },
+    B: { dx: -8, dy: -6, anchor: 'end' },
+    C: { dx: 8, dy: -6, anchor: 'start' },
+    O: { dx: 8, dy: 10, anchor: 'start' },
+  },
+};
+
+const trapezoidTrianglesFigure = {
+  maxWidth: 420,
+  maxHeight: 300,
+  points: {
+    A: [0, 0],
+    D: [6, 0],
+    B: [1, 3],
+    C: [5, 3],
+    O: [3, 1.8],
+  },
+  fills: [{ points: ['B', 'O', 'C'] }, { points: ['A', 'O', 'D'] }],
+  edges: [
+    { from: 'A', to: 'B' },
+    { from: 'C', to: 'D' },
+    { from: 'B', to: 'C' },
+    { from: 'A', to: 'D' },
+    { from: 'B', to: 'O' },
+    { from: 'O', to: 'C' },
+    { from: 'A', to: 'O' },
+    { from: 'O', to: 'D' },
+  ],
+  labels: {
+    A: { dx: -8, dy: 14, anchor: 'end' },
+    D: { dx: 8, dy: 14, anchor: 'start' },
+    B: { dx: -8, dy: -6, anchor: 'end' },
+    C: { dx: 8, dy: -6, anchor: 'start' },
+    O: { dx: 9, dy: 3, anchor: 'start' },
+  },
+};
+
+const trapezoidDiagonalArea: GeometryTask = {
+  publicId: 'G17TRP2',
+  topicSlug: 'ege-17-proofs-calculations',
+  examPart: ExamPart.SECOND,
+  difficulty: 3,
+  source: YASHCHENKO,
+  correctAnswer: 'б) 50',
+  statement: [
+    `Диагонали трапеции $ABCD$ с основаниями $BC = 4$ и $AD = 6$ пересекаются в точке $O$. Площадь треугольника $BOC$ равна $8$.`,
+    `**а)** Докажите, что треугольники $BOC$ и $AOD$ подобны.`,
+    `**б)** Найдите площадь трапеции $ABCD$.`,
+  ].join('\n\n'),
+  referenceSolution: [
+    `## Пункт а). Доказательство`,
+    geo(trapezoidAreaFigure),
+    `Так как $BC \\parallel AD$, углы $\\angle OBC = \\angle ODA$ и $\\angle OCB = \\angle OAD$ равны как накрест лежащие, а $\\angle BOC = \\angle AOD$ — как вертикальные. Значит, $\\triangle BOC \\sim \\triangle AOD$ по двум углам. **Что и требовалось доказать.**`,
+    `## Пункт б). Площадь трапеции`,
+    `Коэффициент подобия $k = \\dfrac{BC}{AD} = \\dfrac{4}{6} = \\dfrac{2}{3}$. Отношение площадей равно $k^2$, поэтому`,
+    `$$S_{AOD} = \\frac{S_{BOC}}{k^2} = \\frac{8}{4/9} = 18.$$`,
+    geo(trapezoidTrianglesFigure),
+    `Треугольники $AOB$ и $BOC$ имеют общую высоту из вершины $B$, поэтому $\\dfrac{S_{AOB}}{S_{BOC}} = \\dfrac{AO}{OC} = \\dfrac{AD}{BC} = \\dfrac{3}{2}$, откуда $S_{AOB} = \\dfrac{3}{2}\\cdot 8 = 12$. Аналогично $S_{COD} = 12$.`,
+    `$$S_{ABCD} = S_{BOC} + S_{AOD} + S_{AOB} + S_{COD} = 8 + 18 + 12 + 12 = 50.$$`,
+    `**Ответ:** б) $50$.`,
+  ].join('\n\n'),
+};
+
 const geometryTasks: GeometryTask[] = [
   stereometrySection,
   prismSection,
@@ -1530,6 +2135,9 @@ const geometryTasks: GeometryTask[] = [
   pyramidDihedral,
   pyramidSectionAbmn,
   cubePlaneDistance,
+  rhombusInCube,
+  hexSection,
+  perpEdgePyramid,
   planimetrySimilarity,
   planimetryMedian,
   trapezoidMidline,
@@ -1538,6 +2146,9 @@ const geometryTasks: GeometryTask[] = [
   centroidArea,
   medianRightAngle,
   intersectingChords,
+  twoTangentCircles,
+  tangentSecant,
+  trapezoidDiagonalArea,
 ];
 
 async function main() {
