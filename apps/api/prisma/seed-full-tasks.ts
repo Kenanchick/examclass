@@ -19,7 +19,7 @@ const fullTaskBank = [
     publicId: 'P1T3A8',
     topicSlug: 'ege-01-triangles',
     statement: `В треугольнике $ABC$ известно, что $AB = 5$, $BC = 7$, $AC = 8$. Найдите косинус угла $B$.`,
-    correctAnswer: '0,5',
+    correctAnswer: '1/7',
     referenceSolution: `**Решение**
 
 Используем теорему косинусов:
@@ -81,7 +81,7 @@ $$AC = \\sqrt{52} = 2\\sqrt{13}$$
     publicId: 'V2D4N6',
     topicSlug: 'ege-02-coordinates',
     statement: `Даны точки $A(2; 5)$ и $B(8; 1)$. Найдите длину вектора $\\vec{AB}$.`,
-    correctAnswer: '2√10',
+    correctAnswer: '2√13',
     referenceSolution: `**Решение**
 
 Координаты вектора $\\vec{AB}$:
@@ -90,9 +90,9 @@ $$\\vec{AB} = (x_B - x_A; y_B - y_A) = (8 - 2; 1 - 5) = (6; -4)$$
 
 Длина вектора:
 
-$$|\\vec{AB}| = \\sqrt{6^2 + (-4)^2} = \\sqrt{36 + 16} = \\sqrt{52} = 2\\sqrt{10}$$
+$$|\\vec{AB}| = \\sqrt{6^2 + (-4)^2} = \\sqrt{36 + 16} = \\sqrt{52} = 2\\sqrt{13}$$
 
-**Ответ:** $2\\sqrt{10}$`,
+**Ответ:** $2\\sqrt{13}$`,
     difficulty: 1,
   },
   {
@@ -119,7 +119,7 @@ $$\\angle(\\vec{a}, \\vec{b}) = 90°$$
     publicId: 'S3F7T9',
     topicSlug: 'ege-03-cube',
     statement: `Ребро куба равно $4$. Найдите расстояние от вершины $A$ до диагонали $B_1D_1$ верхней грани.`,
-    correctAnswer: '2√2',
+    correctAnswer: '2√6',
     referenceSolution: `**Решение**
 
 Диагональ верхней грани куба:

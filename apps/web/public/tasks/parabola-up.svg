@@ -1,0 +1,21 @@
+<svg width="400" height="300" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Ось X -->
+  <line x1="30" y1="200" x2="375" y2="200" stroke="#1f2937" stroke-width="1.5"/>
+  <polygon points="375,200 367,196 367,204" fill="#1f2937"/>
+  <text x="380" y="216" font-size="14" fill="#1f2937" font-style="italic">x</text>
+
+  <!-- Ось Y -->
+  <line x1="60" y1="290" x2="60" y2="135" stroke="#1f2937" stroke-width="1.5"/>
+  <polygon points="60,135 56,143 64,143" fill="#1f2937"/>
+  <text x="70" y="145" font-size="14" fill="#1f2937" font-style="italic">y</text>
+
+  <!-- Начало координат -->
+  <text x="44" y="216" font-size="13" fill="#1f2937">0</text>
+
+  <!-- Парабола y = (x-2)^2 - 3, ветви вверх -->
+  <path d="M 60 170 L 77.5 198.1 L 95 222.5 L 112.5 243.1 L 130 260 L 147.5 273.1 L 165 282.5 L 182.5 288.1 L 200 290 L 217.5 288.1 L 235 282.5 L 252.5 273.1 L 270 260 L 287.5 243.1 L 305 222.5 L 322.5 198.1 L 340 170"
+        fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+
+  <!-- Вершина параболы -->
+  <circle cx="200" cy="290" r="3.5" fill="#2563eb"/>
+</svg>
