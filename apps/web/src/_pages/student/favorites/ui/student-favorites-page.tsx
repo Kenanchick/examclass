@@ -5,16 +5,24 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, Star } from "lucide-react";
 import { useFavoritesQuery } from "@/entities/favorite/api/use-favorites-query";
+import { getTaskExamNumber } from "@/entities/task/model/task";
+import { useFavoritesFilter } from "@/features/favorites/filter/model/use-favorites-filter";
+import { FavoritesFilters } from "@/features/favorites/filter/ui/favorites-filters";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
 export function StudentFavoritesPage() {
   const [hasAccessToken, setHasAccessToken] = useState(false);
   const favoritesQuery = useFavoritesQuery(hasAccessToken);
+  const favoritesFilter = useFavoritesFilter(favoritesQuery.data);
 
   useEffect(() => {
     setHasAccessToken(Boolean(window.localStorage.getItem("accessToken")));
   }, []);
+
+  const favorites = favoritesQuery.data;
+  const hasFavorites = Boolean(favorites && favorites.length > 0);
+  const visibleTasks = favoritesFilter.filteredTasks;
 
   return (
     <StudentLayout>
@@ -79,7 +87,7 @@ export function StudentFavoritesPage() {
             </div>
           )}
 
-          {favoritesQuery.data && favoritesQuery.data.length === 0 && (
+          {favorites && favorites.length === 0 && (
             <div className="relative mt-6 overflow-hidden rounded-3xl border border-line bg-white p-7 sm:p-8">
               <p className="text-xl font-bold text-ink">Здесь пока пусто</p>
               <p className="mt-2 max-w-lg text-[15px] leading-6 text-muted">
@@ -96,34 +104,47 @@ export function StudentFavoritesPage() {
             </div>
           )}
 
-          {favoritesQuery.data && favoritesQuery.data.length > 0 && (
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {favoritesQuery.data.map((task) => {
-                const taskNumber =
-                  task.topic.parent?.sortOrder ?? task.topic.sortOrder;
+          {hasFavorites && (
+            <div className="mt-6">
+              <FavoritesFilters filter={favoritesFilter} />
+            </div>
+          )}
 
-                return (
-                  <Link
-                    className="group cursor-pointer rounded-2xl border border-line bg-white p-5 transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-[0_12px_24px_rgba(15,43,76,0.08)]"
-                    href={`/tasks/${task.publicId}`}
-                    key={task.publicId}
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="rounded-lg bg-brand/10 px-2.5 py-1.5 text-sm font-bold text-brand">
-                        Задача {taskNumber}
-                      </span>
-                      <Star className="size-5 fill-amber-400 text-amber-400" />
-                    </div>
-                    <p className="mt-4 text-[15px] font-semibold leading-6 text-ink">
-                      {task.statement}
-                    </p>
-                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand">
-                      Открыть задачу
-                      <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+          {hasFavorites && visibleTasks.length === 0 && (
+            <div className="mt-6">
+              <RequestState
+                description="Попробуйте изменить условие поиска или сбросить фильтры."
+                onRetry={favoritesFilter.reset}
+                retryLabel="Сбросить фильтры"
+                title="По запросу ничего не найдено"
+                variant="not-found"
+              />
+            </div>
+          )}
+
+          {visibleTasks.length > 0 && (
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {visibleTasks.map((task) => (
+                <Link
+                  className="group cursor-pointer rounded-2xl border border-line bg-white p-5 transition hover:-translate-y-0.5 hover:border-brand/35 hover:shadow-[0_12px_24px_rgba(15,43,76,0.08)]"
+                  href={`/tasks/${task.publicId}`}
+                  key={task.publicId}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="rounded-lg bg-brand/10 px-2.5 py-1.5 text-sm font-bold text-brand">
+                      Задача {getTaskExamNumber(task)}
                     </span>
-                  </Link>
-                );
-              })}
+                    <Star className="size-5 fill-amber-400 text-amber-400" />
+                  </div>
+                  <p className="mt-4 text-[15px] font-semibold leading-6 text-ink">
+                    {task.statement}
+                  </p>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-brand">
+                    Открыть задачу
+                    <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                  </span>
+                </Link>
+              ))}
             </div>
           )}
         </div>

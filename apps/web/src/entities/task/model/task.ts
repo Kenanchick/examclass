@@ -21,3 +21,7 @@ export type Task = {
     };
   };
 };
+
+export function getTaskExamNumber(task: Task) {
+  return task.topic.parent?.sortOrder ?? task.topic.sortOrder;
+}
