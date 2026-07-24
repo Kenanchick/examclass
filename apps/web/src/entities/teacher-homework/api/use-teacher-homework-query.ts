@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
 import {
+  addTeacherStudent,
   createTeacherHomeworkAssignment,
   getTeacherHomeworkStudents,
   getTeacherHomeworkTasks,
@@ -37,10 +38,17 @@ export function useTeacherHomeworkTasksQuery(
   });
 }
 
-export function useTeacherHomeworkStudentsQuery() {
+export function useTeacherHomeworkStudentsQuery(enabled = true) {
   return useQuery({
     queryKey: [...teacherHomeworkQueryKey, "students"],
+    enabled,
     queryFn: getTeacherHomeworkStudents,
+  });
+}
+
+export function useAddTeacherStudentMutation() {
+  return useMutation({
+    mutationFn: addTeacherStudent,
   });
 }
 

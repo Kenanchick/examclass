@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { CurrentUserId } from '../../common/decorators/current-user-id.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { AddTeacherStudentDto } from './dto/add-teacher-student.dto';
 import { CreateHomeworkAssignmentDto } from './dto/create-homework-assignment.dto';
 import { TeacherHomeworkTasksQueryDto } from './dto/teacher-homework-tasks-query.dto';
 import { HomeworkSubmissionService } from './homework-submission.service';
@@ -33,6 +34,14 @@ export class TeacherHomeworkController {
   @Get('students')
   getStudents(@CurrentUserId() userId: string) {
     return this.homeworkService.getTeacherStudents(userId);
+  }
+
+  @Post('students')
+  addStudent(
+    @CurrentUserId() userId: string,
+    @Body() dto: AddTeacherStudentDto,
+  ) {
+    return this.homeworkService.addTeacherStudent(userId, dto);
   }
 
   @Get('assignments/:publicId/submissions')

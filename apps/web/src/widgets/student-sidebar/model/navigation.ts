@@ -34,6 +34,7 @@ const baseNavigation: StudentNavigationItem[] = [
 const studentsNavigationItem: StudentNavigationItem = {
   label: "Ученики",
   icon: UsersRound,
+  href: "/students",
 };
 
 export function getStudentNavigation(mode: AccountMode) {

@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { ClipboardCheck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -22,7 +21,7 @@ import { TeacherHomeworkAssignmentForm } from "@/entities/teacher-homework/ui/te
 import { TeacherHomeworkTaskSelector } from "@/entities/teacher-homework/ui/teacher-homework-task-selector";
 import { TeacherHomeworkTopicPicker } from "@/entities/teacher-homework/ui/teacher-homework-topic-picker";
 import { useSubjectTopicsQuery } from "@/entities/topic/api/use-subject-topics-query";
-import type { ApiErrorResponse } from "@/shared/api/auth";
+import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import { useDebouncedValue } from "@/shared/lib/use-debounced-value";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { SelectMenu } from "@/shared/ui/select-menu";
@@ -37,16 +36,6 @@ const defaultFormValues: TeacherHomeworkAssignmentFormValues = {
   taskPublicIds: [],
   studentIds: [],
 };
-
-function getErrorMessage(error: unknown, fallback: string) {
-  if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    const message = error.response?.data.message;
-
-    return (Array.isArray(message) ? message[0] : message) ?? fallback;
-  }
-
-  return fallback;
-}
 
 export function TeacherHomeworkPage() {
   const queryClient = useQueryClient();
@@ -147,7 +136,7 @@ export function TeacherHomeworkPage() {
         },
         onError: (error) => {
           setSubmitError(
-            getErrorMessage(
+            getApiErrorMessage(
               error,
               "Не удалось назначить домашнее задание. Попробуйте ещё раз.",
             ),

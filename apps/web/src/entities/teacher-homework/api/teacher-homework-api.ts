@@ -1,5 +1,6 @@
 import { apiClient } from "@/shared/api/http-client";
 import type {
+  AddTeacherStudentInput,
   CreateTeacherHomeworkAssignmentInput,
   TeacherHomeworkStudent,
   TeacherHomeworkTasksPage,
@@ -22,6 +23,15 @@ export async function getTeacherHomeworkTasks(
 export async function getTeacherHomeworkStudents() {
   const response = await apiClient.get<TeacherHomeworkStudent[]>(
     `${teacherHomeworkBasePath}/students`,
+  );
+
+  return response.data;
+}
+
+export async function addTeacherStudent(data: AddTeacherStudentInput) {
+  const response = await apiClient.post<TeacherHomeworkStudent>(
+    `${teacherHomeworkBasePath}/students`,
+    data,
   );
 
   return response.data;

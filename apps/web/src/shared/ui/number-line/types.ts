@@ -1,0 +1,49 @@
+/**
+ * Декларативное описание числовой прямой для метода интервалов
+ * (задание 15, неравенства). Точки расставляются равномерно по порядку
+ * (как в схеме знаков), а не по числовым значениям.
+ */
+
+export type NumLinePointKind =
+  /** Закрашенная точка — значение входит в решение (нестрогое неравенство). */
+  | 'filled'
+  /** Выколотая точка — значение не входит (строгое неравенство / ОДЗ). */
+  | 'open';
+
+export type NumLinePoint = {
+  /** Подпись под точкой. Дробь вида «1/5» рисуется столбиком. */
+  label?: string;
+  kind?: NumLinePointKind;
+};
+
+/** Знак выражения в промежутке; null — знак не показывать. */
+export type NumLineSign = '+' | '-' | null;
+
+/**
+ * Закрашенный отрезок-решение. from/to — индексы точек (0..n−1);
+ * −1 обозначает левый конец оси (−∞), n — правый конец (+∞).
+ */
+export type NumLineBand = {
+  from: number;
+  to: number;
+};
+
+/** Верхняя скобка с подписью (например, ОДЗ «0 < x < 3»). */
+export type NumLineBracket = {
+  from: number;
+  to: number;
+  label?: string;
+};
+
+export type NumLineSpec = {
+  points: NumLinePoint[];
+  /** Знаки по промежуткам, длина points.length + 1, слева направо. */
+  signs?: NumLineSign[];
+  /** Закрашенные отрезки-решения. */
+  bands?: NumLineBand[];
+  /** Верхние скобки с подписью. */
+  brackets?: NumLineBracket[];
+  /** Подпись оси (по умолчанию «x»). */
+  axisLabel?: string;
+  caption?: string;
+};

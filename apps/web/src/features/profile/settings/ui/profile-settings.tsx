@@ -16,11 +16,11 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { currentUserQueryKey } from "@/entities/user/api/use-current-user-query";
 import {
-  type ApiErrorResponse,
   type User,
   updateCurrentUser,
   updatePassword,
 } from "@/shared/api/auth";
+import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import {
   profileDetailsSchema,
   profilePasswordSchema,
@@ -31,16 +31,6 @@ import {
 type ProfileSettingsProps = {
   user: User;
 };
-
-function getErrorMessage(error: unknown, fallback: string) {
-  if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    const message = error.response?.data.message;
-
-    return (Array.isArray(message) ? message[0] : message) ?? fallback;
-  }
-
-  return fallback;
-}
 
 const fieldClassName =
   "mt-2 h-14 w-full rounded-2xl border border-line bg-white px-4 text-base text-ink outline-none transition placeholder:text-muted/70 focus:border-brand focus:ring-4 focus:ring-brand/10";
@@ -86,7 +76,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
       setProfileSuccess("Данные профиля сохранены");
     },
     onError: (error) => {
-      const message = getErrorMessage(
+      const message = getApiErrorMessage(
         error,
         "Не удалось сохранить данные профиля",
       );
@@ -109,7 +99,7 @@ export function ProfileSettings({ user }: ProfileSettingsProps) {
     },
     onError: (error) => {
       setPasswordSuccess(null);
-      setPasswordError(getErrorMessage(error, "Не удалось изменить пароль"));
+      setPasswordError(getApiErrorMessage(error, "Не удалось изменить пароль"));
     },
   });
 

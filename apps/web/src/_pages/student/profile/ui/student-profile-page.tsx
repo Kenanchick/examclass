@@ -6,6 +6,7 @@ import {
   ArrowRight,
   CalendarDays,
   GraduationCap,
+  Hash,
   Mail,
   UserRound,
 } from "lucide-react";
@@ -199,6 +200,15 @@ export function StudentProfilePage() {
                       <CalendarDays className="size-5" />С нами с{" "}
                       {formattedCreatedAt}
                     </span>
+                    {currentUser.role === "STUDENT" && (
+                      <span className="inline-flex min-w-0 items-center gap-2">
+                        <Hash className="size-5 shrink-0" />
+                        <span>ID ученика:</span>
+                        <code className="max-w-[16rem] truncate font-mono text-sm text-ink">
+                          {currentUser.id}
+                        </code>
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

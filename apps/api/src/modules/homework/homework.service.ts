@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -14,6 +15,7 @@ import {
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { taskDetailsSelect } from '../tasks/task-details.select';
+import { AddTeacherStudentDto } from './dto/add-teacher-student.dto';
 import { CreateHomeworkAssignmentDto } from './dto/create-homework-assignment.dto';
 import { getStudentHomeworkWhere } from './homework-access';
 import { TeacherHomeworkTasksQueryDto } from './dto/teacher-homework-tasks-query.dto';
@@ -268,6 +270,11 @@ export class HomeworkService {
       select: {
         id: true,
         title: true,
+        subject: {
+          select: {
+            name: true,
+          },
+        },
         members: {
           where: {
             role: ClassroomMemberRole.STUDENT,
@@ -278,6 +285,7 @@ export class HomeworkService {
                 id: true,
                 name: true,
                 email: true,
+                avatarUrl: true,
               },
             },
           },
@@ -291,7 +299,8 @@ export class HomeworkService {
         id: string;
         name: string;
         email: string;
-        classroom: { id: string; title: string };
+        avatarUrl: string | null;
+        classroom: { id: string; title: string; subject: string };
       }
     >();
 
@@ -300,7 +309,11 @@ export class HomeworkService {
         if (!studentsById.has(user.id)) {
           studentsById.set(user.id, {
             ...user,
-            classroom: { id: classroom.id, title: classroom.title },
+            classroom: {
+              id: classroom.id,
+              title: classroom.title,
+              subject: classroom.subject.name,
+            },
           });
         }
       }
@@ -309,6 +322,86 @@ export class HomeworkService {
     return [...studentsById.values()].sort((first, second) =>
       first.name.localeCompare(second.name, 'ru'),
     );
+  }
+
+  async addTeacherStudent(userId: string, dto: AddTeacherStudentDto) {
+    await this.assertTeacher(userId);
+
+    const student = await this.prisma.user.findUnique({
+      where: { id: dto.studentId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+        role: true,
+      },
+    });
+
+    if (!student) {
+      throw new NotFoundException('Ученик с таким ID не найден');
+    }
+
+    if (student.role !== Role.STUDENT) {
+      throw new BadRequestException('Можно добавить только аккаунт ученика');
+    }
+
+    const classroom = await this.prisma.classroom.findFirst({
+      where: {
+        ownerId: userId,
+        status: ClassroomStatus.ACTIVE,
+      },
+      orderBy: [{ title: 'asc' }, { id: 'asc' }],
+      select: {
+        id: true,
+        title: true,
+        subject: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    if (!classroom) {
+      throw new BadRequestException(
+        'Сначала создайте активный класс преподавателя',
+      );
+    }
+
+    const existingMembership = await this.prisma.classroomMember.findUnique({
+      where: {
+        classroomId_userId: {
+          classroomId: classroom.id,
+          userId: student.id,
+        },
+      },
+      select: { classroomId: true },
+    });
+
+    if (existingMembership) {
+      throw new ConflictException('Этот ученик уже добавлен в ваш класс');
+    }
+
+    await this.prisma.classroomMember.create({
+      data: {
+        classroomId: classroom.id,
+        userId: student.id,
+        role: ClassroomMemberRole.STUDENT,
+      },
+    });
+
+    return {
+      id: student.id,
+      name: student.name,
+      email: student.email,
+      avatarUrl: student.avatarUrl,
+      classroom: {
+        id: classroom.id,
+        title: classroom.title,
+        subject: classroom.subject.name,
+      },
+    };
   }
 
   async createTeacherHomeworkAssignment(

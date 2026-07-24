@@ -9,6 +9,7 @@ import "katex/dist/katex.min.css";
 import { GeometryFigure } from "./geometry-figure";
 import { UnitCircle } from "./unit-circle";
 import { CoordPlane } from "./coord-plane";
+import { NumberLine } from "./number-line";
 
 type MathTextProps = {
   content: string;
@@ -66,6 +67,18 @@ function PlotBlock({ source }: { source: string }) {
   }
 }
 
+function NumLineBlock({ source }: { source: string }) {
+  try {
+    return <NumberLine spec={JSON.parse(source)} />;
+  } catch {
+    return (
+      <pre className="not-prose my-4 overflow-x-auto rounded-xl border border-danger/30 bg-danger/5 p-3 text-xs text-danger">
+        Не удалось разобрать числовую прямую (проверьте JSON в блоке ```numline).
+      </pre>
+    );
+  }
+}
+
 export function MathText({ content, className = "" }: MathTextProps) {
   return (
     <div className={`prose prose-slate max-w-none ${className}`}>
@@ -103,6 +116,16 @@ export function MathText({ content, className = "" }: MathTextProps) {
             if (cls.includes("language-plot")) {
               return (
                 <PlotBlock
+                  source={rawText(
+                    (child as { props: { children?: ReactNode } }).props
+                      .children,
+                  )}
+                />
+              );
+            }
+            if (cls.includes("language-numline")) {
+              return (
+                <NumLineBlock
                   source={rawText(
                     (child as { props: { children?: ReactNode } }).props
                       .children,

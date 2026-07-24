@@ -17,10 +17,16 @@ export type TeacherHomeworkStudent = {
   id: string;
   name: string;
   email: string;
+  avatarUrl: string | null;
   classroom: {
     id: string;
     title: string;
+    subject: string;
   };
+};
+
+export type AddTeacherStudentInput = {
+  studentId: string;
 };
 
 export type TeacherHomeworkTasksPage = {

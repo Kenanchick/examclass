@@ -19,23 +19,13 @@ import { HomeworkSubmissionBar } from "@/entities/homework/ui/homework-submissio
 import { HomeworkTaskResponseField } from "@/entities/homework/ui/homework-task-response-field";
 import { TaskCard } from "@/entities/task/ui/task-card";
 import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
-import type { ApiErrorResponse } from "@/shared/api/auth";
+import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
 type StudentHomeworkAssignmentPageProps = {
   publicId: string;
 };
-
-function getErrorMessage(error: unknown, fallback: string) {
-  if (axios.isAxiosError<ApiErrorResponse>(error)) {
-    const message = error.response?.data.message;
-
-    return (Array.isArray(message) ? message[0] : message) ?? fallback;
-  }
-
-  return fallback;
-}
 
 export function StudentHomeworkAssignmentPage({
   publicId,
@@ -182,7 +172,7 @@ export function StudentHomeworkAssignmentPage({
       {
         onError: (error) => {
           setSubmissionError(
-            getErrorMessage(
+            getApiErrorMessage(
               error,
               "Не удалось прикрепить файл. Попробуйте ещё раз.",
             ),
@@ -202,7 +192,7 @@ export function StudentHomeworkAssignmentPage({
     deleteAttachmentMutation.mutate(taskPublicId, {
       onError: (error) => {
         setSubmissionError(
-          getErrorMessage(
+          getApiErrorMessage(
             error,
             "Не удалось удалить файл. Попробуйте ещё раз.",
           ),
@@ -225,7 +215,7 @@ export function StudentHomeworkAssignmentPage({
       },
       onError: (error) => {
         setSubmissionError(
-          getErrorMessage(
+          getApiErrorMessage(
             error,
             "Не удалось отправить работу. Проверьте файлы и попробуйте ещё раз.",
           ),

@@ -176,7 +176,7 @@ export function TeacherHomeworkStudentSelector({
           })}
         </div>
       ) : (
-        <div className="mt-4 rounded-2xl border border-dashed border-line bg-page px-4 py-7 text-center text-sm text-muted">
+        <div className="mt-4 px-1 py-5 text-center text-sm text-muted">
           {students.length === 0
             ? "Ученики пока не добавлены."
             : "По этому запросу учеников не найдено."}
