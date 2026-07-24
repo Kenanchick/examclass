@@ -30,6 +30,25 @@ function isSameDate(first: Date, second: Date) {
   return toDateKey(first) === toDateKey(second);
 }
 
+function getTooltipPositionClass(dayIndex: number) {
+  const column = dayIndex % weekDays.length;
+  const row = Math.floor(dayIndex / weekDays.length);
+  const verticalPosition =
+    row >= 4
+      ? "bottom-[calc(100%+0.6rem)] top-auto"
+      : "top-[calc(100%+0.6rem)]";
+
+  if (column <= 1) {
+    return `${verticalPosition} left-0 translate-x-0`;
+  }
+
+  if (column >= 5) {
+    return `${verticalPosition} left-auto right-0 translate-x-0`;
+  }
+
+  return `${verticalPosition} left-1/2 -translate-x-1/2`;
+}
+
 export function ProfileCalendar({ events = [] }: ProfileCalendarProps) {
   const today = useMemo(() => new Date(), []);
   const [visibleMonth, setVisibleMonth] = useState(
@@ -206,10 +225,10 @@ export function ProfileCalendar({ events = [] }: ProfileCalendarProps) {
                 {date.getDate()}
                 {dayEvents.length > 0 && (
                   <>
-                    <span className="absolute bottom-2 flex gap-1">
+                    <span className="absolute bottom-2 flex gap-1.5">
                       {dayEvents.slice(0, 3).map((event) => (
                         <span
-                          className={`size-1.5 rounded-full ${
+                          className={`size-2 rounded-full ${
                             isSelected
                               ? "bg-white"
                               : eventKinds[event.kind].dotClassName
@@ -219,7 +238,7 @@ export function ProfileCalendar({ events = [] }: ProfileCalendarProps) {
                       ))}
                     </span>
                     <span
-                      className="pointer-events-none absolute left-1/2 top-[calc(100%+0.6rem)] z-30 w-56 -translate-x-1/2 rounded-2xl border border-line bg-white p-4 text-left text-ink opacity-0 shadow-[0_16px_32px_rgba(15,43,76,0.16)] transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+                      className={`pointer-events-none absolute z-30 w-56 max-w-[calc(100vw-3rem)] rounded-2xl border border-line bg-white p-4 text-left text-ink opacity-0 shadow-[0_16px_32px_rgba(15,43,76,0.16)] transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 ${getTooltipPositionClass(index)}`}
                       id={tooltipId}
                       role="tooltip"
                     >
