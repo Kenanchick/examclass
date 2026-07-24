@@ -17,15 +17,9 @@ export function useAuthModalActions() {
   const openLoginInStore = useAuthModalStore((state) => state.openLogin);
   const openRegisterInStore = useAuthModalStore((state) => state.openRegister);
 
-  const openLogin = useCallback(
-    (notice?: string) => {
-      openLoginInStore({
-        returnTo: getCurrentPath(pathname),
-        notice,
-      });
-    },
-    [openLoginInStore, pathname],
-  );
+  const openLogin = useCallback(() => {
+    openLoginInStore({ returnTo: getCurrentPath(pathname) });
+  }, [openLoginInStore, pathname]);
 
   const openRegister = useCallback(() => {
     openRegisterInStore({ returnTo: getCurrentPath(pathname) });

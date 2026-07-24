@@ -32,6 +32,10 @@ function normalizeReturnTo(returnTo?: string) {
   return "/dashboard";
 }
 
+function normalizeNotice(notice?: string | null) {
+  return typeof notice === "string" ? notice : null;
+}
+
 export const useAuthModalStore = create<AuthModalState>((set) => ({
   mode: null,
   notice: null,
@@ -40,19 +44,19 @@ export const useAuthModalStore = create<AuthModalState>((set) => ({
   open: (mode, options) =>
     set({
       mode,
-      notice: options?.notice ?? null,
+      notice: normalizeNotice(options?.notice),
       returnTo: normalizeReturnTo(options?.returnTo),
     }),
   openLogin: (options) =>
     set({
       mode: "login",
-      notice: options?.notice ?? null,
+      notice: normalizeNotice(options?.notice),
       returnTo: normalizeReturnTo(options?.returnTo),
     }),
   openRegister: (options) =>
     set({
       mode: "register",
-      notice: options?.notice ?? null,
+      notice: normalizeNotice(options?.notice),
       returnTo: normalizeReturnTo(options?.returnTo),
     }),
   switchMode: () =>
