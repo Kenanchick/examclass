@@ -15,6 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useCurrentUserQuery } from "@/entities/user/api/use-current-user-query";
+import { useAccountModeStore } from "@/features/account-mode/model/use-account-mode-store";
 import { useAccessToken } from "@/shared/model/use-access-token";
 import { StudentMobileMenu } from "@/widgets/student-sidebar/ui/student-navigation-mobile";
 
@@ -42,7 +43,17 @@ export function StudentHeader() {
   const [searchValue, setSearchValue] = useState("");
   const currentUserQuery = useCurrentUserQuery(hasAccessToken === true);
   const currentUser = currentUserQuery.data;
+  const synchronizeAccount = useAccountModeStore(
+    (state) => state.synchronizeAccount,
+  );
+  const resetAccountMode = useAccountModeStore((state) => state.reset);
   const shortName = currentUser?.name.split(" ")[0] ?? "Профиль";
+
+  useEffect(() => {
+    if (currentUser) {
+      synchronizeAccount(currentUser.id, currentUser.role !== "STUDENT");
+    }
+  }, [currentUser, synchronizeAccount]);
 
   useEffect(() => {
     if (!isProfileMenuOpen) {
@@ -81,6 +92,7 @@ export function StudentHeader() {
 
   const handleLogout = () => {
     window.localStorage.removeItem("accessToken");
+    resetAccountMode();
     queryClient.clear();
     setIsProfileMenuOpen(false);
     router.replace("/login");

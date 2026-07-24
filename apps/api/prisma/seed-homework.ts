@@ -64,6 +64,25 @@ async function main() {
   const student = await prisma.user.findUniqueOrThrow({
     where: { email: 'demo@examclass.local' },
   });
+  const additionalStudents = await Promise.all(
+    [
+      {
+        email: 'arina@examclass.local',
+        name: 'Арина Михайлова',
+      },
+      {
+        email: 'maksim@examclass.local',
+        name: 'Максим Орлов',
+      },
+    ].map(({ email, name }) =>
+      prisma.user.upsert({
+        where: { email },
+        update: { name, role: Role.STUDENT },
+        create: { email, name, role: Role.STUDENT },
+      }),
+    ),
+  );
+  const students = [student, ...additionalStudents];
   const subject = await prisma.subject.findUniqueOrThrow({
     where: { code: 'profile-math-ege' },
   });
@@ -82,19 +101,23 @@ async function main() {
     },
   });
 
-  await prisma.classroomMember.upsert({
-    where: {
-      classroomId_userId: {
-        classroomId: classroom.id,
-        userId: student.id,
-      },
-    },
-    update: {},
-    create: {
-      classroomId: classroom.id,
-      userId: student.id,
-    },
-  });
+  await Promise.all(
+    students.map((currentStudent) =>
+      prisma.classroomMember.upsert({
+        where: {
+          classroomId_userId: {
+            classroomId: classroom.id,
+            userId: currentStudent.id,
+          },
+        },
+        update: {},
+        create: {
+          classroomId: classroom.id,
+          userId: currentStudent.id,
+        },
+      }),
+    ),
+  );
 
   for (const item of homework) {
     const tasks = await prisma.task.findMany({
@@ -137,6 +160,15 @@ async function main() {
           ? [{ homeworkId: assignment.id, taskId: task.id, sortOrder }]
           : [];
       }),
+    });
+    await prisma.homeworkAssignmentRecipient.deleteMany({
+      where: { homeworkId: assignment.id },
+    });
+    await prisma.homeworkAssignmentRecipient.createMany({
+      data: students.map((currentStudent) => ({
+        homeworkId: assignment.id,
+        studentId: currentStudent.id,
+      })),
     });
   }
 

@@ -60,6 +60,7 @@ model User {
   classroomMemberships ClassroomMember[]
   favoriteTasks        TaskFavorite[]
   assignedHomework     HomeworkAssignment[] @relation("HomeworkAssignedBy")
+  homeworkRecipients   HomeworkAssignmentRecipient[]
 }
 
 model Subject {
@@ -182,6 +183,7 @@ model HomeworkAssignment {
   classroom  Classroom                @relation(fields: [classroomId], references: [id], onDelete: Cascade)
   assignedBy User                     @relation("HomeworkAssignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
   tasks      HomeworkAssignmentTask[]
+  recipients HomeworkAssignmentRecipient[]
 
   @@index([classroomId, deadline])
   @@index([assignedById])
@@ -197,6 +199,18 @@ model HomeworkAssignmentTask {
 
   @@id([homeworkId, taskId])
   @@index([taskId])
+}
+
+model HomeworkAssignmentRecipient {
+  homeworkId String
+  studentId  String
+  assignedAt DateTime @default(now())
+
+  homework HomeworkAssignment @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  student  User               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@id([homeworkId, studentId])
+  @@index([studentId, assignedAt])
 }
 
 model TopicPrerequisite {

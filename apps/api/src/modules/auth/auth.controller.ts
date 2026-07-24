@@ -6,6 +6,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -34,6 +35,15 @@ export class AuthController {
     @Body() dto: UpdateProfileDto,
   ) {
     return this.authService.updateCurrentUser(userId, dto);
+  }
+
+  @Patch('me/role')
+  @UseGuards(JwtAuthGuard)
+  updateCurrentRole(
+    @CurrentUserId() userId: string,
+    @Body() dto: UpdateRoleDto,
+  ) {
+    return this.authService.updateCurrentRole(userId, dto);
   }
 
   @Patch('password')

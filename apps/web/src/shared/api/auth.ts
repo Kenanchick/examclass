@@ -66,6 +66,14 @@ export async function updateCurrentUser(data: UpdateProfileRequest) {
   return response.data;
 }
 
+export async function enableTeacherRole() {
+  const response = await apiClient.patch<User>("/auth/me/role", {
+    role: "TEACHER",
+  });
+
+  return response.data;
+}
+
 export async function updatePassword(data: UpdatePasswordRequest) {
   const response = await apiClient.patch<{ message: string }>(
     "/auth/password",

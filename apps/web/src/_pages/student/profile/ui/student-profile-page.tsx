@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   CalendarDays,
@@ -12,10 +13,14 @@ import {
 } from "lucide-react";
 import { useHomeworkQuery } from "@/entities/homework/api/use-homework-query";
 import { toHomeworkCalendarEvents } from "@/entities/homework/lib/to-homework-calendar-events";
-import { useCurrentUserQuery } from "@/entities/user/api/use-current-user-query";
+import {
+  currentUserQueryKey,
+  useCurrentUserQuery,
+} from "@/entities/user/api/use-current-user-query";
+import { useAccountModeStore } from "@/features/account-mode/model/use-account-mode-store";
 import { ProfileCalendar } from "@/features/profile/calendar/ui/profile-calendar";
 import { ProfileSettings } from "@/features/profile/settings/ui/profile-settings";
-import { useAccountModeStore } from "@/features/account-mode/model/use-account-mode-store";
+import { enableTeacherRole } from "@/shared/api/auth";
 import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
@@ -32,6 +37,7 @@ function getInitials(name: string) {
 
 export function StudentProfilePage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const accountMode = useAccountModeStore((state) => state.mode);
   const setAccountMode = useAccountModeStore((state) => state.setMode);
   const hasAccessToken = useAccessToken();
@@ -39,6 +45,22 @@ export function StudentProfilePage() {
   const homeworkQuery = useHomeworkQuery(hasAccessToken === true);
   const currentUser = currentUserQuery.data;
   const calendarEvents = toHomeworkCalendarEvents(homeworkQuery.data ?? []);
+  const teacherRoleMutation = useMutation({
+    mutationFn: enableTeacherRole,
+    onSuccess: (user) => {
+      queryClient.setQueryData(currentUserQueryKey, user);
+      setAccountMode("teacher");
+    },
+  });
+
+  const handleTeacherMode = () => {
+    if (currentUser?.role !== "STUDENT") {
+      setAccountMode("teacher");
+      return;
+    }
+
+    teacherRoleMutation.mutate();
+  };
 
   useEffect(() => {
     if (hasAccessToken === false) {
@@ -134,11 +156,14 @@ export function StudentProfilePage() {
                             ? "bg-brand text-white shadow-sm"
                             : "text-muted hover:text-brand"
                         }`}
-                        onClick={() => setAccountMode("teacher")}
+                        disabled={teacherRoleMutation.isPending}
+                        onClick={handleTeacherMode}
                         type="button"
                       >
                         <UserRound className="size-4" />
-                        Преподаватель
+                        {teacherRoleMutation.isPending
+                          ? "Подключаем…"
+                          : "Преподаватель"}
                       </button>
                     </div>
                     <span className="inline-flex items-center gap-2 rounded-full bg-success/10 px-3.5 py-2 text-sm font-bold text-success">
@@ -146,6 +171,11 @@ export function StudentProfilePage() {
                       Аккаунт активен
                     </span>
                   </div>
+                  {teacherRoleMutation.isError && (
+                    <p className="mt-3 text-sm font-medium text-danger" role="alert">
+                      Не удалось включить режим преподавателя. Попробуйте ещё раз.
+                    </p>
+                  )}
 
                   <h1 className="mt-4 text-4xl font-bold tracking-[-0.055em] text-ink sm:text-5xl">
                     {currentUser.name}

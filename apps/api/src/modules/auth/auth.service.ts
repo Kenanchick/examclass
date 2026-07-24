@@ -6,12 +6,20 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { Prisma, Role, type User } from '../../generated/prisma/client';
+import { randomUUID } from 'node:crypto';
+import {
+  ClassroomStatus,
+  Prisma,
+  Role,
+  type User,
+} from '../../generated/prisma/client';
+import { PrismaService } from '../../database/prisma/prisma.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 const emailAlreadyExistsMessage = 'Пользователь с таким email уже существует';
 const invalidCredentialsMessage = 'Неверный email или пароль';
@@ -32,6 +40,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -163,6 +172,56 @@ export class AuthService {
     await this.usersService.update(userId, { passwordHash });
 
     return { message: 'Пароль успешно изменён' };
+  }
+
+  async updateCurrentRole(userId: string, dto: UpdateRoleDto) {
+    const user = await this.usersService.findById(userId);
+
+    if (!user) {
+      throw new UnauthorizedException(unauthorizedMessage);
+    }
+
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      if (dto.role === Role.TEACHER) {
+        const classroom = await tx.classroom.findFirst({
+          where: {
+            ownerId: userId,
+            status: ClassroomStatus.ACTIVE,
+          },
+          select: { id: true },
+        });
+
+        if (!classroom) {
+          const subject = await tx.subject.findFirst({
+            where: { isActive: true },
+            orderBy: { sortOrder: 'asc' },
+            select: { id: true },
+          });
+
+          if (!subject) {
+            throw new BadRequestException(
+              'Невозможно создать кабинет преподавателя без активного предмета',
+            );
+          }
+
+          await tx.classroom.create({
+            data: {
+              title: `Класс ${user.name}`,
+              inviteCode: `CLASS-${randomUUID().replaceAll('-', '').toUpperCase()}`,
+              ownerId: userId,
+              subjectId: subject.id,
+            },
+          });
+        }
+      }
+
+      return tx.user.update({
+        where: { id: userId },
+        data: { role: dto.role },
+      });
+    });
+
+    return this.toPublicUser(updatedUser);
   }
 
   private async createAuthResponse(user: User) {

@@ -1,1 +1,1 @@
-export { StudentHomeworkPage as default } from "@/_pages/student/homework/ui/student-homework-page";
+export { HomeworkPage as default } from "@/_pages/student/homework/ui/homework-page";
