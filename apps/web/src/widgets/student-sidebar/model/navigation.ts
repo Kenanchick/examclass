@@ -37,14 +37,18 @@ const studentsNavigationItem: StudentNavigationItem = {
   href: "/students",
 };
 
+const teacherBaseNavigation = baseNavigation.filter(
+  (item) => item.label !== "Траектория подготовки",
+);
+
 export function getStudentNavigation(mode: AccountMode) {
   if (mode === "student") {
     return baseNavigation;
   }
 
   return [
-    ...baseNavigation.slice(0, 3),
+    ...teacherBaseNavigation.slice(0, 3),
     studentsNavigationItem,
-    ...baseNavigation.slice(3),
+    ...teacherBaseNavigation.slice(3),
   ];
 }
