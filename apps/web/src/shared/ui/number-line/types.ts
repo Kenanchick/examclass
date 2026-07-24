@@ -28,11 +28,13 @@ export type NumLineBand = {
   to: number;
 };
 
-/** Верхняя скобка с подписью (например, ОДЗ «0 < x < 3»). */
+/** Верхняя скобка с подписью (например, ОДЗ «0 < x < 3» или решение одного неравенства системы). */
 export type NumLineBracket = {
   from: number;
   to: number;
   label?: string;
+  /** Ярус скобки (0 — нижний). Позволяет разместить несколько скобок друг над другом. */
+  row?: number;
 };
 
 export type NumLineSpec = {

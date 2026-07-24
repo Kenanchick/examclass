@@ -277,6 +277,7 @@ const subtopicGroups = [
     parentSlug: 'ege-15-inequalities',
     subtopics: [
       { slug: 'ege-15-rational', name: 'Рациональные неравенства' },
+      { slug: 'ege-15-irrational', name: 'Иррациональные неравенства' },
       { slug: 'ege-15-exponential', name: 'Показательные неравенства' },
       { slug: 'ege-15-logarithmic', name: 'Логарифмические неравенства' },
       { slug: 'ege-15-systems', name: 'Системы неравенств' },

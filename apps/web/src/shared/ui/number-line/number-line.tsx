@@ -62,8 +62,8 @@ export function NumberLine({ spec }: { spec: NumLineSpec }) {
 
   const pad = 40;
   const W = Math.max(320, 60 * (n + 1) + 2 * pad);
-  const hasBracket = brackets.length > 0;
-  const axisY = hasBracket ? 96 : 66;
+  const maxRow = brackets.reduce((m, b) => Math.max(m, b.row ?? 0), 0);
+  const axisY = brackets.length > 0 ? 96 + maxRow * 24 : 66;
   const H = axisY + 62;
 
   const gap = (W - 2 * pad) / (n + 1);
@@ -156,7 +156,7 @@ export function NumberLine({ spec }: { spec: NumLineSpec }) {
   brackets.forEach((br, i) => {
     const x1 = pos(br.from);
     const x2 = pos(br.to);
-    const by = axisY - 44;
+    const by = axisY - 44 - (br.row ?? 0) * 24;
     layers.push(
       <Fragment key={`bracket-${i}`}>
         <path

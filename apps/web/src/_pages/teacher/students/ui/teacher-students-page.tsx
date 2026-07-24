@@ -7,6 +7,8 @@ import {
   Check,
   GraduationCap,
   Hash,
+  MessageCircle,
+  Target,
   UserRoundPlus,
   UsersRound,
 } from "lucide-react";
@@ -34,24 +36,45 @@ function getInitials(name: string) {
 
 function StudentCard({ student }: { student: TeacherHomeworkStudent }) {
   return (
-    <article className="group rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_10px_30px_rgba(15,43,76,0.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(15,43,76,0.1)]">
-      <div className="flex items-center gap-4">
-        <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#d9edff] to-[#8fc5f6] text-lg font-extrabold text-brand shadow-[inset_0_-3px_0_rgba(19,66,112,0.15)]">
-          {getInitials(student.name)}
+    <article className="group/student-card relative min-h-[180px] overflow-hidden rounded-[1.5rem] border border-line bg-white p-5 shadow-[0_10px_30px_rgba(15,43,76,0.04)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_36px_rgba(15,43,76,0.1)] focus-within:-translate-y-1 focus-within:shadow-[0_16px_36px_rgba(15,43,76,0.1)]">
+      <div className="relative z-10 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/student-card:-translate-y-10 group-focus-within/student-card:-translate-y-10">
+        <div className="flex items-center gap-4">
+          <div className="grid size-14 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[#d9edff] to-[#8fc5f6] text-lg font-extrabold text-brand shadow-[inset_0_-3px_0_rgba(19,66,112,0.15)]">
+            {getInitials(student.name)}
+          </div>
+          <div className="min-w-0">
+            <h2 className="truncate text-lg font-bold tracking-[-0.025em] text-ink">
+              {student.name}
+            </h2>
+            <p className="mt-1 flex items-center gap-1.5 truncate text-sm font-semibold text-brand">
+              <BookOpen className="size-4 shrink-0" />
+              {student.classroom.subject}
+            </p>
+          </div>
         </div>
-        <div className="min-w-0">
-          <h2 className="truncate text-lg font-bold tracking-[-0.025em] text-ink">
-            {student.name}
-          </h2>
-          <p className="mt-1 flex items-center gap-1.5 truncate text-sm font-semibold text-brand">
-            <BookOpen className="size-4 shrink-0" />
-            {student.classroom.subject}
-          </p>
+        <div className="mt-5 flex items-center gap-2 border-t border-line pt-4 text-sm text-muted">
+          <GraduationCap className="size-4 shrink-0 text-brand" />
+          <span className="truncate">{student.classroom.title}</span>
         </div>
       </div>
-      <div className="mt-5 flex items-center gap-2 border-t border-line pt-4 text-sm text-muted">
-        <GraduationCap className="size-4 shrink-0 text-brand" />
-        <span className="truncate">{student.classroom.title}</span>
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 translate-y-full border-t border-line bg-white/95 px-3 py-2.5 shadow-[0_-8px_20px_rgba(15,43,76,0.08)] backdrop-blur-sm transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover/student-card:pointer-events-auto group-hover/student-card:translate-y-0 group-focus-within/student-card:pointer-events-auto group-focus-within/student-card:translate-y-0">
+        <div className="flex gap-2">
+          <button
+            className="inline-flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-bold text-brand transition-colors hover:bg-brand/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+            type="button"
+          >
+            <MessageCircle className="size-4 shrink-0" />
+            <span className="truncate">Сообщение</span>
+          </button>
+          <button
+            className="inline-flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-bold text-brand transition-colors hover:bg-brand/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+            type="button"
+          >
+            <Target className="size-4 shrink-0" />
+            <span className="truncate">Траектория подготовки</span>
+          </button>
+        </div>
       </div>
     </article>
   );
