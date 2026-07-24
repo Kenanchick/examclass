@@ -46,6 +46,13 @@ enum TaskStatus {
   ARCHIVED
 }
 
+enum HomeworkSubmissionStatus {
+  DRAFT
+  SUBMITTED
+  RETURNED
+  REVIEWED
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -56,11 +63,12 @@ model User {
   updatedAt    DateTime @updatedAt
   role         Role     @default(STUDENT)
 
-  ownedClassrooms      Classroom[]          @relation("ClassroomOwner")
+  ownedClassrooms      Classroom[]                   @relation("ClassroomOwner")
   classroomMemberships ClassroomMember[]
   favoriteTasks        TaskFavorite[]
-  assignedHomework     HomeworkAssignment[] @relation("HomeworkAssignedBy")
+  assignedHomework     HomeworkAssignment[]          @relation("HomeworkAssignedBy")
   homeworkRecipients   HomeworkAssignmentRecipient[]
+  homeworkSubmissions  HomeworkSubmission[]
 }
 
 model Subject {
@@ -149,9 +157,10 @@ model Task {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
 
-  topic               Topic                    @relation(fields: [topicId], references: [id], onDelete: Restrict)
+  topic               Topic                          @relation(fields: [topicId], references: [id], onDelete: Restrict)
   favorites           TaskFavorite[]
   homeworkAssignments HomeworkAssignmentTask[]
+  homeworkAttachments HomeworkSubmissionAttachment[]
 
   @@index([topicId, status])
   @@index([examPart, status])
@@ -180,10 +189,11 @@ model HomeworkAssignment {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  classroom  Classroom                @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  assignedBy User                     @relation("HomeworkAssignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
-  tasks      HomeworkAssignmentTask[]
-  recipients HomeworkAssignmentRecipient[]
+  classroom   Classroom                     @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  assignedBy  User                          @relation("HomeworkAssignedBy", fields: [assignedById], references: [id], onDelete: Restrict)
+  tasks       HomeworkAssignmentTask[]
+  recipients  HomeworkAssignmentRecipient[]
+  submissions HomeworkSubmission[]
 
   @@index([classroomId, deadline])
   @@index([assignedById])
@@ -211,6 +221,45 @@ model HomeworkAssignmentRecipient {
 
   @@id([homeworkId, studentId])
   @@index([studentId, assignedAt])
+}
+
+model HomeworkSubmission {
+  id          String                   @id @default(cuid())
+  publicId    String                   @unique
+  homeworkId  String
+  studentId   String
+  status      HomeworkSubmissionStatus @default(DRAFT)
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  homework    HomeworkAssignment             @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  student     User                           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  attachments HomeworkSubmissionAttachment[]
+
+  @@unique([homeworkId, studentId])
+  @@index([studentId, status, updatedAt])
+  @@index([homeworkId, status, submittedAt])
+}
+
+model HomeworkSubmissionAttachment {
+  id           String   @id @default(cuid())
+  publicId     String   @unique
+  submissionId String
+  taskId       String
+  storageKey   String   @unique
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  submission HomeworkSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  task       Task               @relation(fields: [taskId], references: [id], onDelete: Restrict)
+
+  @@unique([submissionId, taskId])
+  @@index([taskId])
 }
 
 model TopicPrerequisite {

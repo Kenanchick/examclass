@@ -1,14 +1,26 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { CurrentUserId } from '../../common/decorators/current-user-id.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CreateHomeworkAssignmentDto } from './dto/create-homework-assignment.dto';
 import { TeacherHomeworkTasksQueryDto } from './dto/teacher-homework-tasks-query.dto';
+import { HomeworkSubmissionService } from './homework-submission.service';
 import { HomeworkService } from './homework.service';
 
 @Controller('teacher/homework')
 @UseGuards(JwtAuthGuard)
 export class TeacherHomeworkController {
-  constructor(private readonly homeworkService: HomeworkService) {}
+  constructor(
+    private readonly homeworkService: HomeworkService,
+    private readonly submissionService: HomeworkSubmissionService,
+  ) {}
 
   @Get('tasks')
   getTasks(
@@ -21,6 +33,17 @@ export class TeacherHomeworkController {
   @Get('students')
   getStudents(@CurrentUserId() userId: string) {
     return this.homeworkService.getTeacherStudents(userId);
+  }
+
+  @Get('assignments/:publicId/submissions')
+  getSubmissions(
+    @CurrentUserId() userId: string,
+    @Param('publicId') publicId: string,
+  ) {
+    return this.submissionService.getTeacherHomeworkSubmissions(
+      userId,
+      publicId,
+    );
   }
 
   @Post('assignments')

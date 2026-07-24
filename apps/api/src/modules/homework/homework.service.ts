@@ -15,6 +15,7 @@ import {
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { taskDetailsSelect } from '../tasks/task-details.select';
 import { CreateHomeworkAssignmentDto } from './dto/create-homework-assignment.dto';
+import { getStudentHomeworkWhere } from './homework-access';
 import { TeacherHomeworkTasksQueryDto } from './dto/teacher-homework-tasks-query.dto';
 
 @Injectable()
@@ -23,25 +24,7 @@ export class HomeworkService {
 
   async getStudentHomework(userId: string) {
     const assignments = await this.prisma.homeworkAssignment.findMany({
-      where: {
-        OR: [
-          {
-            recipients: {
-              some: { studentId: userId },
-            },
-          },
-          {
-            recipients: {
-              none: {},
-            },
-            classroom: {
-              members: {
-                some: { userId },
-              },
-            },
-          },
-        ],
-      },
+      where: getStudentHomeworkWhere(userId),
       orderBy: [{ deadline: 'asc' }, { createdAt: 'desc' }],
       select: {
         publicId: true,
@@ -76,42 +59,31 @@ export class HomeworkService {
             },
           },
         },
+        submissions: {
+          where: { studentId: userId },
+          select: {
+            status: true,
+            submittedAt: true,
+          },
+        },
       },
     });
 
     return assignments.map(
-      ({ assignedBy, createdAt, tasks, ...assignment }) => ({
+      ({ assignedBy, createdAt, submissions, tasks, ...assignment }) => ({
         ...assignment,
         assignedAt: createdAt,
         teacher: assignedBy,
         taskCount: tasks.length,
         tasks: tasks.map(({ task }) => task),
+        submission: submissions[0] ?? null,
       }),
     );
   }
 
   async getStudentHomeworkAssignment(userId: string, publicId: string) {
     const assignment = await this.prisma.homeworkAssignment.findFirst({
-      where: {
-        publicId,
-        OR: [
-          {
-            recipients: {
-              some: { studentId: userId },
-            },
-          },
-          {
-            recipients: {
-              none: {},
-            },
-            classroom: {
-              members: {
-                some: { userId },
-              },
-            },
-          },
-        ],
-      },
+      where: getStudentHomeworkWhere(userId, publicId),
       select: {
         publicId: true,
         title: true,
@@ -143,6 +115,28 @@ export class HomeworkService {
             },
           },
         },
+        submissions: {
+          where: { studentId: userId },
+          select: {
+            publicId: true,
+            status: true,
+            submittedAt: true,
+            attachments: {
+              select: {
+                publicId: true,
+                originalName: true,
+                mimeType: true,
+                sizeBytes: true,
+                createdAt: true,
+                task: {
+                  select: {
+                    publicId: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -150,7 +144,9 @@ export class HomeworkService {
       throw new NotFoundException('Домашнее задание не найдено');
     }
 
-    const { assignedBy, createdAt, tasks, ...homework } = assignment;
+    const { assignedBy, createdAt, submissions, tasks, ...homework } =
+      assignment;
+    const submission = submissions[0] ?? null;
 
     return {
       ...homework,
@@ -158,6 +154,15 @@ export class HomeworkService {
       teacher: assignedBy,
       taskCount: tasks.length,
       tasks: tasks.map(({ task }) => task),
+      submission: submission && {
+        publicId: submission.publicId,
+        status: submission.status,
+        submittedAt: submission.submittedAt,
+        attachments: submission.attachments.map(({ task, ...attachment }) => ({
+          ...attachment,
+          taskPublicId: task.publicId,
+        })),
+      },
     };
   }
 

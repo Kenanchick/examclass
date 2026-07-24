@@ -27,6 +27,8 @@ out/
 build
 dist
 /apps/api/src/generated/prisma/
+/apps/api/uploads/
+/uploads/
 **/.agents/
 **/.claude/
 **/.windsurf/
