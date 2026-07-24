@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import {
   Bell,
@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useCurrentUserQuery } from "@/entities/user/api/use-current-user-query";
 import { useAccountModeStore } from "@/features/account-mode/model/use-account-mode-store";
+import { useAuthModalStore } from "@/features/auth/modal/model/use-auth-modal-store";
+import { clearAccessToken } from "@/shared/model/auth-session";
 import { useAccessToken } from "@/shared/model/use-access-token";
 import { StudentMobileMenu } from "@/widgets/student-sidebar/ui/student-navigation-mobile";
 
@@ -35,6 +37,7 @@ function getInitials(name?: string) {
 
 export function StudentHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -47,6 +50,7 @@ export function StudentHeader() {
     (state) => state.synchronizeAccount,
   );
   const resetAccountMode = useAccountModeStore((state) => state.reset);
+  const openLogin = useAuthModalStore((state) => state.openLogin);
   const shortName = currentUser?.name.split(" ")[0] ?? "Профиль";
 
   useEffect(() => {
@@ -91,11 +95,11 @@ export function StudentHeader() {
   };
 
   const handleLogout = () => {
-    window.localStorage.removeItem("accessToken");
+    clearAccessToken();
     resetAccountMode();
     queryClient.clear();
     setIsProfileMenuOpen(false);
-    router.replace("/login");
+    openLogin({ returnTo: pathname });
     router.refresh();
   };
 

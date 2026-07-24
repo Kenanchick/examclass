@@ -4,13 +4,21 @@ import { useForm } from "react-hook-form";
 import { loginFormSchema, type LoginFormValues } from "../model/login.schema";
 
 import axios from "axios";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { type ApiErrorResponse, login as loginUser } from "@/shared/api/auth";
-import Link from "next/link";
+import { setAccessToken } from "@/shared/model/auth-session";
 
-export function LoginForm() {
-  const router = useRouter();
+type LoginFormProps = {
+  notice?: string | null;
+  onAuthenticated: () => void;
+  onSwitchMode: () => void;
+};
+
+export function LoginForm({
+  notice,
+  onAuthenticated,
+  onSwitchMode,
+}: LoginFormProps) {
   const {
     register,
     formState: { errors, isSubmitting },
@@ -21,16 +29,6 @@ export function LoginForm() {
     mode: "onBlur",
   });
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [sessionNotice, setSessionNotice] = useState<string | null>(null);
-
-  useEffect(() => {
-    const notice = window.sessionStorage.getItem("authNotice");
-
-    if (notice) {
-      setSessionNotice(notice);
-      window.sessionStorage.removeItem("authNotice");
-    }
-  }, []);
 
   async function onSubmit(data: LoginFormValues) {
     setSubmitError(null);
@@ -38,9 +36,8 @@ export function LoginForm() {
     try {
       const response = await loginUser(data);
 
-      window.localStorage.setItem("accessToken", response.accessToken);
-      setSessionNotice(null);
-      router.replace("/dashboard");
+      setAccessToken(response.accessToken);
+      onAuthenticated();
     } catch (error) {
       if (axios.isAxiosError<ApiErrorResponse>(error)) {
         const message = error.response?.data.message;
@@ -100,12 +97,12 @@ export function LoginForm() {
         )}
       </label>
 
-      {sessionNotice && (
+      {notice && (
         <p
           className="rounded-xl border border-brand/20 bg-brand/5 px-4 py-3 text-sm leading-5 text-brand"
           role="status"
         >
-          {sessionNotice}
+          {notice}
         </p>
       )}
 
@@ -125,9 +122,13 @@ export function LoginForm() {
 
       <p className="pt-1 text-center text-sm text-muted">
         Нет аккаунта?{" "}
-        <Link href="/register" className="font-semibold text-brand">
+        <button
+          className="cursor-pointer font-semibold text-brand"
+          onClick={onSwitchMode}
+          type="button"
+        >
           Зарегистрироваться
-        </Link>
+        </button>
       </p>
     </form>
   );

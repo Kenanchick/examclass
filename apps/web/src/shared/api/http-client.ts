@@ -1,4 +1,6 @@
 import axios from "axios";
+import { useAuthModalStore } from "@/features/auth/modal/model/use-auth-modal-store";
+import { clearAccessToken, getAccessToken } from "@/shared/model/auth-session";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -13,7 +15,7 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const accessToken = window.localStorage.getItem("accessToken");
+    const accessToken = getAccessToken();
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
@@ -31,18 +33,16 @@ apiClient.interceptors.response.use(
       axios.isAxiosError(error) &&
       error.response?.status === 401
     ) {
-      const hadAccessToken = Boolean(
-        window.localStorage.getItem("accessToken"),
-      );
+      const hadAccessToken = Boolean(getAccessToken());
 
-      window.localStorage.removeItem("accessToken");
+      clearAccessToken();
 
-      if (hadAccessToken && window.location.pathname !== "/login") {
-        window.sessionStorage.setItem(
-          "authNotice",
-          "Сессия завершилась. Войдите ещё раз — теперь вход сохранится на 7 дней.",
-        );
-        window.location.replace("/login");
+      if (hadAccessToken) {
+        useAuthModalStore.getState().openLogin({
+          notice:
+            "Сессия завершилась. Войдите ещё раз — теперь вход сохранится на 7 дней.",
+          returnTo: `${window.location.pathname}${window.location.search}`,
+        });
       }
     }
 

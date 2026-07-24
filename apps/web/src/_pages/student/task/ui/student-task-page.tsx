@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import axios from "axios";
 import { ArrowLeft } from "lucide-react";
 import {
@@ -12,6 +11,7 @@ import {
 import { useTaskQuery } from "@/entities/task/api/use-task-query";
 import { getTaskExamNumber } from "@/entities/task/model/task";
 import { TaskCard } from "@/entities/task/ui/task-card";
+import { useAuthModalActions } from "@/features/auth/modal/model/use-auth-modal-actions";
 import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
@@ -80,9 +80,9 @@ function StudyHint({
 }
 
 export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
-  const router = useRouter();
   const taskQuery = useTaskQuery(publicId);
   const hasAccessToken = useAccessToken();
+  const { openLogin } = useAuthModalActions();
   const favoritesQuery = useFavoritesQuery(hasAccessToken === true);
   const { addMutation, removeMutation } = useFavoriteMutations();
   const task = taskQuery.data;
@@ -140,7 +140,7 @@ export function StudentTaskPage({ publicId }: StudentTaskPageProps) {
 
   const handleFavorite = () => {
     if (hasAccessToken !== true) {
-      router.push("/login");
+      openLogin();
       return;
     }
 

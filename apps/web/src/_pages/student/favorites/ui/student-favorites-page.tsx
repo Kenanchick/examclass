@@ -7,6 +7,7 @@ import { useFavoritesQuery } from "@/entities/favorite/api/use-favorites-query";
 import { getTaskExamNumber } from "@/entities/task/model/task";
 import { useFavoritesFilter } from "@/features/favorites/filter/model/use-favorites-filter";
 import { FavoritesFilters } from "@/features/favorites/filter/ui/favorites-filters";
+import { useAuthModalActions } from "@/features/auth/modal/model/use-auth-modal-actions";
 import { MathText } from "@/shared/ui/math-text";
 import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
@@ -14,6 +15,7 @@ import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
 export function StudentFavoritesPage() {
   const hasAccessToken = useAccessToken();
+  const { openLogin } = useAuthModalActions();
   const favoritesQuery = useFavoritesQuery(hasAccessToken === true);
   const favoritesFilter = useFavoritesFilter(favoritesQuery.data);
 
@@ -53,13 +55,14 @@ export function StudentFavoritesPage() {
               <p className="text-lg font-semibold text-ink">
                 Войдите, чтобы сохранять задачи
               </p>
-              <Link
+              <button
                 className="mt-4 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-brand px-5 py-3 text-sm font-bold text-white"
-                href="/login"
+                onClick={() => openLogin()}
+                type="button"
               >
                 Войти
                 <ArrowRight className="size-4" />
-              </Link>
+              </button>
             </div>
           )}
 

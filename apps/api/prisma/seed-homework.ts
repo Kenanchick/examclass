@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as argon2 from 'argon2';
 import { PrismaClient, Role } from '../src/generated/prisma/client';
 
 const connectionString = process.env.DATABASE_URL;
@@ -12,6 +13,15 @@ if (!connectionString) {
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 });
+
+const testAccountPassword = 'DemoPass123';
+
+const passwordHashOptions: argon2.HashOptions = {
+  type: argon2.argon2id as 2,
+  memoryCost: 19_456,
+  timeCost: 2,
+  parallelism: 1,
+};
 
 const homework = [
   {
@@ -49,20 +59,37 @@ function getDeadline(dayOffset: number) {
 }
 
 async function main() {
+  const passwordHash = (await argon2.hash(
+    testAccountPassword,
+    passwordHashOptions,
+  )) as string;
   const teacher = await prisma.user.upsert({
     where: { email: 'mentor@examclass.local' },
     update: {
       name: 'Анна Сергеевна',
       role: Role.TEACHER,
+      passwordHash,
     },
     create: {
       email: 'mentor@examclass.local',
       name: 'Анна Сергеевна',
       role: Role.TEACHER,
+      passwordHash,
     },
   });
-  const student = await prisma.user.findUniqueOrThrow({
+  const student = await prisma.user.upsert({
     where: { email: 'demo@examclass.local' },
+    update: {
+      name: 'Демо-ученик',
+      role: Role.STUDENT,
+      passwordHash,
+    },
+    create: {
+      email: 'demo@examclass.local',
+      name: 'Демо-ученик',
+      role: Role.STUDENT,
+      passwordHash,
+    },
   });
   const additionalStudents = await Promise.all(
     [
@@ -77,8 +104,8 @@ async function main() {
     ].map(({ email, name }) =>
       prisma.user.upsert({
         where: { email },
-        update: { name, role: Role.STUDENT },
-        create: { email, name, role: Role.STUDENT },
+        update: { name, role: Role.STUDENT, passwordHash },
+        create: { email, name, role: Role.STUDENT, passwordHash },
       }),
     ),
   );

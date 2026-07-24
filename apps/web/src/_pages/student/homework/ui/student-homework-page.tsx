@@ -1,30 +1,39 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { useHomeworkQuery } from "@/entities/homework/api/use-homework-query";
 import type { HomeworkAssignment } from "@/entities/homework/model/homework";
 import { HomeworkAssignmentRow } from "@/entities/homework/ui/homework-assignment-row";
-import { useAccessToken } from "@/shared/model/use-access-token";
+import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
 const emptyHomework: HomeworkAssignment[] = [];
 
 export function StudentHomeworkPage() {
-  const router = useRouter();
-  const hasAccessToken = useAccessToken();
+  const { hasAccessToken, openLogin } = useRequireAuthModal();
   const homeworkQuery = useHomeworkQuery(hasAccessToken === true);
   const homework = homeworkQuery.data ?? emptyHomework;
 
-  useEffect(() => {
-    if (hasAccessToken === false) {
-      router.replace("/login");
-    }
-  }, [hasAccessToken, router]);
+  if (hasAccessToken === false) {
+    return (
+      <StudentLayout>
+        <main className="min-w-0 p-4 sm:p-7 lg:p-8">
+          <div className="mx-auto max-w-[1320px]">
+            <RequestState
+              description="Войдите в аккаунт, чтобы увидеть задания от преподавателя и их дедлайны."
+              onRetry={openLogin}
+              retryLabel="Войти"
+              title="Домашние задания доступны после входа"
+              variant="empty"
+            />
+          </div>
+        </main>
+      </StudentLayout>
+    );
+  }
 
-  if (hasAccessToken !== true || homeworkQuery.isPending) {
+  if (hasAccessToken === null || homeworkQuery.isPending) {
     return (
       <StudentLayout>
         <main className="min-w-0 p-4 sm:p-7 lg:p-8">

@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { ArrowLeft, ListTree } from "lucide-react";
@@ -13,6 +12,7 @@ import {
 import { TaskCard } from "@/entities/task/ui/task-card";
 import { useTopicTasksQuery } from "@/entities/topic/api/use-topic-tasks-query";
 import { formatTaskCount } from "@/entities/topic/lib/format-task-count";
+import { useAuthModalActions } from "@/features/auth/modal/model/use-auth-modal-actions";
 import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
@@ -23,9 +23,9 @@ type StudentTopicTasksPageProps = {
 };
 
 export function StudentTopicTasksPage({ topicId }: StudentTopicTasksPageProps) {
-  const router = useRouter();
   const topicTasksQuery = useTopicTasksQuery(topicId);
   const hasAccessToken = useAccessToken();
+  const { openLogin } = useAuthModalActions();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const favoritesQuery = useFavoritesQuery(hasAccessToken === true);
   const { addMutation, removeMutation } = useFavoriteMutations();
@@ -87,7 +87,7 @@ export function StudentTopicTasksPage({ topicId }: StudentTopicTasksPageProps) {
 
   const handleToggleFavorite = (publicId: string, isFavorite: boolean) => {
     if (hasAccessToken !== true) {
-      router.push("/login");
+      openLogin();
       return;
     }
 

@@ -1,1 +1,5 @@
-export { LoginPage as default } from "@/_pages/home/auth-login/login-page";
+import { redirect } from "next/navigation";
+
+export default function LoginPage() {
+  redirect("/dashboard?auth=login");
+}

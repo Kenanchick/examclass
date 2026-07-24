@@ -12,9 +12,17 @@ import {
   type ApiErrorResponse,
   register as registerUser,
 } from "@/shared/api/auth";
-import Link from "next/link";
+import { setAccessToken } from "@/shared/model/auth-session";
 
-export function RegisterForm() {
+type RegisterFormProps = {
+  onAuthenticated: () => void;
+  onSwitchMode: () => void;
+};
+
+export function RegisterForm({
+  onAuthenticated,
+  onSwitchMode,
+}: RegisterFormProps) {
   const {
     register: registerField,
     formState: { errors, isSubmitting },
@@ -36,7 +44,8 @@ export function RegisterForm() {
         password: data.password,
       });
 
-      window.localStorage.setItem("accessToken", response.accessToken);
+      setAccessToken(response.accessToken);
+      onAuthenticated();
     } catch (error) {
       if (axios.isAxiosError<ApiErrorResponse>(error)) {
         const message = error.response?.data.message;
@@ -155,9 +164,13 @@ export function RegisterForm() {
 
       <p className="pt-1 text-center text-sm text-muted">
         Уже есть аккаунт?{" "}
-        <Link href="/login" className="font-semibold text-brand">
+        <button
+          className="cursor-pointer font-semibold text-brand"
+          onClick={onSwitchMode}
+          type="button"
+        >
           Войти
-        </Link>
+        </button>
       </p>
     </form>
   );

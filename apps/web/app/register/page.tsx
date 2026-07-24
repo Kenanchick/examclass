@@ -1,1 +1,5 @@
-export { RegisterPage as default } from '@/_pages/home/auth-register/ui/register-page';
+import { redirect } from "next/navigation";
+
+export default function RegisterPage() {
+  redirect("/dashboard?auth=register");
+}

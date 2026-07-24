@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -18,10 +16,10 @@ import {
   useCurrentUserQuery,
 } from "@/entities/user/api/use-current-user-query";
 import { useAccountModeStore } from "@/features/account-mode/model/use-account-mode-store";
+import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
 import { ProfileCalendar } from "@/features/profile/calendar/ui/profile-calendar";
 import { ProfileSettings } from "@/features/profile/settings/ui/profile-settings";
 import { enableTeacherRole } from "@/shared/api/auth";
-import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
@@ -36,11 +34,10 @@ function getInitials(name: string) {
 }
 
 export function StudentProfilePage() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const accountMode = useAccountModeStore((state) => state.mode);
   const setAccountMode = useAccountModeStore((state) => state.setMode);
-  const hasAccessToken = useAccessToken();
+  const { hasAccessToken, openLogin } = useRequireAuthModal();
   const currentUserQuery = useCurrentUserQuery(hasAccessToken === true);
   const homeworkQuery = useHomeworkQuery(hasAccessToken === true);
   const currentUser = currentUserQuery.data;
@@ -62,12 +59,6 @@ export function StudentProfilePage() {
     teacherRoleMutation.mutate();
   };
 
-  useEffect(() => {
-    if (hasAccessToken === false) {
-      router.replace("/login");
-    }
-  }, [hasAccessToken, router]);
-
   const formattedCreatedAt = currentUser
     ? new Intl.DateTimeFormat("ru-RU", {
         month: "long",
@@ -75,10 +66,25 @@ export function StudentProfilePage() {
       }).format(new Date(currentUser.createdAt))
     : "";
 
-  if (
-    hasAccessToken === null ||
-    (hasAccessToken && currentUserQuery.isPending)
-  ) {
+  if (hasAccessToken === false) {
+    return (
+      <StudentLayout>
+        <main className="min-w-0 p-4 sm:p-7 lg:p-8">
+          <div className="mx-auto max-w-[1320px]">
+            <RequestState
+              description="Войдите, чтобы менять данные профиля и вести личный календарь подготовки."
+              onRetry={openLogin}
+              retryLabel="Войти"
+              title="Личный кабинет доступен после входа"
+              variant="empty"
+            />
+          </div>
+        </main>
+      </StudentLayout>
+    );
+  }
+
+  if (hasAccessToken === null || currentUserQuery.isPending) {
     return (
       <StudentLayout>
         <main className="min-w-0 p-4 sm:p-7 lg:p-8">
@@ -172,8 +178,12 @@ export function StudentProfilePage() {
                     </span>
                   </div>
                   {teacherRoleMutation.isError && (
-                    <p className="mt-3 text-sm font-medium text-danger" role="alert">
-                      Не удалось включить режим преподавателя. Попробуйте ещё раз.
+                    <p
+                      className="mt-3 text-sm font-medium text-danger"
+                      role="alert"
+                    >
+                      Не удалось включить режим преподавателя. Попробуйте ещё
+                      раз.
                     </p>
                   )}
 

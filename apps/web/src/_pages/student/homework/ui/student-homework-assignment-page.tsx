@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { ArrowLeft, CalendarDays, ClipboardCheck } from "lucide-react";
@@ -19,8 +18,8 @@ import { useHomeworkSubmissionStore } from "@/entities/homework/model/homework-s
 import { HomeworkSubmissionBar } from "@/entities/homework/ui/homework-submission-bar";
 import { HomeworkTaskResponseField } from "@/entities/homework/ui/homework-task-response-field";
 import { TaskCard } from "@/entities/task/ui/task-card";
+import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
 import type { ApiErrorResponse } from "@/shared/api/auth";
-import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
 
@@ -41,8 +40,7 @@ function getErrorMessage(error: unknown, fallback: string) {
 export function StudentHomeworkAssignmentPage({
   publicId,
 }: StudentHomeworkAssignmentPageProps) {
-  const router = useRouter();
-  const hasAccessToken = useAccessToken();
+  const { hasAccessToken, openLogin } = useRequireAuthModal();
   const assignmentQuery = useHomeworkAssignmentQuery(
     publicId,
     hasAccessToken === true,
@@ -69,12 +67,6 @@ export function StudentHomeworkAssignmentPage({
     axios.isAxiosError(assignmentQuery.error) &&
     assignmentQuery.error.response?.status === 404;
 
-  useEffect(() => {
-    if (hasAccessToken === false) {
-      router.replace("/login");
-    }
-  }, [hasAccessToken, router]);
-
   useEffect(
     () => () => {
       clearAssignment(publicId);
@@ -82,7 +74,27 @@ export function StudentHomeworkAssignmentPage({
     [clearAssignment, publicId],
   );
 
-  if (hasAccessToken !== true || assignmentQuery.isPending) {
+  if (hasAccessToken === false) {
+    return (
+      <StudentLayout>
+        <main className="min-w-0 p-4 sm:p-7 lg:p-8">
+          <div className="mx-auto max-w-[1320px]">
+            <RequestState
+              backHref="/homework"
+              backLabel="К домашним заданиям"
+              description="Войдите в аккаунт, чтобы открыть это задание и отправить решение преподавателю."
+              onRetry={openLogin}
+              retryLabel="Войти"
+              title="Для домашнего задания нужен вход"
+              variant="empty"
+            />
+          </div>
+        </main>
+      </StudentLayout>
+    );
+  }
+
+  if (hasAccessToken === null || assignmentQuery.isPending) {
     return (
       <StudentLayout>
         <main className="min-w-0 p-4 sm:p-7 lg:p-8">
