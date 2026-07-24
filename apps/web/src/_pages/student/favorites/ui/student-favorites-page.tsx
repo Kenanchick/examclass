@@ -88,19 +88,24 @@ export function StudentFavoritesPage() {
           )}
 
           {favorites && favorites.length === 0 && (
-            <div className="relative mt-6 overflow-hidden rounded-3xl border border-line bg-white p-7 sm:p-8">
-              <p className="text-xl font-bold text-ink">Здесь пока пусто</p>
-              <p className="mt-2 max-w-lg text-[15px] leading-6 text-muted">
-                Откройте любую задачу и нажмите на звёздочку — она сразу
-                появится в этом списке.
-              </p>
+            <div className="mt-8 flex min-h-56 items-center gap-6 px-2 py-4 sm:gap-10 sm:px-6 sm:py-6">
               <Image
                 alt="Котик ждёт выбранную задачу"
-                className="absolute -bottom-12 right-2 hidden h-auto w-36 md:block"
+                className="h-auto w-40 shrink-0 -scale-x-100 sm:w-52 lg:w-60"
                 height={1448}
                 src="/thinking-cat.png"
                 width={1086}
               />
+
+              <div className="max-w-xl">
+                <p className="text-2xl font-bold tracking-[-0.04em] text-ink sm:text-3xl">
+                  Здесь пока пусто
+                </p>
+                <p className="mt-3 text-base leading-7 text-muted sm:text-lg">
+                  Откройте любую задачу и нажмите на звёздочку — она сразу
+                  появится в этом списке.
+                </p>
+              </div>
             </div>
           )}
 
