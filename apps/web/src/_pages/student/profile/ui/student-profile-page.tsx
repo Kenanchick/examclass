@@ -3,12 +3,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { ArrowRight, CalendarDays, GraduationCap, Mail } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  GraduationCap,
+  Mail,
+  UserRound,
+} from "lucide-react";
 import { useHomeworkQuery } from "@/entities/homework/api/use-homework-query";
 import { toHomeworkCalendarEvents } from "@/entities/homework/lib/to-homework-calendar-events";
 import { useCurrentUserQuery } from "@/entities/user/api/use-current-user-query";
 import { ProfileCalendar } from "@/features/profile/calendar/ui/profile-calendar";
 import { ProfileSettings } from "@/features/profile/settings/ui/profile-settings";
+import { useAccountModeStore } from "@/features/account-mode/model/use-account-mode-store";
 import { useAccessToken } from "@/shared/model/use-access-token";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
@@ -25,6 +32,8 @@ function getInitials(name: string) {
 
 export function StudentProfilePage() {
   const router = useRouter();
+  const accountMode = useAccountModeStore((state) => state.mode);
+  const setAccountMode = useAccountModeStore((state) => state.setMode);
   const hasAccessToken = useAccessToken();
   const currentUserQuery = useCurrentUserQuery(hasAccessToken === true);
   const homeworkQuery = useHomeworkQuery(hasAccessToken === true);
@@ -100,10 +109,38 @@ export function StudentProfilePage() {
 
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-2 text-sm font-bold text-brand shadow-sm">
-                      <GraduationCap className="size-4" />
-                      Ученик
-                    </span>
+                    <div
+                      aria-label="Режим кабинета"
+                      className="inline-flex rounded-full bg-white p-1 shadow-sm"
+                      role="group"
+                    >
+                      <button
+                        aria-pressed={accountMode === "student"}
+                        className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold transition ${
+                          accountMode === "student"
+                            ? "bg-brand text-white shadow-sm"
+                            : "text-muted hover:text-brand"
+                        }`}
+                        onClick={() => setAccountMode("student")}
+                        type="button"
+                      >
+                        <GraduationCap className="size-4" />
+                        Ученик
+                      </button>
+                      <button
+                        aria-pressed={accountMode === "teacher"}
+                        className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold transition ${
+                          accountMode === "teacher"
+                            ? "bg-brand text-white shadow-sm"
+                            : "text-muted hover:text-brand"
+                        }`}
+                        onClick={() => setAccountMode("teacher")}
+                        type="button"
+                      >
+                        <UserRound className="size-4" />
+                        Преподаватель
+                      </button>
+                    </div>
                     <span className="inline-flex items-center gap-2 rounded-full bg-success/10 px-3.5 py-2 text-sm font-bold text-success">
                       <span className="size-2 rounded-full bg-success" />
                       Аккаунт активен

@@ -4,7 +4,8 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
-import { studentNavigation } from "@/widgets/student-sidebar/model/navigation";
+import { useAccountModeStore } from "@/features/account-mode/model/use-account-mode-store";
+import { getStudentNavigation } from "@/widgets/student-sidebar/model/navigation";
 
 type StudentMobileMenuProps = {
   onClose: () => void;
@@ -12,6 +13,9 @@ type StudentMobileMenuProps = {
 
 export function StudentMobileMenu({ onClose }: StudentMobileMenuProps) {
   const pathname = usePathname();
+  const accountMode = useAccountModeStore((state) => state.mode);
+  const navigation = getStudentNavigation(accountMode);
+
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -50,7 +54,7 @@ export function StudentMobileMenu({ onClose }: StudentMobileMenuProps) {
         </div>
 
         <nav className="space-y-2 p-4">
-          {studentNavigation.map((item) => {
+          {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = item.href === pathname;
             const className = `flex w-full cursor-pointer items-center gap-4 rounded-xl px-4 py-3.5 text-left text-[15px] font-medium transition ${

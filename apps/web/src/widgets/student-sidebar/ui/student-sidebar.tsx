@@ -4,8 +4,9 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAccountModeStore } from "@/features/account-mode/model/use-account-mode-store";
 import {
-  studentNavigation,
+  getStudentNavigation,
   type StudentNavigationItem,
 } from "../model/navigation";
 
@@ -39,6 +40,8 @@ function NavLink({ item, isActive, className, children, tabIndex }: NavLinkProps
 
 export function StudentSidebar() {
   const pathname = usePathname();
+  const accountMode = useAccountModeStore((state) => state.mode);
+  const navigation = getStudentNavigation(accountMode);
 
   return (
     <aside className="group/rail relative z-30 hidden min-h-full border-r border-line bg-white lg:block">
@@ -46,7 +49,7 @@ export function StudentSidebar() {
         aria-label="Основная навигация"
         className="flex flex-col items-center gap-1.5 px-4 py-6"
       >
-        {studentNavigation.map((item) => {
+        {navigation.map((item) => {
           const Icon = item.icon;
           const isActive = item.href === pathname;
 
@@ -69,7 +72,7 @@ export function StudentSidebar() {
         className={`pointer-events-none absolute left-3 top-4 z-30 w-[276px] origin-top-left scale-[0.95] rounded-3xl border border-line bg-white p-3 opacity-0 shadow-[0_28px_60px_-18px_rgba(15,43,76,0.28)] transition-[opacity,transform] duration-[380ms] ${EASE_POP} group-hover/rail:pointer-events-auto group-hover/rail:scale-100 group-hover/rail:opacity-100 motion-reduce:transition-none`}
       >
         <nav aria-hidden="true" className="flex flex-col gap-1">
-          {studentNavigation.map((item, index) => {
+          {navigation.map((item, index) => {
             const Icon = item.icon;
             const isActive = item.href === pathname;
 
@@ -97,7 +100,7 @@ export function StudentSidebar() {
 
         <div
           className={`mt-2 origin-bottom border-t border-line pt-3 opacity-0 transition-opacity duration-300 ${EASE_SMOOTH} group-hover/rail:opacity-100`}
-          style={{ transitionDelay: `${studentNavigation.length * 22}ms` }}
+          style={{ transitionDelay: `${navigation.length * 22}ms` }}
         >
           <Image
             alt="Помощник ExamClass"

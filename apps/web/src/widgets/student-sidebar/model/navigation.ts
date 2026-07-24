@@ -9,7 +9,9 @@ import {
   MonitorUp,
   Star,
   Target,
+  UsersRound,
 } from "lucide-react";
+import type { AccountMode } from "@/features/account-mode/model/use-account-mode-store";
 
 export type StudentNavigationItem = {
   label: string;
@@ -17,7 +19,7 @@ export type StudentNavigationItem = {
   href?: string;
 };
 
-export const studentNavigation: StudentNavigationItem[] = [
+const baseNavigation: StudentNavigationItem[] = [
   { label: "Главная", icon: House, href: "/dashboard" },
   { label: "Избранное", icon: Star, href: "/favorites" },
   { label: "Домашние", icon: ClipboardCheck, href: "/homework" },
@@ -28,3 +30,20 @@ export const studentNavigation: StudentNavigationItem[] = [
   { label: "Траектория подготовки", icon: Target },
   { label: "Поддержка", icon: Headphones },
 ];
+
+const studentsNavigationItem: StudentNavigationItem = {
+  label: "Ученики",
+  icon: UsersRound,
+};
+
+export function getStudentNavigation(mode: AccountMode) {
+  if (mode === "student") {
+    return baseNavigation;
+  }
+
+  return [
+    ...baseNavigation.slice(0, 3),
+    studentsNavigationItem,
+    ...baseNavigation.slice(3),
+  ];
+}
