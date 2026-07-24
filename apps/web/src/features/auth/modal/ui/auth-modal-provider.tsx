@@ -79,7 +79,7 @@ export function AuthModalProvider() {
     <div
       aria-labelledby="auth-modal-title"
       aria-modal="true"
-      className="fixed inset-0 z-[70] grid place-items-center bg-[#071a2f]/45 p-4 backdrop-blur-sm"
+      className="auth-modal-backdrop fixed inset-0 z-[70] grid place-items-center bg-[#071a2f]/45 p-4 backdrop-blur-sm"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           close();
@@ -87,7 +87,7 @@ export function AuthModalProvider() {
       }}
       role="dialog"
     >
-      <div className="grid max-h-[calc(100dvh-2rem)] w-full max-w-[50rem] overflow-y-auto rounded-[2rem] border border-white/70 bg-white shadow-[0_32px_92px_rgba(7,32,61,0.32)] md:grid-cols-[15.5rem_minmax(0,1fr)] md:overflow-hidden">
+      <div className="auth-modal-surface grid max-h-[calc(100dvh-2rem)] w-full max-w-[50rem] overflow-y-auto rounded-[2rem] border border-white/70 bg-white shadow-[0_32px_92px_rgba(7,32,61,0.32)] md:grid-cols-[15.5rem_minmax(0,1fr)] md:overflow-hidden">
         <aside className="relative hidden min-h-full overflow-hidden bg-[#e9f3ff] px-6 py-8 md:flex md:flex-col">
           <div className="absolute -right-14 -top-12 size-40 rounded-full border-[22px] border-white/55" />
           <div className="relative flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-brand">
@@ -107,7 +107,7 @@ export function AuthModalProvider() {
           <div className="relative mt-auto pt-6">
             <Image
               alt="Талисманы ExamClass"
-              className="mx-auto h-auto w-[11.5rem] object-contain drop-shadow-[0_16px_22px_rgba(26,92,149,0.18)]"
+              className="auth-modal-mascot mx-auto h-auto w-[11.5rem] object-contain drop-shadow-[0_16px_22px_rgba(26,92,149,0.18)]"
               height={1446}
               priority
               src="/auth-journey.png"

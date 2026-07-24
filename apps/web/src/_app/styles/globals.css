@@ -46,6 +46,71 @@ body {
   }
 }
 
+@keyframes auth-modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes auth-modal-jump-in {
+  0% {
+    opacity: 0;
+    transform: translateY(42px) scale(0.92);
+  }
+
+  54% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.014);
+  }
+
+  76% {
+    transform: translateY(4px) scale(0.997);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes auth-modal-mascot-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) rotate(-2deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+.auth-modal-backdrop {
+  animation: auth-modal-backdrop-in 420ms ease-out both;
+}
+
+.auth-modal-surface {
+  transform-origin: center bottom;
+  animation: auth-modal-jump-in 760ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-modal-mascot {
+  animation: auth-modal-mascot-in 680ms 180ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-modal-backdrop,
+  .auth-modal-surface,
+  .auth-modal-mascot {
+    animation: none;
+  }
+}
+
 .difficulty-dot--easy {
   --difficulty-glow: rgb(40 139 96 / 18%);
 }
