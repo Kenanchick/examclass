@@ -17,7 +17,6 @@ const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 });
 
-/** Оборачивает JSON-описание единичной окружности в fenced-блок ```circle. */
 function circle(spec: unknown): string {
   return ['```circle', JSON.stringify(spec), '```'].join('\n');
 }
@@ -67,7 +66,8 @@ const fractionCircleB = {
     { angle: 150, kind: 'hole' },
     { angle: 270, kind: 'hole' },
   ],
-  caption: 'Синяя дуга — отрезок [−5π/2; −π]. Тёмные точки x₁, x₂ — подходящие корни.',
+  caption:
+    'Синяя дуга — отрезок [−5π/2; −π]. Тёмные точки x₁, x₂ — подходящие корни.',
 };
 
 const fractionEquation: TrigTask = {
@@ -115,7 +115,8 @@ const doubleAngleCircleA = {
     { angle: 30, kind: 'root', label: 'π/6' },
     { angle: 150, kind: 'root', label: '5π/6' },
   ],
-  caption: 'Три семейства корней: sin x = ½ (точки π/6 и 5π/6) и sin x = 1 (точка π/2).',
+  caption:
+    'Три семейства корней: sin x = ½ (точки π/6 и 5π/6) и sin x = 1 (точка π/2).',
 };
 
 const doubleAngleCircleB = {
@@ -160,10 +161,6 @@ const doubleAngleEquation: TrigTask = {
   ].join('\n\n'),
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ЗАДАЧА 13 · ТРИГОНОМЕТРИЯ · РАЗЛОЖЕНИЕ НА МНОЖИТЕЛИ  (sin 2x = cos x)
-// ─────────────────────────────────────────────────────────────────────────────
-
 const factorCircleA = {
   radius: 118,
   points: [
@@ -185,7 +182,8 @@ const factorCircleB = {
     { angle: 90, kind: 'selected', label: 'x_3', labelGap: 0.46 },
     { angle: 150, kind: 'root' },
   ],
-  caption: 'Синяя дуга — отрезок [−3π; −3π/2]. Точка 5π/6 (светлая) вне дуги — не подходит.',
+  caption:
+    'Синяя дуга — отрезок [−3π; −3π/2]. Точка 5π/6 (светлая) вне дуги — не подходит.',
 };
 
 const factorEquation: TrigTask = {
@@ -240,7 +238,8 @@ const cosQuadCircleB = {
     { angle: 0, kind: 'selected', label: 'x_2' },
     { angle: 120, kind: 'root' },
   ],
-  caption: 'Синяя дуга — отрезок [π; 5π/2]. Точка 2π/3 (светлая) вне дуги — не подходит.',
+  caption:
+    'Синяя дуга — отрезок [π; 5π/2]. Точка 2π/3 (светлая) вне дуги — не подходит.',
 };
 
 const cosQuadEquation: TrigTask = {
@@ -354,7 +353,8 @@ const cubicCircleB = {
     { angle: 240, kind: 'selected' },
     { angle: 300, kind: 'root' },
   ],
-  caption: 'Синяя дуга — отрезок [−2π; −π/2]. Тёмные точки — 5 подходящих корней; при 5π/3 (светлая) корень вне дуги.',
+  caption:
+    'Синяя дуга — отрезок [−2π; −π/2]. Тёмные точки — 5 подходящих корней; при 5π/3 (светлая) корень вне дуги.',
 };
 
 const cubicEquation: TrigTask = {
@@ -411,7 +411,8 @@ const homogCircleB = {
     { angle: 240, kind: 'selected', label: 'x_3' },
     { angle: 330, kind: 'root' },
   ],
-  caption: 'Синяя дуга — отрезок [2π; 7π/2]. Точка −π/6 (светлая) вне дуги — не подходит.',
+  caption:
+    'Синяя дуга — отрезок [2π; 7π/2]. Точка −π/6 (светлая) вне дуги — не подходит.',
 };
 
 const homogEquation: TrigTask = {
@@ -461,7 +462,9 @@ async function main() {
   });
 
   if (!subject) {
-    throw new Error('Предмет profile-math-ege не найден. Сначала запустите seed.ts');
+    throw new Error(
+      'Предмет profile-math-ege не найден. Сначала запустите seed.ts',
+    );
   }
 
   const topics = await prisma.topic.findMany({
@@ -477,7 +480,9 @@ async function main() {
     const topicId = topicMap.get(task.topicSlug);
 
     if (!topicId) {
-      console.warn(`⚠ Тема ${task.topicSlug} не найдена, пропускаем ${task.publicId}`);
+      console.warn(
+        `⚠ Тема ${task.topicSlug} не найдена, пропускаем ${task.publicId}`,
+      );
       skipped += 1;
       continue;
     }
