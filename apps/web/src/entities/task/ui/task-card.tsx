@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import {
   BookMarked,
   Check,
@@ -20,6 +20,8 @@ type TaskCardProps = {
   isFavorite: boolean;
   isFavoritePending: boolean;
   onToggleFavorite: () => void;
+  responseSlot?: ReactNode;
+  showReferenceSolution?: boolean;
 };
 
 function normalizeAnswer(value: string) {
@@ -58,7 +60,9 @@ function DifficultyDots({ difficulty }: { difficulty: number }) {
                 : "bg-line"
             }`}
             key={index}
-            style={isActive ? { animationDelay: `${index * 180}ms` } : undefined}
+            style={
+              isActive ? { animationDelay: `${index * 180}ms` } : undefined
+            }
           />
         );
       })}
@@ -72,11 +76,13 @@ export function TaskCard({
   isFavorite,
   isFavoritePending,
   onToggleFavorite,
+  responseSlot,
+  showReferenceSolution = true,
 }: TaskCardProps) {
   const [answer, setAnswer] = useState("");
-  const [answerState, setAnswerState] = useState<"correct" | "incorrect" | null>(
-    null,
-  );
+  const [answerState, setAnswerState] = useState<
+    "correct" | "incorrect" | null
+  >(null);
   const [isSolutionOpen, setIsSolutionOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -157,92 +163,100 @@ export function TaskCard({
           </p>
         )}
 
-        <div className="mt-10 rounded-2xl border border-line bg-panel/60 p-5 sm:p-7">
-          <label
-            className="block text-lg font-bold text-ink"
-            htmlFor={answerFieldId}
-          >
-            Ваш ответ
-          </label>
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-            <input
-              className="min-w-0 flex-1 rounded-xl border border-line bg-white px-5 py-4 text-lg text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/10"
-              id={answerFieldId}
-              onChange={(event) => {
-                setAnswer(event.target.value);
-                setAnswerState(null);
-              }}
-              placeholder="Введите ответ"
-              value={answer}
-            />
+        {responseSlot ?? (
+          <div className="mt-10 rounded-2xl border border-line bg-panel/60 p-5 sm:p-7">
+            <label
+              className="block text-lg font-bold text-ink"
+              htmlFor={answerFieldId}
+            >
+              Ваш ответ
+            </label>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <input
+                className="min-w-0 flex-1 rounded-xl border border-line bg-white px-5 py-4 text-lg text-ink outline-none transition placeholder:text-muted focus:border-brand focus:ring-4 focus:ring-brand/10"
+                id={answerFieldId}
+                onChange={(event) => {
+                  setAnswer(event.target.value);
+                  setAnswerState(null);
+                }}
+                placeholder="Введите ответ"
+                value={answer}
+              />
+              <button
+                className="cursor-pointer rounded-xl bg-brand px-7 py-4 text-lg font-bold text-white transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!answer.trim()}
+                onClick={handleCheckAnswer}
+                type="button"
+              >
+                Проверить
+              </button>
+            </div>
+
+            {answerState && (
+              <p
+                className={`mt-3 text-sm font-semibold ${
+                  answerState === "correct" ? "text-success" : "text-danger"
+                }`}
+                role="status"
+              >
+                {answerState === "correct"
+                  ? "Верно! Отличная работа."
+                  : "Пока не совпало. Попробуйте ещё раз или откройте решение."}
+              </p>
+            )}
+          </div>
+        )}
+
+        {showReferenceSolution && (
+          <>
             <button
-              className="cursor-pointer rounded-xl bg-brand px-7 py-4 text-lg font-bold text-white transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!answer.trim()}
-              onClick={handleCheckAnswer}
+              aria-expanded={isSolutionOpen}
+              className="mt-6 inline-flex cursor-pointer items-center gap-2.5 rounded-xl border border-brand/25 bg-brand/5 px-5 py-4 text-lg font-bold text-brand transition hover:bg-brand/10"
+              onClick={() => setIsSolutionOpen((isOpen) => !isOpen)}
               type="button"
             >
-              Проверить
-            </button>
-          </div>
-
-          {answerState && (
-            <p
-              className={`mt-3 text-sm font-semibold ${
-                answerState === "correct" ? "text-success" : "text-danger"
-              }`}
-              role="status"
-            >
-              {answerState === "correct"
-                ? "Верно! Отличная работа."
-                : "Пока не совпало. Попробуйте ещё раз или откройте решение."}
-            </p>
-          )}
-        </div>
-
-        <button
-          aria-expanded={isSolutionOpen}
-          className="mt-6 inline-flex cursor-pointer items-center gap-2.5 rounded-xl border border-brand/25 bg-brand/5 px-5 py-4 text-lg font-bold text-brand transition hover:bg-brand/10"
-          onClick={() => setIsSolutionOpen((isOpen) => !isOpen)}
-          type="button"
-        >
-          <Lightbulb className="size-5.5" />
-          {isSolutionOpen ? "Скрыть решение" : "Показать решение"}
-          <ChevronDown
-            className={`size-5 transition-transform duration-300 ${
-              isSolutionOpen ? "rotate-180" : ""
-            }`}
-          />
-        </button>
-
-        <div
-          className={`grid transition-[grid-template-rows,opacity,margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
-            isSolutionOpen
-              ? "mt-4 grid-rows-[1fr] opacity-100"
-              : "mt-0 grid-rows-[0fr] opacity-0"
-          }`}
-        >
-          <div className="min-h-0 overflow-hidden">
-            <div className="relative overflow-hidden rounded-2xl border border-[#c6ddf5] bg-[#eef6ff] p-6 pr-6 sm:p-8 sm:pr-44">
-              <div className="relative z-10">
-                <p className="inline-flex items-center gap-2 text-lg font-bold text-brand">
-                  <NotebookPen className="size-5.5" />
-                  Разбор решения
-                </p>
-                <MathText
-                  className="mt-3 max-w-3xl text-[17px] leading-8 text-ink"
-                  content={task.referenceSolution ?? "Решение скоро появится."}
-                />
-              </div>
-              <Image
-                alt="Пингвин подсказывает решение"
-                className="absolute -bottom-8 right-2 hidden h-auto w-36 sm:block"
-                height={1448}
-                src="/penguin.png"
-                width={1086}
+              <Lightbulb className="size-5.5" />
+              {isSolutionOpen ? "Скрыть решение" : "Показать решение"}
+              <ChevronDown
+                className={`size-5 transition-transform duration-300 ${
+                  isSolutionOpen ? "rotate-180" : ""
+                }`}
               />
+            </button>
+
+            <div
+              className={`grid transition-[grid-template-rows,opacity,margin] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+                isSolutionOpen
+                  ? "mt-4 grid-rows-[1fr] opacity-100"
+                  : "mt-0 grid-rows-[0fr] opacity-0"
+              }`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div className="relative overflow-hidden rounded-2xl border border-[#c6ddf5] bg-[#eef6ff] p-6 pr-6 sm:p-8 sm:pr-44">
+                  <div className="relative z-10">
+                    <p className="inline-flex items-center gap-2 text-lg font-bold text-brand">
+                      <NotebookPen className="size-5.5" />
+                      Разбор решения
+                    </p>
+                    <MathText
+                      className="mt-3 max-w-3xl text-[17px] leading-8 text-ink"
+                      content={
+                        task.referenceSolution ?? "Решение скоро появится."
+                      }
+                    />
+                  </div>
+                  <Image
+                    alt="Пингвин подсказывает решение"
+                    className="absolute -bottom-8 right-2 hidden h-auto w-36 sm:block"
+                    height={1448}
+                    src="/penguin.png"
+                    width={1086}
+                  />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </article>
   );
