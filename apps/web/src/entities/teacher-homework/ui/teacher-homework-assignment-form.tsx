@@ -2,7 +2,6 @@
 
 import {
   CalendarClock,
-  Check,
   CircleCheckBig,
   LoaderCircle,
   MessageSquareText,
@@ -175,12 +174,6 @@ export function TeacherHomeworkAssignmentForm({
                 selectedStudentIds.length,
               )}
         </button>
-
-        <p className="flex items-center justify-center gap-2 text-center text-xs leading-5 text-muted">
-          <Check className="size-4 shrink-0 text-success" />
-          После назначения задание появится у выбранных учеников в домашнем
-          задании и календаре.
-        </p>
       </form>
     </section>
   );
