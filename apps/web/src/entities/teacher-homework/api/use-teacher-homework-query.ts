@@ -4,18 +4,28 @@ import {
   getTeacherHomeworkStudents,
   getTeacherHomeworkTasks,
 } from "./teacher-homework-api";
+import type { TeacherHomeworkTasksParams } from "../model/teacher-homework";
 
 export const teacherHomeworkQueryKey = ["teacher-homework"] as const;
 
-const teacherHomeworkTasksPageSize = 20;
+const teacherHomeworkTasksPageSize = 24;
 
-export function useTeacherHomeworkTasksQuery(search: string) {
+type TeacherHomeworkTasksFilters = Pick<
+  TeacherHomeworkTasksParams,
+  "search" | "subjectCode" | "topicId"
+>;
+
+export function useTeacherHomeworkTasksQuery(
+  filters: TeacherHomeworkTasksFilters,
+  enabled = true,
+) {
   return useInfiniteQuery({
-    queryKey: [...teacherHomeworkQueryKey, "tasks", search],
+    queryKey: [...teacherHomeworkQueryKey, "tasks", filters],
+    enabled,
     initialPageParam: 1,
     queryFn: ({ pageParam }) =>
       getTeacherHomeworkTasks({
-        search: search || undefined,
+        ...filters,
         page: pageParam,
         pageSize: teacherHomeworkTasksPageSize,
       }),

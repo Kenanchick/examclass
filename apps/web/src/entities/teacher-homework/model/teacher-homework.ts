@@ -32,6 +32,8 @@ export type TeacherHomeworkTasksPage = {
 
 export type TeacherHomeworkTasksParams = {
   search?: string;
+  subjectCode?: string;
+  topicId?: string;
   page?: number;
   pageSize?: number;
 };

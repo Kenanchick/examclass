@@ -6,6 +6,7 @@ import {
   Max,
   MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 import { normalizeText } from '../../auth/dto/auth-transformers';
 
@@ -15,6 +16,20 @@ export class TeacherHomeworkTasksQueryDto {
   @IsString()
   @MaxLength(100)
   search?: string;
+
+  @Transform(normalizeText)
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(64)
+  subjectCode?: string;
+
+  @Transform(normalizeText)
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(64)
+  topicId?: string;
 
   @Type(() => Number)
   @IsOptional()

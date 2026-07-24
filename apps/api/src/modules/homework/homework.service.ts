@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto';
 import {
   ClassroomMemberRole,
   ClassroomStatus,
+  Prisma,
   Role,
   TaskStatus,
 } from '../../generated/prisma/client';
@@ -169,35 +170,53 @@ export class HomeworkService {
     const page = query.page ?? 1;
     const pageSize = query.pageSize ?? 24;
     const search = query.search?.trim();
-    const where = {
-      status: TaskStatus.PUBLISHED,
-      ...(search
-        ? {
-            OR: [
-              {
-                publicId: {
-                  contains: search,
-                  mode: 'insensitive' as const,
-                },
-              },
-              {
-                statement: {
-                  contains: search,
-                  mode: 'insensitive' as const,
-                },
-              },
-              {
-                topic: {
-                  name: {
-                    contains: search,
-                    mode: 'insensitive' as const,
-                  },
-                },
-              },
-            ],
-          }
-        : {}),
-    };
+    const filters: Prisma.TaskWhereInput[] = [
+      {
+        status: TaskStatus.PUBLISHED,
+      },
+    ];
+
+    if (query.subjectCode) {
+      filters.push({
+        topic: {
+          subject: {
+            code: {
+              equals: query.subjectCode,
+              mode: 'insensitive',
+            },
+          },
+        },
+      });
+    }
+
+    if (query.topicId) {
+      filters.push({
+        topic: {
+          OR: [{ id: query.topicId }, { parentId: query.topicId }],
+        },
+      });
+    }
+
+    if (search) {
+      filters.push({
+        OR: [
+          {
+            publicId: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+          {
+            statement: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+        ],
+      });
+    }
+
+    const where: Prisma.TaskWhereInput = { AND: filters };
 
     const [total, tasks] = await Promise.all([
       this.prisma.task.count({ where }),
