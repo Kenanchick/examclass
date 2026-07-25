@@ -554,6 +554,40 @@ export class TeacherRoadmapService {
       };
     });
 
+    const reviewNodes = routeModules
+      .filter((module) =>
+        /^REVIEW:TASK:(?:[1-9]|1[0-9])$/.test(module.moduleKey),
+      )
+      .map((module) => {
+        const sourceExamNumber = Number(module.moduleKey.split(':').at(-1));
+        const sourceNode = roadmapNodes.find(
+          (node) => node.examNumber === sourceExamNumber,
+        );
+        if (!sourceNode) {
+          return null;
+        }
+
+        const skillCodes = new Set(module.skillCodes);
+        const subtopics = sourceNode.subtopics
+          .map((subtopic) => ({
+            code: subtopic.code,
+            name: subtopic.name,
+            skills: subtopic.skills
+              .filter((skill) => skillCodes.has(skill.code))
+              .map((skill) => ({ code: skill.code, name: skill.name })),
+          }))
+          .filter((subtopic) => subtopic.skills.length > 0);
+
+        return {
+          moduleKey: module.moduleKey,
+          sourceExamNumber,
+          title: sourceNode.title,
+          subtopics,
+          skillCount: module.skillCodes.length,
+        };
+      })
+      .filter((node): node is NonNullable<typeof node> => node !== null);
+
     return {
       student: goal.student,
       goal: {
@@ -568,6 +602,7 @@ export class TeacherRoadmapService {
         currentExamNumber,
       },
       nodes: roadmapNodes,
+      reviewNodes,
       customNodes: routeModules
         .filter((module) => module.isCustom)
         .map((module) => ({

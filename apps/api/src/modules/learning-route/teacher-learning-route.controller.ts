@@ -95,6 +95,19 @@ export class TeacherLearningRouteController {
     );
   }
 
+  @Post('students/:studentId/nodes/:examNumber/review')
+  scheduleNodeReview(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string,
+    @Param('examNumber') examNumber: string,
+  ) {
+    return this.skills.scheduleNodeReview(
+      userId,
+      studentId,
+      Number(examNumber),
+    );
+  }
+
   @Post('students/:studentId/modules/:moduleKey/actions')
   applyModuleAction(
     @CurrentUserId() userId: string,

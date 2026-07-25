@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import {
   LearningGoalStatus,
+  LearningRouteModuleStatus,
+  LearningRouteModuleType,
   LearningRouteStatus,
   KnowledgeNodeKind,
   StudentSkillStatus,
@@ -17,6 +19,7 @@ import { TeacherSubtopicStatusDto } from './dto/teacher-subtopic-status.dto';
 import { LearningRouteAccessService } from './learning-route-access.service';
 import { LearningRouteService } from './learning-route.service';
 import { createTeacherRouteChange } from './teacher-route-change';
+import { EXAM_ROADMAP_TITLES } from './domain/exam-roadmap';
 
 type SkillControlChanges = {
   instructionStatus?: TeacherInstructionStatus;
@@ -94,6 +97,14 @@ export class TeacherRouteSkillService {
         teacherId,
         studentId,
       );
+      if (
+        dto.action === TeacherRouteActionType.SCHEDULE_REVIEW &&
+        dto.sourceExamNumber
+      ) {
+        await this.attachReviewModule(studentId, dto.sourceExamNumber, [
+          context.skillId,
+        ]);
+      }
       return { control: after, route };
     }
 
@@ -209,6 +220,93 @@ export class TeacherRouteSkillService {
       updatedSkills: subtopic.children.length,
       route: await this.routes.rebuildTeacherStudentRoute(teacherId, studentId),
     };
+  }
+
+  async scheduleNodeReview(
+    teacherId: string,
+    studentId: string,
+    examNumber: number,
+  ) {
+    await this.access.assertTeacherStudent(teacherId, studentId);
+    if (!Number.isInteger(examNumber) || examNumber < 1 || examNumber > 19) {
+      throw new BadRequestException('Укажите номер задания ЕГЭ от 1 до 19');
+    }
+
+    const [goal, route] = await Promise.all([
+      this.prisma.studentLearningGoal.findFirst({
+        where: { studentId, status: LearningGoalStatus.ACTIVE },
+        orderBy: { createdAt: 'desc' },
+        select: { knowledgeMapId: true },
+      }),
+      this.prisma.learningRoute.findFirst({
+        where: { studentId, status: LearningRouteStatus.ACTIVE },
+        orderBy: { generatedAt: 'desc' },
+        select: { id: true },
+      }),
+    ]);
+    if (!goal) {
+      throw new NotFoundException('Активная учебная цель не найдена');
+    }
+
+    const skills = await this.prisma.knowledgeNode.findMany({
+      where: {
+        knowledgeMapId: goal.knowledgeMapId,
+        kind: KnowledgeNodeKind.SKILL,
+        examMappings: { some: { examNumber } },
+      },
+      select: {
+        id: true,
+        teacherSkillControls: {
+          where: { studentId },
+          take: 1,
+        },
+      },
+    });
+    if (skills.length === 0) {
+      throw new NotFoundException('Для этого задания не найдены навыки');
+    }
+
+    const reason = `Добавлено в повторение по заданию ЕГЭ №${examNumber}`;
+    const reviewScheduledAt = new Date();
+    await this.prisma.$transaction(async (transaction) => {
+      for (const skill of skills) {
+        const before = skill.teacherSkillControls[0] ?? null;
+        const after = await transaction.teacherSkillControl.upsert({
+          where: { studentId_skillId: { studentId, skillId: skill.id } },
+          update: { reviewScheduledAt, lastAuthorId: teacherId },
+          create: {
+            studentId,
+            skillId: skill.id,
+            reviewScheduledAt,
+            lastAuthorId: teacherId,
+          },
+        });
+        await transaction.teacherRouteChange.create({
+          data: createTeacherRouteChange({
+            studentId,
+            authorId: teacherId,
+            routeId: route?.id ?? null,
+            skillId: skill.id,
+            action: TeacherRouteActionType.SCHEDULE_REVIEW,
+            reason,
+            before,
+            after,
+          }),
+        });
+      }
+    });
+
+    const rebuiltRoute = await this.routes.rebuildTeacherStudentRoute(
+      teacherId,
+      studentId,
+    );
+    await this.attachReviewModule(
+      studentId,
+      examNumber,
+      skills.map((skill) => skill.id),
+    );
+
+    return { updatedSkills: skills.length, route: rebuiltRoute };
   }
 
   async getDetail(teacherId: string, studentId: string, skillCode: string) {
@@ -420,6 +518,94 @@ export class TeacherRouteSkillService {
       systemStatus:
         skill.skillStates[0]?.status ?? StudentSkillStatus.INSUFFICIENT_DATA,
     };
+  }
+
+  private async attachReviewModule(
+    studentId: string,
+    examNumber: number,
+    skillIds: string[],
+  ) {
+    const route = await this.prisma.learningRoute.findFirst({
+      where: { studentId, status: LearningRouteStatus.ACTIVE },
+      orderBy: { generatedAt: 'desc' },
+      select: { id: true },
+    });
+    if (!route) {
+      throw new NotFoundException('Активный маршрут не найден');
+    }
+
+    const moduleKey = `REVIEW:TASK:${examNumber}`;
+    const uniqueSkillIds = [...new Set(skillIds)];
+    await this.prisma.$transaction(async (transaction) => {
+      const lastPosition = await transaction.learningRouteModule.aggregate({
+        where: { routeId: route.id },
+        _max: { position: true },
+      });
+      const module = await transaction.learningRouteModule.upsert({
+        where: { routeId_moduleKey: { routeId: route.id, moduleKey } },
+        update: {
+          title: `Повторение: ${EXAM_ROADMAP_TITLES[examNumber]}`,
+          type: LearningRouteModuleType.REVIEW,
+          status: LearningRouteModuleStatus.AVAILABLE,
+          isPinned: true,
+          isHidden: false,
+          autoUpdateEnabled: false,
+          positionLocked: true,
+          reasons: [`Повторение по заданию ЕГЭ №${examNumber}`],
+        },
+        create: {
+          routeId: route.id,
+          moduleKey,
+          title: `Повторение: ${EXAM_ROADMAP_TITLES[examNumber]}`,
+          type: LearningRouteModuleType.REVIEW,
+          status: LearningRouteModuleStatus.AVAILABLE,
+          position: (lastPosition._max.position ?? 0) + 1,
+          priority: 1,
+          estimatedMinutes: Math.max(20, uniqueSkillIds.length * 25),
+          blockedBySkillCodes: [],
+          recommendedBeforeCodes: [],
+          teacherAssignmentIds: [],
+          factorBreakdown: {},
+          completionCriteria: {
+            description:
+              'Повторить выбранные навыки и подтвердить их практикой',
+          },
+          reasons: [`Повторение по заданию ЕГЭ №${examNumber}`],
+          isPinned: true,
+          isHidden: false,
+          autoUpdateEnabled: false,
+          isCustom: false,
+          positionLocked: true,
+        },
+        select: { id: true },
+      });
+
+      await Promise.all(
+        uniqueSkillIds.map((skillId, index) =>
+          transaction.learningRouteModuleSkill.upsert({
+            where: { moduleId_skillId: { moduleId: module.id, skillId } },
+            update: {},
+            create: {
+              moduleId: module.id,
+              skillId,
+              position: index + 1,
+              priority: 1,
+              plannedMinutes: 25,
+              targetConfidence: 0.55,
+              reason: `Повторение по заданию ЕГЭ №${examNumber}`,
+            },
+          }),
+        ),
+      );
+
+      const skillCount = await transaction.learningRouteModuleSkill.count({
+        where: { moduleId: module.id },
+      });
+      await transaction.learningRouteModule.update({
+        where: { id: module.id },
+        data: { estimatedMinutes: Math.max(20, skillCount * 25) },
+      });
+    });
   }
 
   private getChanges(
