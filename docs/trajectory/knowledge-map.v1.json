@@ -1,0 +1,682 @@
+{
+  "version": 1,
+  "subject": "Профильная математика ЕГЭ",
+  "status": "draft-reviewed",
+  "principles": {
+    "topicIsNotSkill": true,
+    "multipleSkillsPerTask": true,
+    "multipleExamNumbersPerSkill": true,
+    "singleAttemptIsNotEvidenceEnough": true,
+    "sourceFileNameIsNotTaxonomy": true
+  },
+  "domains": [
+    { "code": "number", "name": "Числа и вычисления" },
+    { "code": "algebra", "name": "Алгебраические преобразования" },
+    { "code": "equations", "name": "Уравнения и неравенства" },
+    { "code": "functions", "name": "Функции и математический анализ" },
+    { "code": "probability", "name": "Вероятность и комбинаторика" },
+    { "code": "applied", "name": "Прикладные математические модели" },
+    { "code": "planimetry", "name": "Планиметрия" },
+    { "code": "vectors", "name": "Векторы" },
+    { "code": "stereometry", "name": "Стереометрия" },
+    { "code": "reasoning", "name": "Доказательства и математические рассуждения" }
+  ],
+  "skills": [
+    {
+      "code": "number.arithmetic",
+      "domain": "number",
+      "name": "Арифметические действия и порядок вычислений",
+      "level": "foundation",
+      "examNumbers": [1, 2, 3, 4, 5, 6, 7, 9, 10, 16, 19]
+    },
+    {
+      "code": "number.fractions",
+      "domain": "number",
+      "name": "Обыкновенные и десятичные дроби",
+      "level": "foundation",
+      "examNumbers": [1, 2, 3, 4, 5, 7, 9, 10, 16, 19],
+      "prerequisites": ["number.arithmetic"]
+    },
+    {
+      "code": "number.ratios-percentages",
+      "domain": "number",
+      "name": "Отношения, пропорции и проценты",
+      "level": "foundation",
+      "examNumbers": [1, 9, 10, 16],
+      "prerequisites": ["number.fractions"]
+    },
+    {
+      "code": "number.estimation",
+      "domain": "number",
+      "name": "Оценка величин, округление и проверка результата",
+      "level": "foundation",
+      "examNumbers": [9, 10, 16, 19],
+      "prerequisites": ["number.arithmetic"]
+    },
+    {
+      "code": "number.divisibility",
+      "domain": "number",
+      "name": "Делимость, НОД, НОК и разложение на простые множители",
+      "level": "core",
+      "examNumbers": [19],
+      "prerequisites": ["number.arithmetic"]
+    },
+    {
+      "code": "number.remainders",
+      "domain": "number",
+      "name": "Остатки и сравнения по модулю",
+      "level": "advanced",
+      "examNumbers": [19],
+      "prerequisites": ["number.divisibility"]
+    },
+    {
+      "code": "number.sequences",
+      "domain": "number",
+      "name": "Последовательности и прогрессии",
+      "level": "core",
+      "examNumbers": [10, 16, 19],
+      "prerequisites": ["number.fractions", "algebra.symbolic-language"]
+    },
+    {
+      "code": "algebra.symbolic-language",
+      "domain": "algebra",
+      "name": "Переменные, выражения и допустимые значения",
+      "level": "foundation",
+      "examNumbers": [6, 7, 9, 10, 13, 15, 18, 19],
+      "prerequisites": ["number.arithmetic"]
+    },
+    {
+      "code": "algebra.identities-factoring",
+      "domain": "algebra",
+      "name": "Формулы сокращённого умножения и разложение на множители",
+      "level": "foundation",
+      "examNumbers": [6, 7, 9, 13, 15, 18],
+      "prerequisites": ["algebra.symbolic-language"]
+    },
+    {
+      "code": "algebra.rational-expressions",
+      "domain": "algebra",
+      "name": "Рациональные выражения и дроби",
+      "level": "core",
+      "examNumbers": [6, 7, 9, 13, 15, 18],
+      "prerequisites": ["number.fractions", "algebra.identities-factoring"]
+    },
+    {
+      "code": "algebra.powers",
+      "domain": "algebra",
+      "name": "Степени и их свойства",
+      "level": "foundation",
+      "examNumbers": [6, 7, 11, 13, 15, 18],
+      "prerequisites": ["number.fractions", "algebra.symbolic-language"]
+    },
+    {
+      "code": "algebra.roots",
+      "domain": "algebra",
+      "name": "Корни и иррациональные выражения",
+      "level": "core",
+      "examNumbers": [6, 7, 11, 13, 15, 18],
+      "prerequisites": ["algebra.powers", "algebra.identities-factoring"]
+    },
+    {
+      "code": "algebra.logarithms",
+      "domain": "algebra",
+      "name": "Определение и свойства логарифмов",
+      "level": "core",
+      "examNumbers": [6, 7, 11, 13, 15, 18],
+      "prerequisites": ["algebra.powers", "algebra.symbolic-language"]
+    },
+    {
+      "code": "algebra.absolute-value",
+      "domain": "algebra",
+      "name": "Модуль числа и выражения",
+      "level": "core",
+      "examNumbers": [6, 7, 9, 13, 15, 18],
+      "prerequisites": ["number.arithmetic", "algebra.symbolic-language"]
+    },
+    {
+      "code": "algebra.trigonometry",
+      "domain": "algebra",
+      "name": "Тригонометрическая окружность, значения и тождества",
+      "level": "core",
+      "examNumbers": [6, 7, 11, 13, 15, 18],
+      "prerequisites": ["number.fractions", "planimetry.angles"]
+    },
+    {
+      "code": "equations.linear",
+      "domain": "equations",
+      "name": "Линейные уравнения и системы",
+      "level": "foundation",
+      "examNumbers": [6, 9, 10, 13, 18, 19],
+      "prerequisites": ["algebra.symbolic-language"]
+    },
+    {
+      "code": "equations.quadratic",
+      "domain": "equations",
+      "name": "Квадратные уравнения, дискриминант и теорема Виета",
+      "level": "foundation",
+      "examNumbers": [6, 9, 10, 13, 15, 18],
+      "prerequisites": ["equations.linear", "algebra.identities-factoring"]
+    },
+    {
+      "code": "equations.rational",
+      "domain": "equations",
+      "name": "Рациональные уравнения",
+      "level": "core",
+      "examNumbers": [6, 9, 13, 18],
+      "prerequisites": ["equations.quadratic", "algebra.rational-expressions"]
+    },
+    {
+      "code": "equations.irrational",
+      "domain": "equations",
+      "name": "Иррациональные уравнения",
+      "level": "core",
+      "examNumbers": [6, 13, 18],
+      "prerequisites": ["equations.quadratic", "algebra.roots"]
+    },
+    {
+      "code": "equations.exponential",
+      "domain": "equations",
+      "name": "Показательные уравнения",
+      "level": "core",
+      "examNumbers": [6, 13, 18],
+      "prerequisites": ["equations.quadratic", "algebra.powers"]
+    },
+    {
+      "code": "equations.logarithmic",
+      "domain": "equations",
+      "name": "Логарифмические уравнения",
+      "level": "core",
+      "examNumbers": [6, 13, 18],
+      "prerequisites": ["equations.quadratic", "algebra.logarithms"]
+    },
+    {
+      "code": "equations.trigonometric",
+      "domain": "equations",
+      "name": "Тригонометрические уравнения и отбор корней",
+      "level": "core",
+      "examNumbers": [6, 13, 18],
+      "prerequisites": ["equations.linear", "algebra.trigonometry"]
+    },
+    {
+      "code": "equations.inequality-signs",
+      "domain": "equations",
+      "name": "Знаки выражений и метод интервалов",
+      "level": "foundation",
+      "examNumbers": [9, 15, 18],
+      "prerequisites": ["equations.quadratic", "algebra.identities-factoring"]
+    },
+    {
+      "code": "equations.rational-inequalities",
+      "domain": "equations",
+      "name": "Рациональные неравенства и их системы",
+      "level": "core",
+      "examNumbers": [15, 18],
+      "prerequisites": ["equations.inequality-signs", "algebra.rational-expressions"]
+    },
+    {
+      "code": "equations.irrational-inequalities",
+      "domain": "equations",
+      "name": "Иррациональные неравенства",
+      "level": "advanced",
+      "examNumbers": [15, 18],
+      "prerequisites": ["equations.inequality-signs", "algebra.roots"]
+    },
+    {
+      "code": "equations.exponential-inequalities",
+      "domain": "equations",
+      "name": "Показательные неравенства",
+      "level": "advanced",
+      "examNumbers": [15, 18],
+      "prerequisites": ["equations.inequality-signs", "algebra.powers", "functions.properties"]
+    },
+    {
+      "code": "equations.logarithmic-inequalities",
+      "domain": "equations",
+      "name": "Логарифмические неравенства",
+      "level": "advanced",
+      "examNumbers": [15, 18],
+      "prerequisites": ["equations.inequality-signs", "algebra.logarithms", "functions.properties"]
+    },
+    {
+      "code": "equations.parameters",
+      "domain": "equations",
+      "name": "Уравнения и неравенства с параметром",
+      "level": "advanced",
+      "examNumbers": [18],
+      "prerequisites": ["equations.rational", "equations.rational-inequalities", "functions.transformations", "reasoning.case-analysis"]
+    },
+    {
+      "code": "functions.coordinates",
+      "domain": "functions",
+      "name": "Координатная плоскость и чтение графика",
+      "level": "foundation",
+      "examNumbers": [2, 8, 11, 12, 18],
+      "prerequisites": ["number.arithmetic"]
+    },
+    {
+      "code": "functions.basic-graphs",
+      "domain": "functions",
+      "name": "Базовые графики функций",
+      "level": "core",
+      "examNumbers": [8, 11, 12, 18],
+      "prerequisites": ["functions.coordinates", "algebra.powers", "algebra.roots"]
+    },
+    {
+      "code": "functions.transformations",
+      "domain": "functions",
+      "name": "Преобразования графиков",
+      "level": "core",
+      "examNumbers": [11, 12, 18],
+      "prerequisites": ["functions.basic-graphs", "algebra.absolute-value"]
+    },
+    {
+      "code": "functions.properties",
+      "domain": "functions",
+      "name": "Область определения, монотонность, нули и знаки функции",
+      "level": "core",
+      "examNumbers": [8, 11, 12, 15, 18],
+      "prerequisites": ["functions.basic-graphs"]
+    },
+    {
+      "code": "functions.derivative-meaning",
+      "domain": "functions",
+      "name": "Производная: геометрический и физический смысл",
+      "level": "core",
+      "examNumbers": [8, 12],
+      "prerequisites": ["functions.properties", "functions.coordinates"]
+    },
+    {
+      "code": "functions.derivative-rules",
+      "domain": "functions",
+      "name": "Таблица производных и правила дифференцирования",
+      "level": "core",
+      "examNumbers": [8, 12],
+      "prerequisites": ["functions.derivative-meaning", "algebra.symbolic-language"]
+    },
+    {
+      "code": "functions.graph-derivative",
+      "domain": "functions",
+      "name": "Связь графиков функции и производной",
+      "level": "core",
+      "examNumbers": [8, 12],
+      "prerequisites": ["functions.derivative-meaning", "functions.properties"]
+    },
+    {
+      "code": "functions.extrema",
+      "domain": "functions",
+      "name": "Монотонность, экстремумы и наибольшее значение",
+      "level": "core",
+      "examNumbers": [8, 12, 16, 18],
+      "prerequisites": ["functions.derivative-rules", "functions.graph-derivative"]
+    },
+    {
+      "code": "functions.tangent",
+      "domain": "functions",
+      "name": "Касательная к графику функции",
+      "level": "core",
+      "examNumbers": [8, 12],
+      "prerequisites": ["functions.derivative-meaning", "equations.linear"]
+    },
+    {
+      "code": "probability.classical",
+      "domain": "probability",
+      "name": "Классическое определение вероятности",
+      "level": "foundation",
+      "examNumbers": [4, 5],
+      "prerequisites": ["number.fractions", "number.ratios-percentages"]
+    },
+    {
+      "code": "probability.counting",
+      "domain": "probability",
+      "name": "Подсчёт равновозможных исходов",
+      "level": "core",
+      "examNumbers": [4, 5],
+      "prerequisites": ["probability.classical", "number.arithmetic"]
+    },
+    {
+      "code": "probability.event-relations",
+      "domain": "probability",
+      "name": "Совместные, несовместные и противоположные события",
+      "level": "core",
+      "examNumbers": [4, 5],
+      "prerequisites": ["probability.classical"]
+    },
+    {
+      "code": "probability.independence",
+      "domain": "probability",
+      "name": "Независимые события и правило умножения",
+      "level": "core",
+      "examNumbers": [5],
+      "prerequisites": ["probability.event-relations", "number.fractions"]
+    },
+    {
+      "code": "applied.units-model",
+      "domain": "applied",
+      "name": "Единицы измерения и перевод условия в модель",
+      "level": "foundation",
+      "examNumbers": [9, 10, 16],
+      "prerequisites": ["number.arithmetic"]
+    },
+    {
+      "code": "applied.motion-work",
+      "domain": "applied",
+      "name": "Движение, средняя скорость и совместная работа",
+      "level": "core",
+      "examNumbers": [10],
+      "prerequisites": ["number.ratios-percentages", "equations.linear", "applied.units-model"]
+    },
+    {
+      "code": "applied.mixtures",
+      "domain": "applied",
+      "name": "Смеси, сплавы и концентрации",
+      "level": "core",
+      "examNumbers": [10],
+      "prerequisites": ["number.ratios-percentages", "equations.linear"]
+    },
+    {
+      "code": "applied.finance",
+      "domain": "applied",
+      "name": "Кредиты, вклады и финансовые модели",
+      "level": "advanced",
+      "examNumbers": [16],
+      "prerequisites": ["number.ratios-percentages", "number.sequences", "equations.linear"]
+    },
+    {
+      "code": "applied.optimization",
+      "domain": "applied",
+      "name": "Оптимизация прикладной модели",
+      "level": "advanced",
+      "examNumbers": [12, 16],
+      "prerequisites": ["functions.extrema", "applied.units-model"]
+    },
+    {
+      "code": "planimetry.angles",
+      "domain": "planimetry",
+      "name": "Углы, параллельные прямые и угловые отношения",
+      "level": "foundation",
+      "examNumbers": [1, 2, 3, 14, 17],
+      "prerequisites": ["number.arithmetic"]
+    },
+    {
+      "code": "planimetry.triangle-basic",
+      "domain": "planimetry",
+      "name": "Треугольник: элементы, сумма углов и площади",
+      "level": "foundation",
+      "examNumbers": [1, 2, 3, 17],
+      "prerequisites": ["planimetry.angles", "number.fractions"]
+    },
+    {
+      "code": "planimetry.congruence",
+      "domain": "planimetry",
+      "name": "Признаки равенства треугольников",
+      "level": "core",
+      "examNumbers": [1, 17],
+      "prerequisites": ["planimetry.triangle-basic"]
+    },
+    {
+      "code": "planimetry.similarity",
+      "domain": "planimetry",
+      "name": "Подобие и отношения площадей",
+      "level": "core",
+      "examNumbers": [1, 3, 17],
+      "prerequisites": ["number.ratios-percentages", "planimetry.triangle-basic"]
+    },
+    {
+      "code": "planimetry.right-triangle",
+      "domain": "planimetry",
+      "name": "Прямоугольный треугольник и тригонометрия",
+      "level": "core",
+      "examNumbers": [1, 2, 3, 17],
+      "prerequisites": ["planimetry.triangle-basic", "algebra.roots"]
+    },
+    {
+      "code": "planimetry.cevians",
+      "domain": "planimetry",
+      "name": "Медиана, биссектриса, высота и серединный перпендикуляр",
+      "level": "core",
+      "examNumbers": [1, 17],
+      "prerequisites": ["planimetry.congruence", "planimetry.similarity"]
+    },
+    {
+      "code": "planimetry.quadrilaterals",
+      "domain": "planimetry",
+      "name": "Четырёхугольники и их свойства",
+      "level": "core",
+      "examNumbers": [1, 3, 17],
+      "prerequisites": ["planimetry.angles", "planimetry.congruence"]
+    },
+    {
+      "code": "planimetry.circle",
+      "domain": "planimetry",
+      "name": "Окружность, хорды, касательные и вписанные фигуры",
+      "level": "core",
+      "examNumbers": [1, 3, 17],
+      "prerequisites": ["planimetry.angles", "planimetry.similarity"]
+    },
+    {
+      "code": "planimetry.advanced",
+      "domain": "planimetry",
+      "name": "Теоремы Менелая, Чевы, Птолемея и сложные конфигурации",
+      "level": "advanced",
+      "examNumbers": [17],
+      "prerequisites": ["planimetry.cevians", "planimetry.quadrilaterals", "planimetry.circle", "reasoning.proof"]
+    },
+    {
+      "code": "vectors.coordinates",
+      "domain": "vectors",
+      "name": "Координаты и длина вектора",
+      "level": "foundation",
+      "examNumbers": [2],
+      "prerequisites": ["functions.coordinates", "algebra.roots"]
+    },
+    {
+      "code": "vectors.operations",
+      "domain": "vectors",
+      "name": "Сложение и умножение вектора на число",
+      "level": "core",
+      "examNumbers": [2],
+      "prerequisites": ["vectors.coordinates"]
+    },
+    {
+      "code": "vectors.dot-product",
+      "domain": "vectors",
+      "name": "Скалярное произведение и угол между векторами",
+      "level": "core",
+      "examNumbers": [2, 14],
+      "prerequisites": ["vectors.operations", "algebra.trigonometry"]
+    },
+    {
+      "code": "stereometry.figures-metrics",
+      "domain": "stereometry",
+      "name": "Многогранники и тела вращения: площади и объёмы",
+      "level": "core",
+      "examNumbers": [3, 14],
+      "prerequisites": ["planimetry.triangle-basic", "planimetry.quadrilaterals", "planimetry.circle"]
+    },
+    {
+      "code": "stereometry.spatial-relations",
+      "domain": "stereometry",
+      "name": "Параллельность и перпендикулярность в пространстве",
+      "level": "core",
+      "examNumbers": [3, 14],
+      "prerequisites": ["planimetry.angles", "reasoning.proof"]
+    },
+    {
+      "code": "stereometry.sections",
+      "domain": "stereometry",
+      "name": "Построение сечений",
+      "level": "advanced",
+      "examNumbers": [14],
+      "prerequisites": ["stereometry.figures-metrics", "stereometry.spatial-relations"]
+    },
+    {
+      "code": "stereometry.angles",
+      "domain": "stereometry",
+      "name": "Углы между прямыми и плоскостями",
+      "level": "advanced",
+      "examNumbers": [14],
+      "prerequisites": ["stereometry.spatial-relations", "vectors.dot-product", "planimetry.right-triangle"]
+    },
+    {
+      "code": "stereometry.distances",
+      "domain": "stereometry",
+      "name": "Расстояния в пространстве",
+      "level": "advanced",
+      "examNumbers": [14],
+      "prerequisites": ["stereometry.spatial-relations", "stereometry.angles", "planimetry.area"]
+    },
+    {
+      "code": "planimetry.area",
+      "domain": "planimetry",
+      "name": "Площади фигур и отношения площадей",
+      "level": "core",
+      "examNumbers": [1, 3, 14, 17],
+      "prerequisites": ["planimetry.triangle-basic", "planimetry.similarity", "planimetry.quadrilaterals"]
+    },
+    {
+      "code": "reasoning.proof",
+      "domain": "reasoning",
+      "name": "Доказательство, достаточность условий и контрпример",
+      "level": "core",
+      "examNumbers": [14, 17, 19],
+      "prerequisites": ["algebra.symbolic-language"]
+    },
+    {
+      "code": "reasoning.case-analysis",
+      "domain": "reasoning",
+      "name": "Разбиение на случаи и контроль ограничений",
+      "level": "advanced",
+      "examNumbers": [13, 15, 18, 19],
+      "prerequisites": ["reasoning.proof", "algebra.absolute-value"]
+    },
+    {
+      "code": "reasoning.integer-arguments",
+      "domain": "reasoning",
+      "name": "Целочисленные оценки, перебор и инварианты",
+      "level": "advanced",
+      "examNumbers": [19],
+      "prerequisites": ["number.divisibility", "number.remainders", "reasoning.case-analysis"]
+    }
+  ],
+  "materials": [
+    {
+      "file": "Teoria_k_zadaniam_1_6_7_9_10_12_13_15_17_18.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["algebra.trigonometry", "algebra.logarithms", "functions.derivative-rules"] },
+        { "pages": [2], "skills": ["algebra.powers", "algebra.roots", "algebra.identities-factoring", "algebra.absolute-value", "equations.quadratic", "number.sequences"] },
+        { "pages": [3], "skills": ["planimetry.angles", "planimetry.triangle-basic", "planimetry.area"] },
+        { "pages": [4], "skills": ["planimetry.cevians", "planimetry.congruence", "planimetry.similarity"] },
+        { "pages": [5], "skills": ["planimetry.right-triangle", "planimetry.quadrilaterals", "planimetry.area"] },
+        { "pages": [6], "skills": ["planimetry.quadrilaterals", "planimetry.advanced", "planimetry.area"] },
+        { "pages": [7], "skills": ["planimetry.circle"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniam_4_i_5.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["probability.classical", "probability.event-relations", "probability.independence"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_1.pdf",
+      "pageMappings": [
+        { "pages": [1, 2, 3], "skills": ["planimetry.angles", "planimetry.triangle-basic", "planimetry.right-triangle", "planimetry.quadrilaterals", "planimetry.circle", "planimetry.area"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_2.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["vectors.coordinates", "vectors.operations", "vectors.dot-product"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_3.pdf",
+      "pageMappings": [
+        { "pages": [1, 2], "skills": ["stereometry.figures-metrics"] },
+        { "pages": [3, 4], "skills": ["planimetry.similarity", "planimetry.right-triangle", "planimetry.quadrilaterals", "planimetry.circle", "stereometry.spatial-relations"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_6.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["equations.quadratic", "algebra.identities-factoring", "algebra.powers", "algebra.logarithms"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_7.pdf",
+      "pageMappings": [
+        { "pages": [1, 2], "skills": ["algebra.trigonometry", "algebra.logarithms", "algebra.powers", "algebra.roots", "algebra.identities-factoring", "algebra.absolute-value"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_8.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["functions.derivative-meaning", "functions.graph-derivative", "functions.derivative-rules", "functions.tangent"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_9.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["equations.quadratic", "algebra.identities-factoring", "equations.inequality-signs"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_10.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["applied.motion-work", "applied.mixtures", "number.sequences", "equations.quadratic", "number.estimation"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_11.pdf",
+      "pageMappings": [
+        { "pages": [1, 2, 3, 4], "skills": ["functions.basic-graphs", "functions.transformations", "functions.properties"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_12.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["functions.derivative-rules"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_13.pdf",
+      "pageMappings": [
+        { "pages": [1, 2], "skills": ["algebra.trigonometry", "algebra.logarithms", "algebra.roots", "algebra.powers", "algebra.identities-factoring"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_14.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["stereometry.spatial-relations", "stereometry.sections", "stereometry.angles", "stereometry.distances"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_15.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["algebra.logarithms", "algebra.powers", "algebra.roots", "algebra.identities-factoring", "algebra.absolute-value", "equations.quadratic"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_16.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["number.ratios-percentages", "number.estimation"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_17.pdf",
+      "pageMappings": [
+        { "pages": [1, 2, 3, 4, 5], "skills": ["planimetry.angles", "planimetry.triangle-basic", "planimetry.congruence", "planimetry.similarity", "planimetry.right-triangle", "planimetry.cevians", "planimetry.quadrilaterals", "planimetry.circle", "planimetry.area", "planimetry.advanced"] }
+      ]
+    },
+    {
+      "file": "Teoria_k_zadaniyu_19.pdf",
+      "pageMappings": [
+        { "pages": [1], "skills": ["number.divisibility"] },
+        { "pages": [2], "skills": ["number.sequences", "number.divisibility"] },
+        { "pages": [3], "skills": ["reasoning.integer-arguments", "number.divisibility"] },
+        { "pages": [4], "skills": ["reasoning.integer-arguments", "number.estimation"] },
+        { "pages": [5], "skills": ["number.remainders", "reasoning.integer-arguments"] }
+      ]
+    }
+  ]
+}
