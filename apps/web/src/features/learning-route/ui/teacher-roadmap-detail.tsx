@@ -11,8 +11,8 @@ import {
   Clock3,
   EyeOff,
   Flag,
-  LockKeyhole,
   Pin,
+  RotateCcw,
   ShieldCheck,
   Sparkles,
   X,
@@ -92,6 +92,11 @@ type TeacherRoadmapDetailProps = {
   editMode: boolean;
   onClose: () => void;
   onModuleAction: (action: ModuleAction) => void;
+  onSubtopicStatusChange: (action: {
+    code: string;
+    name: string;
+    status: "MASTERED" | "LEARNING";
+  }) => void;
   onSkillOpen: (skillCode: string) => void;
 };
 
@@ -100,6 +105,7 @@ export function TeacherRoadmapDetail({
   editMode,
   onClose,
   onModuleAction,
+  onSubtopicStatusChange,
   onSkillOpen,
 }: TeacherRoadmapDetailProps) {
   return (
@@ -158,33 +164,6 @@ export function TeacherRoadmapDetail({
             </div>
           </section>
 
-          {node.prerequisites.length > 0 && (
-            <section>
-              <h3 className="flex items-center gap-2 font-bold text-ink">
-                <LockKeyhole className="size-5 text-brand" />
-                Необходимая база
-              </h3>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {node.prerequisites.map((item) => (
-                  <span
-                    className={`rounded-xl border px-3 py-2 text-xs font-semibold ${
-                      item.blocking
-                        ? "border-[#e4bea8] bg-[#fff5ef] text-[#925130]"
-                        : "border-line bg-panel/60 text-muted"
-                    }`}
-                    key={item.name}
-                    title={item.rationale ?? undefined}
-                  >
-                    {item.name}
-                    {item.examNumbers.length > 0
-                      ? ` · № ${item.examNumbers.join(", ")}`
-                      : ""}
-                  </span>
-                ))}
-              </div>
-            </section>
-          )}
-
           <section>
             <div className="flex items-center justify-between gap-3">
               <h3 className="flex items-center gap-2 font-bold text-ink">
@@ -211,12 +190,41 @@ export function TeacherRoadmapDetail({
                         </p>
                       )}
                     </div>
-                    <span className="text-xs font-semibold text-muted">
-                      {subtopic.skills.length}
+                    <span className="text-right text-xs font-semibold text-muted">
+                      <span className="block font-bold text-ink">
+                        {Math.round(subtopic.mastery * 100)}%
+                      </span>
+                      {subtopic.masteredSkills}/{subtopic.skills.length} навыков
                     </span>
                     <ChevronRight className="size-4 text-muted transition group-open:rotate-90" />
                   </summary>
                   <div className="border-t border-line px-2 py-2">
+                    <button
+                      className={`mb-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold transition ${
+                        subtopic.isMastered
+                          ? "bg-[#edf8f2] text-success hover:bg-[#e2f3ea]"
+                          : "bg-brand text-white hover:bg-brand/90"
+                      }`}
+                      onClick={() =>
+                        onSubtopicStatusChange({
+                          code: subtopic.code,
+                          name: subtopic.name,
+                          status: subtopic.isMastered
+                            ? "LEARNING"
+                            : "MASTERED",
+                        })
+                      }
+                      type="button"
+                    >
+                      {subtopic.isMastered ? (
+                        <RotateCcw className="size-4" />
+                      ) : (
+                        <CheckCircle2 className="size-4" />
+                      )}
+                      {subtopic.isMastered
+                        ? "Вернуть подтему в изучение"
+                        : "Отметить всю подтему освоенной"}
+                    </button>
                     {subtopic.skills.map((skill) => (
                       <button
                         className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-panel"

@@ -28,14 +28,14 @@ import type {
   TeacherRoadmapStatus,
 } from "@/entities/learning-route/model/teacher-route";
 
-const BOARD_WIDTH = 2240;
-const BOARD_HEIGHT = 1390;
-const CARD_WIDTH = 340;
-const CARD_HEIGHT = 210;
+const BOARD_WIDTH = 2180;
+const BOARD_HEIGHT = 1840;
+const CARD_WIDTH = 400;
+const CARD_HEIGHT = 250;
 const START_X = 140;
-const START_Y = 110;
-const COLUMN_GAP = 420;
-const ROW_GAP = 310;
+const START_Y = 120;
+const COLUMN_GAP = 500;
+const ROW_GAP = 340;
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 1.45;
 
@@ -97,9 +97,9 @@ const statusPresentation: Record<
 
 const nodePosition = (examNumber: number) => {
   const index = examNumber - 1;
-  const row = Math.floor(index / 5);
-  const offset = index % 5;
-  const column = row % 2 === 0 ? offset : 4 - offset;
+  const row = Math.floor(index / 4);
+  const offset = index % 4;
+  const column = row % 2 === 0 ? offset : 3 - offset;
 
   return {
     x: START_X + column * COLUMN_GAP,
@@ -182,13 +182,16 @@ function RoadmapCard({
   const presentation = statusPresentation[node.status];
   const position = nodePosition(node.examNumber);
   const subtopics = node.subtopics.slice(0, 2);
+  const isPerfect = node.mastery >= 0.995;
 
   return (
     <button
       aria-label={`Задание ${node.examNumber}: ${node.title}`}
-      className={`roadmap-node absolute cursor-pointer overflow-hidden rounded-[1.65rem] border bg-white p-5 text-left shadow-[0_14px_35px_rgba(20,55,88,0.08)] outline-none transition-[box-shadow,border-color,transform] duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(20,55,88,0.14)] focus-visible:ring-4 focus-visible:ring-[#b8d7f4] ${
+      className={`roadmap-node absolute cursor-pointer overflow-hidden rounded-[1.75rem] border bg-white p-6 text-left shadow-[0_14px_35px_rgba(20,55,88,0.08)] outline-none transition-[box-shadow,border-color,transform] duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_45px_rgba(20,55,88,0.14)] focus-visible:ring-4 focus-visible:ring-[#b8d7f4] ${
         node.isCurrent ? "roadmap-node--current" : ""
-      } ${selected ? "ring-4 ring-[#c9e2f8]" : ""}`}
+      } ${isPerfect ? "roadmap-node--perfect" : ""} ${
+        selected ? "ring-4 ring-[#c9e2f8]" : ""
+      }`}
       onClick={onOpen}
       style={
         {
@@ -202,9 +205,15 @@ function RoadmapCard({
       }
       type="button"
     >
+      {isPerfect && (
+        <span
+          aria-hidden
+          className="roadmap-perfect-shine pointer-events-none absolute inset-0"
+        />
+      )}
       <div className="flex items-start gap-4">
         <span
-          className="grid size-12 shrink-0 place-items-center rounded-2xl text-lg font-bold"
+          className="relative grid size-14 shrink-0 place-items-center rounded-2xl text-xl font-bold"
           style={{
             background: presentation.background,
             color: presentation.color,
@@ -222,30 +231,30 @@ function RoadmapCard({
           >
             {presentation.label}
           </span>
-          <h3 className="mt-2 line-clamp-2 text-[19px] font-bold leading-[1.15] tracking-[-0.035em] text-ink">
+          <h3 className="mt-2 line-clamp-2 text-[22px] font-bold leading-[1.16] tracking-[-0.04em] text-ink">
             {node.title}
           </h3>
         </div>
         <ProgressRing color={presentation.color} value={node.mastery} />
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="relative mt-5 flex flex-wrap gap-2">
         {subtopics.map((subtopic) => (
           <span
-            className="max-w-full truncate rounded-lg bg-panel px-2.5 py-1.5 text-xs font-semibold text-muted"
+            className="max-w-[250px] truncate rounded-lg bg-panel px-3 py-2 text-[13px] font-semibold text-muted"
             key={subtopic.name}
           >
             {subtopic.name}
           </span>
         ))}
         {node.subtopics.length > 2 && (
-          <span className="rounded-lg bg-panel px-2.5 py-1.5 text-xs font-semibold text-muted">
+          <span className="rounded-lg bg-panel px-3 py-2 text-[13px] font-semibold text-muted">
             +{node.subtopics.length - 2}
           </span>
         )}
       </div>
 
-      <div className="absolute inset-x-5 bottom-4 flex items-center justify-between border-t border-line pt-3 text-xs font-semibold text-muted">
+      <div className="absolute inset-x-6 bottom-5 flex items-center justify-between border-t border-line pt-3 text-[13px] font-semibold text-muted">
         <span>{node.examPart}</span>
         <span>Уверенность {Math.round(node.confidence * 100)}%</span>
       </div>
@@ -500,7 +509,7 @@ export function TeacherRoadmapBoard({
       </div>
 
       <div
-        className={`roadmap-viewport relative h-[660px] overflow-hidden bg-[#fbfcfe] touch-none sm:h-[720px] ${
+        className={`roadmap-viewport relative h-[720px] overflow-hidden bg-[#fbfcfe] touch-none sm:h-[800px] ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
         onPointerCancel={endDrag}

@@ -2,12 +2,9 @@
 
 import {
   ArrowLeft,
-  CalendarDays,
-  Clock3,
   History,
+  Map,
   Save,
-  Target,
-  UsersRound,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -20,11 +17,13 @@ import {
   useTeacherRouteHistoryQuery,
   useTeacherSkillActionMutation,
   useTeacherSkillDetailQuery,
+  useTeacherSubtopicStatusMutation,
   useUpdateTeacherWeeklyLoadMutation,
 } from "@/entities/learning-route/api/use-teacher-route-query";
 import type {
   TeacherModuleActionInput,
   TeacherRouteModule,
+  TeacherSubtopicStatusInput,
 } from "@/entities/learning-route/model/teacher-route";
 import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
 import { useTeacherRouteWorkspaceStore } from "@/features/learning-route/model/use-teacher-route-workspace-store";
@@ -56,14 +55,13 @@ type PendingAction =
       skillCode: string;
       title: string;
       data: Omit<SkillActionRequest, "title">;
+    }
+  | {
+      scope: "subtopic";
+      subtopicCode: string;
+      title: string;
+      data: Omit<TeacherSubtopicStatusInput, "reason">;
     };
-
-const formatExamDate = (value: string) =>
-  new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(value));
 
 const actionLabels: Record<string, string> = {
   CONFIRM_SYSTEM_CONCLUSION: "Подтверждён вывод системы",
@@ -127,6 +125,7 @@ export function TeacherTrajectoryPage({
     selectedSkillCode,
   );
   const skillMutation = useTeacherSkillActionMutation(studentId);
+  const subtopicMutation = useTeacherSubtopicStatusMutation(studentId);
   const moduleMutation = useTeacherModuleActionMutation(studentId);
   const customModuleMutation = useCreateTeacherRouteModuleMutation(studentId);
   const weeklyLoadMutation = useUpdateTeacherWeeklyLoadMutation(studentId);
@@ -207,6 +206,23 @@ export function TeacherTrajectoryPage({
           onError: (error) =>
             setActionError(
               getApiErrorMessage(error, "Не удалось изменить модуль."),
+            ),
+        },
+      );
+      return;
+    }
+    if (pendingAction.scope === "subtopic") {
+      subtopicMutation.mutate(
+        {
+          studentId,
+          subtopicCode: pendingAction.subtopicCode,
+          data: { ...pendingAction.data, reason },
+        },
+        {
+          onSuccess: () => setPendingAction(null),
+          onError: (error) =>
+            setActionError(
+              getApiErrorMessage(error, "Не удалось изменить подтему."),
             ),
         },
       );
@@ -327,45 +343,19 @@ export function TeacherTrajectoryPage({
             <ArrowLeft className="size-4" /> К ученикам
           </Link>
 
-          <header className="relative overflow-hidden rounded-[2rem] border border-[#c6ddf5] bg-[#eef6ff] px-6 py-7 sm:px-9 sm:py-8">
-            <div className="absolute -right-20 -top-24 size-80 rounded-full border-[34px] border-white/65" />
-            <div className="absolute -bottom-28 right-48 size-64 rounded-full bg-[#dceeff]/80" />
-            <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-              <div className="max-w-3xl">
-                <p className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-[0.13em] text-brand">
-                  <UsersRound className="size-4" /> Персональная траектория
-                </p>
-                <h1 className="mt-2 text-4xl font-bold tracking-[-0.055em] text-ink sm:text-5xl">
-                  {roadmap.student.name}
-                </h1>
-                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-muted sm:text-base">
-                  <span className="inline-flex items-center gap-2">
-                    <Target className="size-4 text-brand" /> Цель{" "}
-                    {roadmap.goal.targetScore}+
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <CalendarDays className="size-4 text-brand" />
-                    {formatExamDate(roadmap.goal.examDate)}
-                  </span>
-                  <span className="inline-flex items-center gap-2">
-                    <Clock3 className="size-4 text-brand" />
-                    {roadmap.goal.weeklyMinutes} минут в неделю
-                  </span>
-                </div>
-              </div>
-              <div className="max-w-md text-sm leading-6 text-muted">
-                Все задания ЕГЭ показаны как единый маршрут. Толстая линия —
-                основной порядок, пунктир — важные связи между темами.
-              </div>
+          <header className="flex flex-wrap items-end gap-x-4 gap-y-1 px-1">
+            <span className="mb-1 grid size-11 place-items-center rounded-2xl bg-[#eaf4ff] text-brand">
+              <Map className="size-5" />
+            </span>
+            <div>
+              <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand">
+                Персональная карта
+              </p>
+              <h1 className="mt-1 text-3xl font-bold tracking-[-0.05em] text-ink sm:text-4xl">
+                {roadmap.student.name}
+              </h1>
             </div>
           </header>
-
-          {route.isStale && (
-            <p className="rounded-2xl border border-[#eed6a9] bg-[#fff9ed] px-5 py-3 text-sm font-semibold text-[#8c5a0a]">
-              Появились новые результаты. Закреплённые преподавателем части
-              сохранятся при обновлении маршрута.
-            </p>
-          )}
 
           <TeacherRoadmapBoard
             editMode={editMode}
@@ -495,6 +485,18 @@ export function TeacherTrajectoryPage({
           onModuleAction={({ moduleKey, title, data }) =>
             openModuleAction({ moduleKey, title, data })
           }
+          onSubtopicStatusChange={({ code, name, status }) => {
+            setActionError(null);
+            setPendingAction({
+              scope: "subtopic",
+              subtopicCode: code,
+              title:
+                status === "MASTERED"
+                  ? `Отметить «${name}» освоенной`
+                  : `Вернуть «${name}» в изучение`,
+              data: { status },
+            });
+          }}
           onSkillOpen={selectSkill}
         />
       )}
@@ -532,9 +534,17 @@ export function TeacherTrajectoryPage({
         description="Изменение сохранится с вашим именем, причиной и точным временем."
         error={actionError}
         isOpen={Boolean(pendingAction)}
-        isPending={skillMutation.isPending || moduleMutation.isPending}
+        isPending={
+          skillMutation.isPending ||
+          moduleMutation.isPending ||
+          subtopicMutation.isPending
+        }
         onClose={() => {
-          if (!skillMutation.isPending && !moduleMutation.isPending) {
+          if (
+            !skillMutation.isPending &&
+            !moduleMutation.isPending &&
+            !subtopicMutation.isPending
+          ) {
             setPendingAction(null);
             setActionError(null);
           }

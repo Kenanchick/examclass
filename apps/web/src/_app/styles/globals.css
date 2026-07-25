@@ -190,6 +190,31 @@ body {
   }
 }
 
+@keyframes roadmap-perfect-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 16px 38px rgb(28 122 82 / 13%),
+      0 0 0 2px rgb(69 168 117 / 12%);
+  }
+
+  50% {
+    box-shadow:
+      0 20px 48px rgb(28 122 82 / 20%),
+      0 0 0 6px rgb(69 168 117 / 13%);
+  }
+}
+
+@keyframes roadmap-perfect-shimmer {
+  from {
+    transform: translateX(-120%) rotate(12deg);
+  }
+
+  to {
+    transform: translateX(220%) rotate(12deg);
+  }
+}
+
 .roadmap-viewport {
   background-image:
     radial-gradient(circle at center, rgb(183 199 214 / 48%) 1px, transparent 1px),
@@ -229,6 +254,29 @@ body {
   animation:
     roadmap-node-arrive 620ms cubic-bezier(0.22, 1, 0.36, 1) both,
     roadmap-current-breathe 3.4s 700ms ease-in-out infinite;
+}
+
+.roadmap-node--perfect {
+  border-color: #8dc9aa !important;
+  animation:
+    roadmap-node-arrive 620ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    roadmap-perfect-glow 4.2s 800ms ease-in-out infinite;
+}
+
+.roadmap-perfect-shine::after {
+  position: absolute;
+  top: -40%;
+  left: -35%;
+  width: 24%;
+  height: 180%;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 72%),
+    transparent
+  );
+  animation: roadmap-perfect-shimmer 4.8s 1.4s ease-in-out infinite;
 }
 
 .roadmap-progress-ring {
@@ -291,6 +339,8 @@ body {
   .roadmap-main-line,
   .roadmap-node,
   .roadmap-node--current,
+  .roadmap-node--perfect,
+  .roadmap-perfect-shine::after,
   .roadmap-detail-panel {
     animation: none;
   }

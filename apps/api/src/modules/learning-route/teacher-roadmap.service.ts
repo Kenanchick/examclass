@@ -271,6 +271,11 @@ export class TeacherRoadmapService {
     }
 
     const nodeByCode = new Map(nodes.map((node) => [node.code, node]));
+    const humanizeReason = (reason: string) =>
+      reason.replace(/\b[a-z]+(?:\.[a-z0-9-]+)+\b/gi, (code) => {
+        const skillName = nodeByCode.get(code)?.name;
+        return skillName ? `«${skillName}»` : 'базовый навык';
+      });
     const routeModules = route.modules.map((module) => ({
       ...module,
       skillCodes: module.skills.map(({ skill }) => skill.code),
@@ -459,7 +464,9 @@ export class TeacherRoadmapService {
         )
         .slice(0, 8);
       const reasons = unique(
-        matchingModules.flatMap((module) => jsonStrings(module.reasons)),
+        matchingModules.flatMap((module) =>
+          jsonStrings(module.reasons).map(humanizeReason),
+        ),
       ).slice(0, 4);
       if (reasons.length === 0) {
         reasons.push(
