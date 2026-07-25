@@ -25,6 +25,7 @@ import type {
   PlannedRouteModule,
   RouteDependency,
   RouteSkill,
+  RouteTeacherAssignment,
 } from './route-types';
 
 export const buildLearningRoute = (
@@ -46,11 +47,11 @@ export const buildLearningRoute = (
     ]);
   }
 
-  const assignmentsBySkill = new Map<string, string[]>();
+  const assignmentsBySkill = new Map<string, RouteTeacherAssignment[]>();
   for (const assignment of input.teacherAssignments ?? []) {
     assignmentsBySkill.set(assignment.skillCode, [
       ...(assignmentsBySkill.get(assignment.skillCode) ?? []),
-      assignment.assignmentId,
+      assignment,
     ]);
   }
 
@@ -160,11 +161,17 @@ export const buildLearningRoute = (
       return [];
     }
 
-    const teacherAssignmentIds = assignmentsBySkill.get(code) ?? [];
+    const teacherAssignments = assignmentsBySkill.get(code) ?? [];
+    const teacherAssignmentIds = teacherAssignments.map(
+      (assignment) => assignment.assignmentId,
+    );
     const type = getModuleType({
       skill: scoredSkill.skill,
       forcedPrerequisite: forcedPrerequisites.has(code),
       teacherAssigned: teacherAssignmentIds.length > 0,
+      controlScheduled: teacherAssignments.some(
+        (assignment) => assignment.kind === 'CONTROL',
+      ),
       targetScore: input.goal.targetScore,
     });
     const targets = getTargets(scoredSkill.skill, type);

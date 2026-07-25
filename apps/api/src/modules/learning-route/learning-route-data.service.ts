@@ -11,6 +11,7 @@ import type {
   RouteSkillStatus,
   RouteTeacherAssignment,
 } from './domain/route-types';
+import { getEffectiveSkillStatus } from './domain/teacher-skill-state';
 
 export type LearningRouteData = {
   goalId: string;
@@ -46,8 +47,8 @@ export class LearningRouteDataService {
       throw new BadRequestException('Дата экзамена уже прошла');
     }
 
-    const [nodes, dependencies, states, homeworkRecipients] = await Promise.all(
-      [
+    const [nodes, dependencies, states, homeworkRecipients, teacherControls] =
+      await Promise.all([
         this.prisma.knowledgeNode.findMany({
           where: {
             knowledgeMapId: goal.knowledgeMapId,
@@ -130,8 +131,21 @@ export class LearningRouteDataService {
             },
           },
         }),
-      ],
-    );
+        this.prisma.teacherSkillControl.findMany({
+          where: {
+            studentId,
+            skill: { knowledgeMapId: goal.knowledgeMapId },
+          },
+          select: {
+            skillId: true,
+            manualStatus: true,
+            autoStatusEnabled: true,
+            reviewScheduledAt: true,
+            controlScheduledAt: true,
+            skill: { select: { code: true, name: true } },
+          },
+        }),
+      ]);
 
     if (states.length === 0) {
       throw new BadRequestException(
@@ -142,8 +156,13 @@ export class LearningRouteDataService {
     const stateBySkillId = new Map(
       states.map((state) => [state.skillId, state]),
     );
+    const controlBySkillId = new Map(
+      teacherControls.map((control) => [control.skillId, control]),
+    );
     const skills: RouteSkill[] = nodes.map((node) => {
       const profile = stateBySkillId.get(node.id);
+      const control = controlBySkillId.get(node.id);
+      const reviewScheduled = Boolean(control?.reviewScheduledAt);
 
       return {
         id: node.id,
@@ -164,8 +183,11 @@ export class LearningRouteDataService {
               confidence: profile.confidence,
               stability: profile.stability,
               distinctEvidenceCount: profile.distinctEvidenceCount,
-              status: profile.status as RouteSkillStatus,
-              needsReview: profile.needsReview,
+              status: getEffectiveSkillStatus(
+                profile.status,
+                control,
+              ) as RouteSkillStatus,
+              needsReview: profile.needsReview || reviewScheduled,
               lastVerifiedAt: profile.lastVerifiedAt,
             }
           : {
@@ -189,6 +211,20 @@ export class LearningRouteDataService {
           })),
         ),
       );
+    teacherAssignments.push(
+      ...teacherControls.flatMap((control) =>
+        control.controlScheduledAt
+          ? [
+              {
+                skillCode: control.skill.code,
+                assignmentId: `CONTROL:${control.skill.code}`,
+                title: `Контроль: ${control.skill.name}`,
+                kind: 'CONTROL' as const,
+              },
+            ]
+          : [],
+      ),
+    );
 
     return {
       goalId: goal.id,

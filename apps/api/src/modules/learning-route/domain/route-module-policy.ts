@@ -51,13 +51,18 @@ export const getModuleType = ({
   skill,
   forcedPrerequisite,
   teacherAssigned,
+  controlScheduled,
   targetScore,
 }: {
   skill: RouteSkill;
   forcedPrerequisite: boolean;
   teacherAssigned: boolean;
+  controlScheduled: boolean;
   targetScore: number;
 }): RouteModuleType => {
+  if (controlScheduled) {
+    return 'CONTROL';
+  }
   if (teacherAssigned) {
     return 'TEACHER_ASSIGNED';
   }
@@ -137,7 +142,7 @@ export const getReason = (
     return 'Наступил срок повторения ранее изученного навыка';
   }
   if (type === 'CONTROL') {
-    return 'Уровень высокий, но результат пока недостаточно стабилен';
+    return 'Нужна контрольная проверка уровня и самостоятельности';
   }
   if (forcedPrerequisite) {
     return 'Это обязательная база для более сложного выбранного навыка';

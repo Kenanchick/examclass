@@ -11,6 +11,7 @@ import {
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { DiagnosticEvidenceService } from './diagnostic-evidence.service';
 import { KNOWLEDGE_PROFILE_FORMULA_VERSION } from './domain/profile-factors';
+import { getEffectiveSkillStatus } from '../learning-route/domain/teacher-skill-state';
 
 const statusLabels: Partial<Record<StudentSkillStatus, string>> = {
   UNSTUDIED: 'Ещё не изучалось',
@@ -142,7 +143,7 @@ export class KnowledgeProfileService {
       );
     }
 
-    const [student, states] = await Promise.all([
+    const [student, states, teacherControls] = await Promise.all([
       this.prisma.user.findUnique({
         where: { id: studentId },
         select: { id: true, name: true, avatarUrl: true, role: true },
@@ -176,6 +177,7 @@ export class KnowledgeProfileService {
           updatedAt: true,
           skill: {
             select: {
+              id: true,
               code: true,
               name: true,
               importance: true,
@@ -192,6 +194,21 @@ export class KnowledgeProfileService {
           },
         },
       }),
+      this.prisma.teacherSkillControl.findMany({
+        where: { studentId, skill: { knowledgeMapId: knowledgeMap.id } },
+        select: {
+          skillId: true,
+          instructionStatus: true,
+          manualStatus: true,
+          autoStatusEnabled: true,
+          systemConclusionConfirmedAt: true,
+          reviewScheduledAt: true,
+          controlScheduledAt: true,
+          comment: true,
+          updatedAt: true,
+          lastAuthor: { select: { id: true, name: true } },
+        },
+      }),
     ]);
 
     if (!student || student.role !== Role.STUDENT) {
@@ -204,6 +221,10 @@ export class KnowledgeProfileService {
         return summary;
       },
       {},
+    );
+
+    const controlBySkillId = new Map(
+      teacherControls.map((control) => [control.skillId, control]),
     );
 
     return {
@@ -219,12 +240,23 @@ export class KnowledgeProfileService {
           .map((state) => state.updatedAt)
           .sort((left, right) => right.getTime() - left.getTime())[0] ?? null,
       statusSummary,
-      skills: states.map((state) => ({
-        ...state,
-        statusLabel: statusLabels[state.status] ?? state.status,
-        speedLabel: getSpeedLabel(state.speed),
-        stabilityLabel: getStabilityLabel(state.stability),
-      })),
+      skills: states.map((state) => {
+        const control = controlBySkillId.get(state.skill.id);
+        const effectiveStatus = getEffectiveSkillStatus(
+          state.status,
+          control,
+        ) as StudentSkillStatus;
+
+        return {
+          ...state,
+          effectiveStatus,
+          statusLabel: statusLabels[effectiveStatus] ?? effectiveStatus,
+          systemStatusLabel: statusLabels[state.status] ?? state.status,
+          speedLabel: getSpeedLabel(state.speed),
+          stabilityLabel: getStabilityLabel(state.stability),
+          teacherControl: control ?? null,
+        };
+      }),
     };
   }
 }

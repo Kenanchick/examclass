@@ -27,6 +27,7 @@
     "prisma:seed-knowledge-map": "tsx prisma/seed-knowledge-map.ts",
     "prisma:seed-diagnostic-bank": "tsx prisma/seed-diagnostic-bank.ts",
     "prisma:seed-homework": "tsx prisma/seed-homework.ts",
+    "prisma:seed-learning-route-demo": "tsx prisma/seed-learning-route-demo.ts",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {

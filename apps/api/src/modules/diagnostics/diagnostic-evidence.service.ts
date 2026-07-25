@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import {
   AssessmentReviewErrorType,
   AttemptIndependence,
@@ -273,64 +274,87 @@ export class DiagnosticEvidenceService {
     const skillIdByCode = new Map(
       skills.map((skill) => [skill.code, skill.id]),
     );
+    const calculationBatchId = randomUUID();
 
     await this.prisma.$transaction(
-      calculated.map((state) =>
-        this.prisma.studentSkillState.upsert({
-          where: {
-            studentId_skillId: {
-              studentId,
-              skillId: skillIdByCode.get(state.skillCode)!,
+      calculated.flatMap((state) => {
+        const skillId = skillIdByCode.get(state.skillCode)!;
+
+        return [
+          this.prisma.studentSkillState.upsert({
+            where: {
+              studentId_skillId: {
+                studentId,
+                skillId,
+              },
             },
-          },
-          update: {
-            knowledgeMapId,
-            initializedBySessionId,
-            formulaVersion: KNOWLEDGE_PROFILE_FORMULA_VERSION,
-            mastery: state.mastery,
-            confidence: state.confidence,
-            evidenceWeight: state.evidenceWeight,
-            evidenceCount: state.evidenceCount,
-            distinctEvidenceCount: state.distinctEvidenceCount,
-            confirmingAttempts: state.confirmingAttempts,
-            contradictingAttempts: state.contradictingAttempts,
-            speed: state.speed,
-            stability: state.stability,
-            status: StudentSkillStatus[state.status],
-            lastEvidenceAt: state.lastEvidenceAt,
-            lastVerifiedAt: state.lastVerifiedAt,
-            reviewDueAt: state.reviewDueAt,
-            needsReview: state.needsReview,
-            teacherConfirmedAt: state.teacherConfirmedAt,
-            sourceSummary: state.sourceSummary as Prisma.InputJsonValue,
-            explanation: state.explanation as Prisma.InputJsonValue,
-          },
-          create: {
-            studentId,
-            skillId: skillIdByCode.get(state.skillCode)!,
-            knowledgeMapId,
-            initializedBySessionId,
-            formulaVersion: KNOWLEDGE_PROFILE_FORMULA_VERSION,
-            mastery: state.mastery,
-            confidence: state.confidence,
-            evidenceWeight: state.evidenceWeight,
-            evidenceCount: state.evidenceCount,
-            distinctEvidenceCount: state.distinctEvidenceCount,
-            confirmingAttempts: state.confirmingAttempts,
-            contradictingAttempts: state.contradictingAttempts,
-            speed: state.speed,
-            stability: state.stability,
-            status: StudentSkillStatus[state.status],
-            lastEvidenceAt: state.lastEvidenceAt,
-            lastVerifiedAt: state.lastVerifiedAt,
-            reviewDueAt: state.reviewDueAt,
-            needsReview: state.needsReview,
-            teacherConfirmedAt: state.teacherConfirmedAt,
-            sourceSummary: state.sourceSummary as Prisma.InputJsonValue,
-            explanation: state.explanation as Prisma.InputJsonValue,
-          },
-        }),
-      ),
+            update: {
+              knowledgeMapId,
+              initializedBySessionId,
+              formulaVersion: KNOWLEDGE_PROFILE_FORMULA_VERSION,
+              mastery: state.mastery,
+              confidence: state.confidence,
+              evidenceWeight: state.evidenceWeight,
+              evidenceCount: state.evidenceCount,
+              distinctEvidenceCount: state.distinctEvidenceCount,
+              confirmingAttempts: state.confirmingAttempts,
+              contradictingAttempts: state.contradictingAttempts,
+              speed: state.speed,
+              stability: state.stability,
+              status: StudentSkillStatus[state.status],
+              lastEvidenceAt: state.lastEvidenceAt,
+              lastVerifiedAt: state.lastVerifiedAt,
+              reviewDueAt: state.reviewDueAt,
+              needsReview: state.needsReview,
+              teacherConfirmedAt: state.teacherConfirmedAt,
+              sourceSummary: state.sourceSummary as Prisma.InputJsonValue,
+              explanation: state.explanation as Prisma.InputJsonValue,
+            },
+            create: {
+              studentId,
+              skillId,
+              knowledgeMapId,
+              initializedBySessionId,
+              formulaVersion: KNOWLEDGE_PROFILE_FORMULA_VERSION,
+              mastery: state.mastery,
+              confidence: state.confidence,
+              evidenceWeight: state.evidenceWeight,
+              evidenceCount: state.evidenceCount,
+              distinctEvidenceCount: state.distinctEvidenceCount,
+              confirmingAttempts: state.confirmingAttempts,
+              contradictingAttempts: state.contradictingAttempts,
+              speed: state.speed,
+              stability: state.stability,
+              status: StudentSkillStatus[state.status],
+              lastEvidenceAt: state.lastEvidenceAt,
+              lastVerifiedAt: state.lastVerifiedAt,
+              reviewDueAt: state.reviewDueAt,
+              needsReview: state.needsReview,
+              teacherConfirmedAt: state.teacherConfirmedAt,
+              sourceSummary: state.sourceSummary as Prisma.InputJsonValue,
+              explanation: state.explanation as Prisma.InputJsonValue,
+            },
+          }),
+          this.prisma.studentSkillStateRevision.create({
+            data: {
+              calculationBatchId,
+              studentId,
+              skillId,
+              knowledgeMapId,
+              formulaVersion: KNOWLEDGE_PROFILE_FORMULA_VERSION,
+              mastery: state.mastery,
+              confidence: state.confidence,
+              speed: state.speed,
+              stability: state.stability,
+              status: StudentSkillStatus[state.status],
+              evidenceWeight: state.evidenceWeight,
+              evidenceCount: state.evidenceCount,
+              sourceSummary: state.sourceSummary as Prisma.InputJsonValue,
+              explanation: state.explanation as Prisma.InputJsonValue,
+            },
+          }),
+        ];
+      }),
     );
 
     return calculated;

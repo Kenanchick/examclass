@@ -12,6 +12,7 @@ import {
   UserRoundPlus,
   UsersRound,
 } from "lucide-react";
+import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import {
   teacherHomeworkQueryKey,
@@ -67,13 +68,13 @@ function StudentCard({ student }: { student: TeacherHomeworkStudent }) {
             <MessageCircle className="size-4 shrink-0" />
             <span className="truncate">Сообщение</span>
           </button>
-          <button
+          <Link
             className="inline-flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs font-bold text-brand transition-colors hover:bg-brand/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
-            type="button"
+            href={`/students/${student.id}/trajectory`}
           >
             <Target className="size-4 shrink-0" />
             <span className="truncate">Траектория подготовки</span>
-          </button>
+          </Link>
         </div>
       </div>
     </article>

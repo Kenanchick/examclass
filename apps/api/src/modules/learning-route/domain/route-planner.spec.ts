@@ -242,4 +242,20 @@ describe('buildLearningRoute', () => {
       true,
     );
   });
+
+  it('ставит назначенный преподавателем контроль выше обычного ДЗ', () => {
+    const controlled = skill('teacher-control');
+    const route = build([controlled], {
+      teacherAssignments: [
+        {
+          skillCode: controlled.code,
+          assignmentId: `CONTROL:${controlled.code}`,
+          title: 'Контроль навыка',
+          kind: 'CONTROL',
+        },
+      ],
+    });
+
+    expect(findSkillModule(route, controlled.code)?.type).toBe('CONTROL');
+  });
 });

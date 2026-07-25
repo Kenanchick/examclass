@@ -275,6 +275,33 @@ enum LearningRouteModuleStatus {
   COMPLETED
 }
 
+enum TeacherInstructionStatus {
+  NOT_STARTED
+  TAUGHT
+  REINFORCED
+}
+
+enum TeacherRouteActionType {
+  CONFIRM_SYSTEM_CONCLUSION
+  CHANGE_SKILL_STATUS
+  CLEAR_SKILL_STATUS
+  MARK_TAUGHT
+  MARK_REINFORCED
+  SCHEDULE_CONTROL
+  SCHEDULE_REVIEW
+  UPDATE_SKILL_COMMENT
+  SET_SKILL_AUTOMATION
+  MOVE_MODULE
+  PIN_MODULE
+  UNPIN_MODULE
+  HIDE_MODULE
+  SHOW_MODULE
+  UPDATE_MODULE_COMMENT
+  SET_MODULE_AUTOMATION
+  ADD_CUSTOM_MODULE
+  UPDATE_WEEKLY_LOAD
+}
+
 enum AssessmentReviewErrorType {
   NONE
   COMPUTATION
@@ -296,18 +323,23 @@ model User {
   updatedAt    DateTime @updatedAt
   role         Role     @default(STUDENT)
 
-  ownedClassrooms      Classroom[]                   @relation("ClassroomOwner")
-  classroomMemberships ClassroomMember[]
-  favoriteTasks        TaskFavorite[]
-  assignedHomework     HomeworkAssignment[]          @relation("HomeworkAssignedBy")
-  homeworkRecipients   HomeworkAssignmentRecipient[]
-  homeworkSubmissions  HomeworkSubmission[]
-  learningGoals        StudentLearningGoal[]         @relation("StudentLearningGoals")
-  assessmentSessions   AssessmentSession[]           @relation("StudentAssessmentSessions")
-  reviewedAttempts     AssessmentAttempt[]           @relation("AssessmentAttemptReviewer")
-  skillEvidence        SkillEvidence[]               @relation("StudentSkillEvidence")
-  skillStates          StudentSkillState[]           @relation("StudentSkillStates")
-  learningRoutes       LearningRoute[]               @relation("StudentLearningRoutes")
+  ownedClassrooms       Classroom[]                   @relation("ClassroomOwner")
+  classroomMemberships  ClassroomMember[]
+  favoriteTasks         TaskFavorite[]
+  assignedHomework      HomeworkAssignment[]          @relation("HomeworkAssignedBy")
+  homeworkRecipients    HomeworkAssignmentRecipient[]
+  homeworkSubmissions   HomeworkSubmission[]
+  learningGoals         StudentLearningGoal[]         @relation("StudentLearningGoals")
+  assessmentSessions    AssessmentSession[]           @relation("StudentAssessmentSessions")
+  reviewedAttempts      AssessmentAttempt[]           @relation("AssessmentAttemptReviewer")
+  skillEvidence         SkillEvidence[]               @relation("StudentSkillEvidence")
+  skillStates           StudentSkillState[]           @relation("StudentSkillStates")
+  skillStateRevisions   StudentSkillStateRevision[]   @relation("StudentSkillStateRevisions")
+  learningRoutes        LearningRoute[]               @relation("StudentLearningRoutes")
+  teacherSkillControls  TeacherSkillControl[]         @relation("StudentTeacherSkillControls")
+  authoredSkillControls TeacherSkillControl[]         @relation("TeacherSkillControlAuthor")
+  routeChangeHistory    TeacherRouteChange[]          @relation("StudentRouteChangeHistory")
+  authoredRouteChanges  TeacherRouteChange[]          @relation("TeacherRouteChangeAuthor")
 }
 
 model Subject {
@@ -538,6 +570,7 @@ model KnowledgeMap {
   assessmentSessions  AssessmentSession[]
   diagnosticQuestions DiagnosticQuestionTemplate[]
   skillStates         StudentSkillState[]
+  skillStateRevisions StudentSkillStateRevision[]
   learningRoutes      LearningRoute[]
 
   @@unique([subjectId, version])
@@ -584,6 +617,9 @@ model KnowledgeNode {
   reviewCriteria       AssessmentReviewCriterion[]
   routeModuleSkills    LearningRouteModuleSkill[]
   routeModules         LearningRouteModule[]         @relation("LearningRouteModuleNode")
+  skillStateRevisions  StudentSkillStateRevision[]
+  teacherSkillControls TeacherSkillControl[]
+  teacherRouteChanges  TeacherRouteChange[]
 
   @@unique([knowledgeMapId, code])
   @@index([knowledgeMapId, kind, parentId])
@@ -1023,6 +1059,54 @@ model StudentSkillState {
   @@index([skillId, status])
 }
 
+model StudentSkillStateRevision {
+  id                 String             @id @default(cuid())
+  calculationBatchId String
+  studentId          String
+  skillId            String
+  knowledgeMapId     String
+  formulaVersion     String
+  mastery            Float
+  confidence         Float
+  speed              Float?
+  stability          Float?
+  status             StudentSkillStatus
+  evidenceWeight     Float
+  evidenceCount      Int
+  sourceSummary      Json               @default("{}")
+  explanation        Json               @default("{}")
+  calculatedAt       DateTime           @default(now())
+
+  student      User          @relation("StudentSkillStateRevisions", fields: [studentId], references: [id], onDelete: Cascade)
+  skill        KnowledgeNode @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  knowledgeMap KnowledgeMap  @relation(fields: [knowledgeMapId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, skillId, calculatedAt])
+  @@index([calculationBatchId])
+}
+
+model TeacherSkillControl {
+  studentId                   String
+  skillId                     String
+  instructionStatus           TeacherInstructionStatus @default(NOT_STARTED)
+  manualStatus                StudentSkillStatus?
+  autoStatusEnabled           Boolean                  @default(true)
+  systemConclusionConfirmedAt DateTime?
+  reviewScheduledAt           DateTime?
+  controlScheduledAt          DateTime?
+  comment                     String?
+  lastAuthorId                String
+  createdAt                   DateTime                 @default(now())
+  updatedAt                   DateTime                 @updatedAt
+
+  student    User          @relation("StudentTeacherSkillControls", fields: [studentId], references: [id], onDelete: Cascade)
+  skill      KnowledgeNode @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  lastAuthor User          @relation("TeacherSkillControlAuthor", fields: [lastAuthorId], references: [id], onDelete: Restrict)
+
+  @@id([studentId, skillId])
+  @@index([lastAuthorId, updatedAt])
+}
+
 model LearningRoute {
   id                    String              @id @default(cuid())
   publicId              String              @unique
@@ -1040,10 +1124,11 @@ model LearningRoute {
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
 
-  student      User                  @relation("StudentLearningRoutes", fields: [studentId], references: [id], onDelete: Cascade)
-  goal         StudentLearningGoal   @relation(fields: [goalId], references: [id], onDelete: Cascade)
-  knowledgeMap KnowledgeMap          @relation(fields: [knowledgeMapId], references: [id], onDelete: Restrict)
-  modules      LearningRouteModule[]
+  student        User                  @relation("StudentLearningRoutes", fields: [studentId], references: [id], onDelete: Cascade)
+  goal           StudentLearningGoal   @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  knowledgeMap   KnowledgeMap          @relation(fields: [knowledgeMapId], references: [id], onDelete: Restrict)
+  modules        LearningRouteModule[]
+  teacherChanges TeacherRouteChange[]
 
   @@index([studentId, status, generatedAt])
   @@index([goalId, status])
@@ -1067,12 +1152,19 @@ model LearningRouteModule {
   factorBreakdown        Json                      @default("{}")
   completionCriteria     Json                      @default("{}")
   reasons                Json                      @default("[]")
+  isPinned               Boolean                   @default(false)
+  isHidden               Boolean                   @default(false)
+  autoUpdateEnabled      Boolean                   @default(true)
+  isCustom               Boolean                   @default(false)
+  positionLocked         Boolean                   @default(false)
+  teacherComment         String?
   createdAt              DateTime                  @default(now())
   updatedAt              DateTime                  @updatedAt
 
-  route      LearningRoute              @relation(fields: [routeId], references: [id], onDelete: Cascade)
-  moduleNode KnowledgeNode?             @relation("LearningRouteModuleNode", fields: [moduleNodeId], references: [id], onDelete: SetNull)
-  skills     LearningRouteModuleSkill[]
+  route          LearningRoute              @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  moduleNode     KnowledgeNode?             @relation("LearningRouteModuleNode", fields: [moduleNodeId], references: [id], onDelete: SetNull)
+  skills         LearningRouteModuleSkill[]
+  teacherChanges TeacherRouteChange[]
 
   @@unique([routeId, moduleKey])
   @@index([routeId, position])
@@ -1095,6 +1187,32 @@ model LearningRouteModuleSkill {
 
   @@id([moduleId, skillId])
   @@index([skillId])
+}
+
+model TeacherRouteChange {
+  id        String                 @id @default(cuid())
+  publicId  String                 @unique
+  studentId String
+  authorId  String
+  routeId   String?
+  moduleId  String?
+  moduleKey String?
+  skillId   String?
+  action    TeacherRouteActionType
+  reason    String
+  before    Json?
+  after     Json?
+  createdAt DateTime               @default(now())
+
+  student User                 @relation("StudentRouteChangeHistory", fields: [studentId], references: [id], onDelete: Cascade)
+  author  User                 @relation("TeacherRouteChangeAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  route   LearningRoute?       @relation(fields: [routeId], references: [id], onDelete: SetNull)
+  module  LearningRouteModule? @relation(fields: [moduleId], references: [id], onDelete: SetNull)
+  skill   KnowledgeNode?       @relation(fields: [skillId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, createdAt])
+  @@index([skillId, createdAt])
+  @@index([routeId, createdAt])
 }
 
 model TaskRubricCriterion {

@@ -64,6 +64,7 @@ export type RouteTeacherAssignment = {
   skillCode: string;
   assignmentId: string;
   title: string;
+  kind?: 'HOMEWORK' | 'CONTROL';
 };
 
 export type RouteGoal = {
