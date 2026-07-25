@@ -13,22 +13,22 @@ import {
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { getStudentHomeworkWhere } from './homework-access';
 import {
-  HomeworkSubmissionStorageService,
-  type HomeworkUploadFile,
-} from './homework-submission-storage.service';
+  SolutionFileStorageService,
+  type SolutionUploadFile,
+} from '../../shared/storage/solution-file-storage.service';
 
 @Injectable()
 export class HomeworkSubmissionService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly submissionStorage: HomeworkSubmissionStorageService,
+    private readonly submissionStorage: SolutionFileStorageService,
   ) {}
 
   async uploadStudentHomeworkAttachment(
     userId: string,
     homeworkPublicId: string,
     taskPublicId: string,
-    file: HomeworkUploadFile,
+    file: SolutionUploadFile,
   ) {
     const assignment = await this.getStudentHomeworkForSubmission(
       userId,
@@ -55,7 +55,11 @@ export class HomeworkSubmissionService {
           storageKey: true,
         },
       });
-    const storedFile = await this.submissionStorage.save(file, fileMetadata);
+    const storedFile = await this.submissionStorage.save(
+      file,
+      fileMetadata,
+      'homework-submissions',
+    );
 
     const attachment = await this.prisma.homeworkSubmissionAttachment
       .upsert({

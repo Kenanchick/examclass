@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
+import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { HomeworkModule } from './modules/homework/homework.module';
 import { KnowledgeMapModule } from './modules/knowledge-map/knowledge-map.module';
@@ -16,6 +17,7 @@ import { TopicsModule } from './modules/topics/topics.module';
       isGlobal: true,
     }),
     AuthModule,
+    DiagnosticsModule,
     FavoritesModule,
     HomeworkModule,
     KnowledgeMapModule,

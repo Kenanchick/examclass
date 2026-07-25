@@ -17,9 +17,9 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { HomeworkSubmissionService } from './homework-submission.service';
 import { HomeworkService } from './homework.service';
 import {
-  MAX_HOMEWORK_ATTACHMENT_SIZE,
-  type HomeworkUploadFile,
-} from './homework-submission-storage.service';
+  MAX_SOLUTION_FILE_SIZE,
+  type SolutionUploadFile,
+} from '../../shared/storage/solution-file-storage.service';
 
 @Controller('homework')
 @UseGuards(JwtAuthGuard)
@@ -56,7 +56,7 @@ export class HomeworkController {
   @Post(':publicId/submission/tasks/:taskPublicId/attachment')
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: MAX_HOMEWORK_ATTACHMENT_SIZE },
+      limits: { fileSize: MAX_SOLUTION_FILE_SIZE },
     }),
   )
   uploadSubmissionAttachment(
@@ -64,7 +64,7 @@ export class HomeworkController {
     @Param('publicId') publicId: string,
     @Param('taskPublicId') taskPublicId: string,
     @UploadedFile(new ParseFilePipe({ fileIsRequired: true }))
-    file: HomeworkUploadFile,
+    file: SolutionUploadFile,
   ) {
     return this.submissionService.uploadStudentHomeworkAttachment(
       userId,

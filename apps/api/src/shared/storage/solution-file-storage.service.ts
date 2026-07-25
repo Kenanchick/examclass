@@ -8,16 +8,16 @@ import { createReadStream } from 'node:fs';
 import { access, mkdir, unlink, writeFile } from 'node:fs/promises';
 import { dirname, extname, resolve, sep } from 'node:path';
 
-export const MAX_HOMEWORK_ATTACHMENT_SIZE = 15 * 1024 * 1024;
+export const MAX_SOLUTION_FILE_SIZE = 15 * 1024 * 1024;
 
-export type HomeworkUploadFile = {
+export type SolutionUploadFile = {
   buffer: Buffer;
   mimetype: string;
   originalname: string;
   size: number;
 };
 
-type ValidatedHomeworkUpload = {
+export type ValidatedSolutionUpload = {
   extension: string;
   mimeType: string;
   originalName: string;
@@ -32,17 +32,17 @@ const supportedFileTypes: Record<string, readonly string[]> = {
 };
 
 @Injectable()
-export class HomeworkSubmissionStorageService {
+export class SolutionFileStorageService {
   private readonly uploadsDirectory = resolve(
     process.env.UPLOADS_DIR ?? resolve(process.cwd(), 'uploads'),
   );
 
-  validate(file: HomeworkUploadFile): ValidatedHomeworkUpload {
+  validate(file: SolutionUploadFile): ValidatedSolutionUpload {
     if (!file || !Buffer.isBuffer(file.buffer) || file.size <= 0) {
       throw new BadRequestException('Выберите файл с решением');
     }
 
-    if (file.size > MAX_HOMEWORK_ATTACHMENT_SIZE) {
+    if (file.size > MAX_SOLUTION_FILE_SIZE) {
       throw new BadRequestException('Размер файла не должен превышать 15 МБ');
     }
 
@@ -63,8 +63,12 @@ export class HomeworkSubmissionStorageService {
     };
   }
 
-  async save(file: HomeworkUploadFile, metadata: ValidatedHomeworkUpload) {
-    const storageKey = `homework-submissions/${randomUUID()}${metadata.extension}`;
+  async save(
+    file: SolutionUploadFile,
+    metadata: ValidatedSolutionUpload,
+    namespace: 'homework-submissions' | 'diagnostic-attempts',
+  ) {
+    const storageKey = `${namespace}/${randomUUID()}${metadata.extension}`;
     const storagePath = this.getStoragePath(storageKey);
 
     await mkdir(dirname(storagePath), { recursive: true });

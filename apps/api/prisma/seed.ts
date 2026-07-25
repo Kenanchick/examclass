@@ -7,6 +7,7 @@ import {
   Role,
   TopicStatus,
 } from '../src/generated/prisma/client';
+import { seedDiagnosticBank } from './diagnostic-bank.seed';
 import { seedKnowledgeMap } from './knowledge-map.seed';
 
 const connectionString = process.env.DATABASE_URL;
@@ -446,10 +447,11 @@ async function main() {
   }
 
   const knowledgeMapSummary = await seedKnowledgeMap(prisma);
+  const diagnosticBankSummary = await seedDiagnosticBank(prisma);
 
   console.log(
-    'Seed completed: demo student, subjects, topics, and knowledge map were added',
-    knowledgeMapSummary,
+    'Seed completed: demo student, subjects, topics, knowledge map, and diagnostic bank were added',
+    { knowledgeMapSummary, diagnosticBankSummary },
   );
 }
 

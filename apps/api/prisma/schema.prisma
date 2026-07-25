@@ -131,6 +131,121 @@ enum KnowledgeReviewPriority {
   LOW
 }
 
+enum LearningGoalStatus {
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum AssessmentSessionType {
+  INITIAL_DIAGNOSTIC
+}
+
+enum AssessmentSessionStatus {
+  EXAM_READY
+  EXAM_IN_PROGRESS
+  EXAM_REVIEW_PENDING
+  CLARIFICATION
+  COMPLETED
+  ABANDONED
+}
+
+enum AssessmentPhase {
+  FULL_EXAM
+  ADAPTIVE
+  THEORY
+}
+
+enum AssessmentItemKind {
+  TASK
+  QUESTION
+}
+
+enum AssessmentItemStatus {
+  PENDING
+  ACTIVE
+  ANSWERED
+  SKIPPED
+  AWAITING_REVIEW
+  REVIEWED
+}
+
+enum AssessmentAttemptOutcome {
+  CORRECT
+  INCORRECT
+  PARTIAL
+  SKIPPED
+  UNSTUDIED
+  NOT_REACHED
+  AWAITING_REVIEW
+}
+
+enum AssessmentBehaviorEventType {
+  VIEWED
+  FOCUS_GAINED
+  FOCUS_LOST
+  ANSWER_CHANGED
+  MARKED_FOR_REVIEW
+  WORK_SAVED
+}
+
+enum DiagnosticQuestionKind {
+  ADAPTIVE_TASK
+  THEORY_SHORT
+  THEORY_CHOICE
+}
+
+enum QuestionEvaluationMode {
+  EXACT
+  CHOICE
+  MANUAL
+}
+
+enum DiagnosticHypothesisType {
+  SKILL_GAP
+  PREREQUISITE_GAP
+  COMPUTATION_ERROR
+  MISREAD_CONDITION
+  TIME_PRESSURE
+  CARELESSNESS
+  UNSTUDIED
+  POSSIBLE_GUESS
+}
+
+enum DiagnosticHypothesisStatus {
+  OPEN
+  CONFIRMED
+  REJECTED
+  INSUFFICIENT
+}
+
+enum SkillEvidenceSource {
+  FULL_EXAM
+  ADAPTIVE_TASK
+  THEORY_QUESTION
+  MANUAL_REVIEW
+  SELF_REPORT
+}
+
+enum StudentSkillStatus {
+  UNKNOWN
+  UNSTUDIED
+  GAP
+  DEVELOPING
+  MASTERED
+}
+
+enum AssessmentReviewErrorType {
+  NONE
+  COMPUTATION
+  CONCEPTUAL
+  MODELING
+  LOGIC
+  NOTATION
+  INCOMPLETE
+  MISREAD_CONDITION
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -147,6 +262,11 @@ model User {
   assignedHomework     HomeworkAssignment[]          @relation("HomeworkAssignedBy")
   homeworkRecipients   HomeworkAssignmentRecipient[]
   homeworkSubmissions  HomeworkSubmission[]
+  learningGoals        StudentLearningGoal[]         @relation("StudentLearningGoals")
+  assessmentSessions   AssessmentSession[]           @relation("StudentAssessmentSessions")
+  reviewedAttempts     AssessmentAttempt[]           @relation("AssessmentAttemptReviewer")
+  skillEvidence        SkillEvidence[]               @relation("StudentSkillEvidence")
+  skillStates          StudentSkillState[]           @relation("StudentSkillStates")
 }
 
 model Subject {
@@ -241,6 +361,8 @@ model Task {
   homeworkAssignments HomeworkAssignmentTask[]
   homeworkAttachments HomeworkSubmissionAttachment[]
   skillLinks          TaskSkill[]
+  assessmentItems     AssessmentItem[]
+  rubricCriteria      TaskRubricCriterion[]
 
   @@index([topicId, status])
   @@index([examPart, status])
@@ -366,11 +488,15 @@ model KnowledgeMap {
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
 
-  subject     Subject                 @relation(fields: [subjectId], references: [id], onDelete: Cascade)
-  nodes       KnowledgeNode[]
-  materials   LearningMaterial[]
-  reviewItems KnowledgeReviewItem[]
-  references  KnowledgeMapReference[]
+  subject             Subject                      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  nodes               KnowledgeNode[]
+  materials           LearningMaterial[]
+  reviewItems         KnowledgeReviewItem[]
+  references          KnowledgeMapReference[]
+  learningGoals       StudentLearningGoal[]
+  assessmentSessions  AssessmentSession[]
+  diagnosticQuestions DiagnosticQuestionTemplate[]
+  skillStates         StudentSkillState[]
 
   @@unique([subjectId, version])
   @@index([subjectId, status, version])
@@ -399,13 +525,21 @@ model KnowledgeNode {
   parent       KnowledgeNode?  @relation("KnowledgeNodeHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children     KnowledgeNode[] @relation("KnowledgeNodeHierarchy")
 
-  prerequisiteLinks KnowledgeDependency[]         @relation("DependentKnowledgeNode")
-  unlocksSkills     KnowledgeDependency[]         @relation("PrerequisiteKnowledgeNode")
-  examMappings      KnowledgeExamMapping[]
-  verification      KnowledgeVerificationMethod[]
-  taskLinks         TaskSkill[]
-  materialLinks     LearningMaterialSkill[]
-  reviewLinks       KnowledgeReviewItemSkill[]
+  prerequisiteLinks    KnowledgeDependency[]         @relation("DependentKnowledgeNode")
+  unlocksSkills        KnowledgeDependency[]         @relation("PrerequisiteKnowledgeNode")
+  examMappings         KnowledgeExamMapping[]
+  verification         KnowledgeVerificationMethod[]
+  taskLinks            TaskSkill[]
+  materialLinks        LearningMaterialSkill[]
+  reviewLinks          KnowledgeReviewItemSkill[]
+  goalUnstudiedLinks   LearningGoalUnstudiedNode[]
+  diagnosticQuestions  DiagnosticQuestionTemplate[]
+  assessmentItems      AssessmentItem[]
+  diagnosticHypotheses DiagnosticHypothesis[]
+  skillEvidence        SkillEvidence[]
+  skillStates          StudentSkillState[]
+  rubricCriteria       TaskRubricCriterion[]
+  reviewCriteria       AssessmentReviewCriterion[]
 
   @@unique([knowledgeMapId, code])
   @@index([knowledgeMapId, kind, parentId])
@@ -556,4 +690,309 @@ model KnowledgeMapReference {
 
   @@unique([knowledgeMapId, url])
   @@index([knowledgeMapId, sortOrder])
+}
+
+model StudentLearningGoal {
+  id                      String             @id @default(cuid())
+  publicId                String             @unique
+  studentId               String
+  knowledgeMapId          String
+  targetScore             Int
+  examDate                DateTime
+  weeklyMinutes           Int
+  preferredSessionMinutes Int
+  availableWeekdays       Int[]
+  lastMockScore           Int?
+  status                  LearningGoalStatus @default(ACTIVE)
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
+
+  student        User                        @relation("StudentLearningGoals", fields: [studentId], references: [id], onDelete: Cascade)
+  knowledgeMap   KnowledgeMap                @relation(fields: [knowledgeMapId], references: [id], onDelete: Restrict)
+  unstudiedNodes LearningGoalUnstudiedNode[]
+  sessions       AssessmentSession[]
+
+  @@index([studentId, status, createdAt])
+  @@index([knowledgeMapId])
+}
+
+model LearningGoalUnstudiedNode {
+  goalId    String
+  nodeId    String
+  createdAt DateTime @default(now())
+
+  goal StudentLearningGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  node KnowledgeNode       @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@id([goalId, nodeId])
+  @@index([nodeId])
+}
+
+model AssessmentSession {
+  id                    String                  @id @default(cuid())
+  publicId              String                  @unique
+  studentId             String
+  goalId                String
+  knowledgeMapId        String
+  type                  AssessmentSessionType   @default(INITIAL_DIAGNOSTIC)
+  status                AssessmentSessionStatus @default(EXAM_READY)
+  currentPhase          AssessmentPhase         @default(FULL_EXAM)
+  algorithmVersion      String
+  examDurationMinutes   Int                     @default(235)
+  adaptiveQuestionLimit Int                     @default(8)
+  theoryQuestionLimit   Int                     @default(4)
+  startedAt             DateTime?
+  examSubmittedAt       DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  student           User                      @relation("StudentAssessmentSessions", fields: [studentId], references: [id], onDelete: Cascade)
+  goal              StudentLearningGoal       @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  knowledgeMap      KnowledgeMap              @relation(fields: [knowledgeMapId], references: [id], onDelete: Restrict)
+  items             AssessmentItem[]
+  events            AssessmentBehaviorEvent[]
+  hypotheses        DiagnosticHypothesis[]
+  evidence          SkillEvidence[]
+  initializedStates StudentSkillState[]       @relation("InitialProfileSession")
+
+  @@index([studentId, status, createdAt])
+  @@index([goalId])
+  @@index([knowledgeMapId])
+}
+
+model DiagnosticQuestionTemplate {
+  id               String                   @id @default(cuid())
+  knowledgeMapId   String
+  targetSkillId    String
+  code             String
+  kind             DiagnosticQuestionKind
+  evaluationMode   QuestionEvaluationMode
+  hypothesisType   DiagnosticHypothesisType
+  prompt           String
+  correctAnswer    String?
+  answerOptions    Json?
+  estimatedSeconds Int
+  difficulty       Int
+  isActive         Boolean                  @default(true)
+  createdAt        DateTime                 @default(now())
+  updatedAt        DateTime                 @updatedAt
+
+  knowledgeMap KnowledgeMap     @relation(fields: [knowledgeMapId], references: [id], onDelete: Cascade)
+  targetSkill  KnowledgeNode    @relation(fields: [targetSkillId], references: [id], onDelete: Cascade)
+  items        AssessmentItem[]
+
+  @@unique([knowledgeMapId, code])
+  @@index([targetSkillId, kind, isActive])
+}
+
+model AssessmentItem {
+  id                 String               @id @default(cuid())
+  publicId           String               @unique
+  sessionId          String
+  taskId             String?
+  questionTemplateId String?
+  targetSkillId      String?
+  phase              AssessmentPhase
+  kind               AssessmentItemKind
+  examNumber         Int?
+  sortOrder          Int
+  status             AssessmentItemStatus @default(PENDING)
+  promptSnapshot     String?
+  selectionReason    Json?
+  expectedSeconds    Int?
+  maxScore           Float                @default(1)
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  session          AssessmentSession           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  task             Task?                       @relation(fields: [taskId], references: [id], onDelete: Restrict)
+  questionTemplate DiagnosticQuestionTemplate? @relation(fields: [questionTemplateId], references: [id], onDelete: Restrict)
+  targetSkill      KnowledgeNode?              @relation(fields: [targetSkillId], references: [id], onDelete: Restrict)
+  attempt          AssessmentAttempt?
+  events           AssessmentBehaviorEvent[]
+  sourceHypotheses DiagnosticHypothesis[]      @relation("HypothesisSourceItem")
+  evidence         SkillEvidence[]
+
+  @@unique([sessionId, phase, sortOrder])
+  @@index([sessionId, status, phase])
+  @@index([taskId])
+  @@index([targetSkillId])
+}
+
+model AssessmentAttempt {
+  id                String                     @id @default(cuid())
+  publicId          String                     @unique
+  itemId            String                     @unique
+  rawAnswer         String?
+  solutionText      String?
+  confidence        Int?
+  declaredUnstudied Boolean                    @default(false)
+  outcome           AssessmentAttemptOutcome
+  autoScore         Float?
+  awardedScore      Float?
+  activeSeconds     Int                        @default(0)
+  elapsedSeconds    Int                        @default(0)
+  awaySeconds       Int                        @default(0)
+  answerChanges     Int                        @default(0)
+  firstViewedAt     DateTime?
+  submittedAt       DateTime?
+  reviewerId        String?
+  reviewedAt        DateTime?
+  reviewErrorType   AssessmentReviewErrorType?
+  reviewComment     String?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  item           AssessmentItem                @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  reviewer       User?                         @relation("AssessmentAttemptReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+  attachments    AssessmentAttemptAttachment[]
+  reviewCriteria AssessmentReviewCriterion[]
+
+  @@index([outcome, reviewedAt])
+  @@index([reviewerId])
+}
+
+model AssessmentAttemptAttachment {
+  id           String   @id @default(cuid())
+  publicId     String   @unique
+  attemptId    String
+  storageKey   String   @unique
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime @default(now())
+
+  attempt AssessmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
+}
+
+model AssessmentBehaviorEvent {
+  id         String                      @id @default(cuid())
+  sessionId  String
+  itemId     String?
+  type       AssessmentBehaviorEventType
+  occurredAt DateTime
+  payload    Json?
+  createdAt  DateTime                    @default(now())
+
+  session AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  item    AssessmentItem?   @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, occurredAt])
+  @@index([itemId, occurredAt])
+}
+
+model DiagnosticHypothesis {
+  id            String                     @id @default(cuid())
+  sessionId     String
+  skillId       String?
+  sourceItemId  String?
+  key           String
+  type          DiagnosticHypothesisType
+  status        DiagnosticHypothesisStatus @default(OPEN)
+  confidence    Float
+  priority      Float
+  evidenceCount Int                        @default(1)
+  rationale     String
+  createdAt     DateTime                   @default(now())
+  updatedAt     DateTime                   @updatedAt
+
+  session    AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  skill      KnowledgeNode?    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  sourceItem AssessmentItem?   @relation("HypothesisSourceItem", fields: [sourceItemId], references: [id], onDelete: SetNull)
+
+  @@unique([sessionId, key])
+  @@index([sessionId, status, priority])
+  @@index([skillId, type])
+}
+
+model SkillEvidence {
+  id               String              @id @default(cuid())
+  studentId        String
+  skillId          String
+  sessionId        String
+  assessmentItemId String?
+  source           SkillEvidenceSource
+  score            Float
+  weight           Float
+  independenceKey  String
+  reason           String
+  metadata         Json?
+  occurredAt       DateTime
+  createdAt        DateTime            @default(now())
+
+  student        User              @relation("StudentSkillEvidence", fields: [studentId], references: [id], onDelete: Cascade)
+  skill          KnowledgeNode     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  session        AssessmentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  assessmentItem AssessmentItem?   @relation(fields: [assessmentItemId], references: [id], onDelete: SetNull)
+
+  @@unique([sessionId, skillId, independenceKey, source])
+  @@index([studentId, skillId, occurredAt])
+  @@index([sessionId, source])
+}
+
+model StudentSkillState {
+  studentId              String
+  skillId                String
+  knowledgeMapId         String
+  initializedBySessionId String?
+  mastery                Float
+  confidence             Float
+  evidenceWeight         Float
+  evidenceCount          Int
+  distinctEvidenceCount  Int
+  status                 StudentSkillStatus
+  lastEvidenceAt         DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  student              User               @relation("StudentSkillStates", fields: [studentId], references: [id], onDelete: Cascade)
+  skill                KnowledgeNode      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  knowledgeMap         KnowledgeMap       @relation(fields: [knowledgeMapId], references: [id], onDelete: Cascade)
+  initializedBySession AssessmentSession? @relation("InitialProfileSession", fields: [initializedBySessionId], references: [id], onDelete: SetNull)
+
+  @@id([studentId, skillId])
+  @@index([studentId, knowledgeMapId, status])
+  @@index([skillId, status])
+}
+
+model TaskRubricCriterion {
+  id          String  @id @default(cuid())
+  taskId      String
+  skillId     String?
+  code        String
+  title       String
+  description String?
+  maxScore    Float
+  sortOrder   Int     @default(0)
+
+  task          Task                        @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  skill         KnowledgeNode?              @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  reviewResults AssessmentReviewCriterion[]
+
+  @@unique([taskId, code])
+  @@index([skillId])
+}
+
+model AssessmentReviewCriterion {
+  id                String                    @id @default(cuid())
+  attemptId         String
+  rubricCriterionId String?
+  skillId           String?
+  code              String
+  title             String
+  awardedScore      Float
+  maxScore          Float
+  errorType         AssessmentReviewErrorType
+  comment           String?
+  createdAt         DateTime                  @default(now())
+
+  attempt         AssessmentAttempt    @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  rubricCriterion TaskRubricCriterion? @relation(fields: [rubricCriterionId], references: [id], onDelete: SetNull)
+  skill           KnowledgeNode?       @relation(fields: [skillId], references: [id], onDelete: SetNull)
+
+  @@unique([attemptId, code])
+  @@index([skillId, errorType])
 }
