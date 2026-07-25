@@ -457,6 +457,15 @@ export class TeacherRoadmapService {
           isMastered: masteredSkills === subtopic.skills.length,
         };
       });
+      const isPassed =
+        matching.length > 0 &&
+        matching.every(({ node }) => {
+          const metrics = getEffectiveMetrics(
+            node.skillStates[0],
+            node.teacherSkillControls[0],
+          );
+          return ['MASTERED', 'TEACHER_CONFIRMED'].includes(metrics.status);
+        });
       const attempts = matching
         .flatMap(({ node }) => evidenceBySkillId.get(node.id) ?? [])
         .sort(
@@ -491,6 +500,7 @@ export class TeacherRoadmapService {
         isCurrent: examNumber === currentExamNumber,
         isTeacherAssigned,
         needsReview,
+        isPassed,
         skillCount: matching.length,
         subtopics,
         reasons,

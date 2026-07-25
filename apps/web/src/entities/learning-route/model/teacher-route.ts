@@ -304,6 +304,7 @@ export type TeacherRoadmapNode = {
   isCurrent: boolean;
   isTeacherAssigned: boolean;
   needsReview: boolean;
+  isPassed: boolean;
   skillCount: number;
   subtopics: Array<{
     code: string;

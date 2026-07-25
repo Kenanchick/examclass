@@ -20,6 +20,10 @@ import { LearningRouteAccessService } from './learning-route-access.service';
 import { LearningRouteService } from './learning-route.service';
 import { createTeacherRouteChange } from './teacher-route-change';
 import { EXAM_ROADMAP_TITLES } from './domain/exam-roadmap';
+import {
+  getEffectiveSkillStatus,
+  type TeacherSkillStateControl,
+} from './domain/teacher-skill-state';
 
 type SkillControlChanges = {
   instructionStatus?: TeacherInstructionStatus;
@@ -39,6 +43,15 @@ const routeChangingActions = new Set<TeacherRouteActionType>([
   TeacherRouteActionType.SET_SKILL_AUTOMATION,
 ]);
 
+const isPassedStatus = (status: string) =>
+  status === StudentSkillStatus.MASTERED ||
+  status === StudentSkillStatus.TEACHER_CONFIRMED;
+
+const isSkillPassed = (
+  systemStatus: string,
+  control?: TeacherSkillStateControl | null,
+) => isPassedStatus(getEffectiveSkillStatus(systemStatus, control));
+
 @Injectable()
 export class TeacherRouteSkillService {
   constructor(
@@ -55,12 +68,20 @@ export class TeacherRouteSkillService {
   ) {
     await this.access.assertTeacherStudent(teacherId, studentId);
     const context = await this.getSkillContext(studentId, skillCode);
-    const changes = this.getChanges(dto, context.systemStatus);
     const before = await this.prisma.teacherSkillControl.findUnique({
       where: {
         studentId_skillId: { studentId, skillId: context.skillId },
       },
     });
+    if (
+      dto.action === TeacherRouteActionType.SCHEDULE_REVIEW &&
+      !isSkillPassed(context.systemStatus, before)
+    ) {
+      throw new BadRequestException(
+        'Сначала отметьте навык пройденным, затем его можно отправить на повторение',
+      );
+    }
+    const changes = this.getChanges(dto, context.systemStatus);
 
     const after = await this.prisma.$transaction(async (transaction) => {
       const control = await transaction.teacherSkillControl.upsert({
@@ -120,13 +141,9 @@ export class TeacherRouteSkillService {
     await this.access.assertTeacherStudent(teacherId, studentId);
     const allowedStatuses = new Set<StudentSkillStatus>([
       StudentSkillStatus.MASTERED,
-      StudentSkillStatus.LEARNING,
-      StudentSkillStatus.NEEDS_REINFORCEMENT,
     ]);
     if (!allowedStatuses.has(dto.status)) {
-      throw new BadRequestException(
-        'Для подтемы можно выбрать освоение, изучение или закрепление',
-      );
+      throw new BadRequestException('Подтему можно отметить только пройденной');
     }
 
     const goal = await this.prisma.studentLearningGoal.findFirst({
@@ -256,14 +273,37 @@ export class TeacherRouteSkillService {
       },
       select: {
         id: true,
+        skillStates: {
+          where: { studentId },
+          take: 1,
+          select: { status: true },
+        },
         teacherSkillControls: {
           where: { studentId },
           take: 1,
+          select: {
+            manualStatus: true,
+            autoStatusEnabled: true,
+            reviewScheduledAt: true,
+          },
         },
       },
     });
     if (skills.length === 0) {
       throw new NotFoundException('Для этого задания не найдены навыки');
+    }
+    if (
+      skills.some(
+        (skill) =>
+          !isSkillPassed(
+            skill.skillStates[0]?.status ?? StudentSkillStatus.UNSTUDIED,
+            skill.teacherSkillControls[0],
+          ),
+      )
+    ) {
+      throw new BadRequestException(
+        'Сначала отметьте все навыки задания пройденными, затем его можно отправить на повторение',
+      );
     }
 
     const reason = `Добавлено в повторение по заданию ЕГЭ №${examNumber}`;

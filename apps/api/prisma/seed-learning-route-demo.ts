@@ -24,144 +24,12 @@ const prisma = new PrismaService(
   new ConfigService({ DATABASE_URL: connectionString }),
 );
 
-const getDemoState = (examNumber: number) => {
-  const variants = [
-    {
-      mastery: 1,
-      confidence: 0.96,
-      stability: 0.94,
-      status: StudentSkillStatus.MASTERED,
-      needsReview: false,
-    },
-    {
-      mastery: 0.91,
-      confidence: 0.86,
-      stability: 0.84,
-      status: StudentSkillStatus.MASTERED,
-      needsReview: false,
-    },
-    {
-      mastery: 0.84,
-      confidence: 0.79,
-      stability: 0.76,
-      status: StudentSkillStatus.MASTERED,
-      needsReview: false,
-    },
-    {
-      mastery: 0.93,
-      confidence: 0.84,
-      stability: 0.81,
-      status: StudentSkillStatus.MASTERED,
-      needsReview: false,
-    },
-    {
-      mastery: 0.78,
-      confidence: 0.76,
-      stability: 0.62,
-      status: StudentSkillStatus.NEEDS_REVIEW,
-      needsReview: true,
-    },
-    {
-      mastery: 0.66,
-      confidence: 0.7,
-      stability: 0.58,
-      status: StudentSkillStatus.NEEDS_REINFORCEMENT,
-      needsReview: false,
-    },
-    {
-      mastery: 0.95,
-      confidence: 0.9,
-      stability: 0.85,
-      status: StudentSkillStatus.MASTERED,
-      needsReview: false,
-    },
-    {
-      mastery: 0.57,
-      confidence: 0.64,
-      stability: 0.49,
-      status: StudentSkillStatus.LEARNING,
-      needsReview: false,
-    },
-    {
-      mastery: 0.76,
-      confidence: 0.72,
-      stability: 0.61,
-      status: StudentSkillStatus.NEEDS_REINFORCEMENT,
-      needsReview: false,
-    },
-    {
-      mastery: 0.48,
-      confidence: 0.71,
-      stability: 0.42,
-      status: StudentSkillStatus.WEAK,
-      needsReview: false,
-    },
-    {
-      mastery: 0.88,
-      confidence: 0.82,
-      stability: 0.79,
-      status: StudentSkillStatus.MASTERED,
-      needsReview: false,
-    },
-    {
-      mastery: 0.67,
-      confidence: 0.73,
-      stability: 0.55,
-      status: StudentSkillStatus.NEEDS_REVIEW,
-      needsReview: true,
-    },
-    {
-      mastery: 0.38,
-      confidence: 0.69,
-      stability: 0.33,
-      status: StudentSkillStatus.WEAK,
-      needsReview: false,
-    },
-    {
-      mastery: 0.5,
-      confidence: 0.25,
-      stability: null,
-      status: StudentSkillStatus.INSUFFICIENT_DATA,
-      needsReview: false,
-    },
-    {
-      mastery: 0.44,
-      confidence: 0.66,
-      stability: 0.37,
-      status: StudentSkillStatus.WEAK,
-      needsReview: false,
-    },
-    {
-      mastery: 0.6,
-      confidence: 0.62,
-      stability: 0.48,
-      status: StudentSkillStatus.LEARNING,
-      needsReview: false,
-    },
-    {
-      mastery: 0.31,
-      confidence: 0.7,
-      stability: 0.29,
-      status: StudentSkillStatus.WEAK,
-      needsReview: false,
-    },
-    {
-      mastery: 0.25,
-      confidence: 0.67,
-      stability: 0.24,
-      status: StudentSkillStatus.WEAK,
-      needsReview: false,
-    },
-    {
-      mastery: 0.52,
-      confidence: 0.23,
-      stability: null,
-      status: StudentSkillStatus.INSUFFICIENT_DATA,
-      needsReview: false,
-    },
-  ] as const;
-
-  return variants[Math.max(1, Math.min(19, examNumber)) - 1];
+const initialSkillState = {
+  mastery: 0,
+  confidence: 0,
+  stability: null,
+  status: StudentSkillStatus.UNSTUDIED,
+  needsReview: false,
 };
 
 async function main() {
@@ -181,6 +49,16 @@ async function main() {
   if (!student || student.role !== Role.STUDENT || !knowledgeMap) {
     throw new Error('Demo student or knowledge map is missing');
   }
+
+  await prisma.$transaction([
+    prisma.teacherRouteChange.deleteMany({ where: { studentId: student.id } }),
+    prisma.teacherSkillControl.deleteMany({ where: { studentId: student.id } }),
+    prisma.learningRoute.deleteMany({ where: { studentId: student.id } }),
+    prisma.studentSkillStateRevision.deleteMany({
+      where: { studentId: student.id },
+    }),
+    prisma.skillEvidence.deleteMany({ where: { studentId: student.id } }),
+  ]);
 
   await prisma.studentLearningGoal.updateMany({
     where: {
@@ -219,20 +97,13 @@ async function main() {
       kind: KnowledgeNodeKind.SKILL,
     },
     orderBy: { code: 'asc' },
-    select: {
-      id: true,
-      code: true,
-      examMappings: {
-        orderBy: [{ weight: 'desc' }, { examNumber: 'asc' }],
-        select: { examNumber: true },
-      },
-    },
+    select: { id: true },
   });
   const calculatedAt = new Date();
 
   await prisma.$transaction(
-    skills.map((skill, index) => {
-      const state = getDemoState(skill.examMappings[0]?.examNumber ?? 19);
+    skills.map((skill) => {
+      const state = initialSkillState;
 
       return prisma.studentSkillState.upsert({
         where: {
@@ -243,31 +114,21 @@ async function main() {
           formulaVersion: KNOWLEDGE_PROFILE_FORMULA_VERSION,
           mastery: state.mastery,
           confidence: state.confidence,
-          speed: index % 4 === 0 ? 0.48 : 0.72,
+          speed: null,
           stability: state.stability,
-          evidenceWeight: state.confidence * 4,
-          evidenceCount: state.status === 'INSUFFICIENT_DATA' ? 1 : 4,
-          distinctEvidenceCount: state.status === 'INSUFFICIENT_DATA' ? 1 : 3,
-          confirmingAttempts: state.mastery >= 0.65 ? 3 : 1,
-          contradictingAttempts: state.mastery < 0.45 ? 3 : 1,
+          evidenceWeight: 0,
+          evidenceCount: 0,
+          distinctEvidenceCount: 0,
+          confirmingAttempts: 0,
+          contradictingAttempts: 0,
           status: state.status,
           needsReview: state.needsReview,
-          reviewDueAt: state.needsReview ? calculatedAt : null,
-          lastEvidenceAt: calculatedAt,
-          lastVerifiedAt: calculatedAt,
-          sourceSummary: {
-            FULL_EXAM: {
-              attempts: 2,
-              effectiveWeight: 1.4,
-              lastAt: calculatedAt.toISOString(),
-            },
-          },
+          reviewDueAt: null,
+          lastEvidenceAt: null,
+          lastVerifiedAt: null,
+          sourceSummary: {},
           explanation: {
-            reasons: [
-              state.status === 'INSUFFICIENT_DATA'
-                ? 'Нужны дополнительные независимые попытки'
-                : 'Демонстрационная оценка для проверки рабочего места преподавателя',
-            ],
+            reasons: ['Ученик начинает подготовку с нуля'],
           },
         },
         create: {
@@ -277,31 +138,21 @@ async function main() {
           formulaVersion: KNOWLEDGE_PROFILE_FORMULA_VERSION,
           mastery: state.mastery,
           confidence: state.confidence,
-          speed: index % 4 === 0 ? 0.48 : 0.72,
+          speed: null,
           stability: state.stability,
-          evidenceWeight: state.confidence * 4,
-          evidenceCount: state.status === 'INSUFFICIENT_DATA' ? 1 : 4,
-          distinctEvidenceCount: state.status === 'INSUFFICIENT_DATA' ? 1 : 3,
-          confirmingAttempts: state.mastery >= 0.65 ? 3 : 1,
-          contradictingAttempts: state.mastery < 0.45 ? 3 : 1,
+          evidenceWeight: 0,
+          evidenceCount: 0,
+          distinctEvidenceCount: 0,
+          confirmingAttempts: 0,
+          contradictingAttempts: 0,
           status: state.status,
           needsReview: state.needsReview,
-          reviewDueAt: state.needsReview ? calculatedAt : null,
-          lastEvidenceAt: calculatedAt,
-          lastVerifiedAt: calculatedAt,
-          sourceSummary: {
-            FULL_EXAM: {
-              attempts: 2,
-              effectiveWeight: 1.4,
-              lastAt: calculatedAt.toISOString(),
-            },
-          },
+          reviewDueAt: null,
+          lastEvidenceAt: null,
+          lastVerifiedAt: null,
+          sourceSummary: {},
           explanation: {
-            reasons: [
-              state.status === 'INSUFFICIENT_DATA'
-                ? 'Нужны дополнительные независимые попытки'
-                : 'Демонстрационная оценка для проверки рабочего места преподавателя',
-            ],
+            reasons: ['Ученик начинает подготовку с нуля'],
           },
         },
       });
