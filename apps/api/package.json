@@ -24,6 +24,7 @@
     "prisma:validate": "prisma validate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:seed-knowledge-map": "tsx prisma/seed-knowledge-map.ts",
     "prisma:seed-homework": "tsx prisma/seed-homework.ts",
     "prisma:studio": "prisma studio"
   },

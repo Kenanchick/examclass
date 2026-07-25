@@ -2,7 +2,12 @@ import 'dotenv/config';
 
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as argon2 from 'argon2';
-import { PrismaClient, Role, TopicStatus } from '../src/generated/prisma/client';
+import {
+  PrismaClient,
+  Role,
+  TopicStatus,
+} from '../src/generated/prisma/client';
+import { seedKnowledgeMap } from './knowledge-map.seed';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -440,8 +445,11 @@ async function main() {
     }
   }
 
+  const knowledgeMapSummary = await seedKnowledgeMap(prisma);
+
   console.log(
-    'Seed completed: demo student, subjects, and topics were added',
+    'Seed completed: demo student, subjects, topics, and knowledge map were added',
+    knowledgeMapSummary,
   );
 }
 

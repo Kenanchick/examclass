@@ -53,6 +53,84 @@ enum HomeworkSubmissionStatus {
   REVIEWED
 }
 
+enum KnowledgeMapStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum KnowledgeNodeKind {
+  SECTION
+  TOPIC
+  SUBTOPIC
+  SKILL
+}
+
+enum KnowledgeDependencyType {
+  REQUIRED
+  RECOMMENDED
+}
+
+enum KnowledgeSourceCoverage {
+  DIRECT
+  PARTIAL
+  MISSING
+}
+
+enum SkillVerificationMethod {
+  SHORT_ANSWER
+  MULTI_STEP_SOLUTION
+  ORAL_EXPLANATION
+  ERROR_ANALYSIS
+  GRAPH_INTERPRETATION
+  CONSTRUCTION
+  PROOF
+  MODELING
+}
+
+enum ExamTaskType {
+  COMPUTATION
+  EQUATION
+  INEQUALITY
+  GRAPH
+  APPLIED_MODEL
+  PROBABILITY
+  PLANE_GEOMETRY
+  STEREOMETRY
+  PARAMETER
+  NUMBER_THEORY
+}
+
+enum TaskSkillRole {
+  PRIMARY
+  SECONDARY
+  PREREQUISITE
+}
+
+enum MaterialReviewStatus {
+  PENDING
+  REVIEWED
+  REJECTED
+}
+
+enum MaterialSkillRole {
+  EXPLAINS
+  PRACTICES
+  REFERENCES
+}
+
+enum KnowledgeReviewItemType {
+  COVERAGE_GAP
+  EXPERT_REVIEW
+}
+
+enum KnowledgeReviewPriority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
 model User {
   id           String   @id @default(cuid())
   email        String   @unique
@@ -81,8 +159,9 @@ model Subject {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  classrooms Classroom[]
-  topics     Topic[]
+  classrooms    Classroom[]
+  topics        Topic[]
+  knowledgeMaps KnowledgeMap[]
 }
 
 model Classroom {
@@ -161,6 +240,7 @@ model Task {
   favorites           TaskFavorite[]
   homeworkAssignments HomeworkAssignmentTask[]
   homeworkAttachments HomeworkSubmissionAttachment[]
+  skillLinks          TaskSkill[]
 
   @@index([topicId, status])
   @@index([examPart, status])
@@ -273,4 +353,207 @@ model TopicPrerequisite {
 
   @@id([topicId, prerequisiteId])
   @@index([prerequisiteId])
+}
+
+model KnowledgeMap {
+  id            String             @id @default(cuid())
+  subjectId     String
+  version       Int
+  title         String
+  description   String?
+  sourceSummary String?
+  status        KnowledgeMapStatus @default(DRAFT)
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  subject     Subject                 @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  nodes       KnowledgeNode[]
+  materials   LearningMaterial[]
+  reviewItems KnowledgeReviewItem[]
+  references  KnowledgeMapReference[]
+
+  @@unique([subjectId, version])
+  @@index([subjectId, status, version])
+}
+
+model KnowledgeNode {
+  id                String                   @id @default(cuid())
+  knowledgeMapId    String
+  parentId          String?
+  code              String
+  kind              KnowledgeNodeKind
+  name              String
+  description       String?
+  sortOrder         Int                      @default(0)
+  difficulty        Int?
+  importance        Int?
+  estimatedMinutes  Int?
+  isFoundational    Boolean                  @default(false)
+  sourceCoverage    KnowledgeSourceCoverage?
+  needsExpertReview Boolean                  @default(false)
+  expertReviewNote  String?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  knowledgeMap KnowledgeMap    @relation(fields: [knowledgeMapId], references: [id], onDelete: Cascade)
+  parent       KnowledgeNode?  @relation("KnowledgeNodeHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children     KnowledgeNode[] @relation("KnowledgeNodeHierarchy")
+
+  prerequisiteLinks KnowledgeDependency[]         @relation("DependentKnowledgeNode")
+  unlocksSkills     KnowledgeDependency[]         @relation("PrerequisiteKnowledgeNode")
+  examMappings      KnowledgeExamMapping[]
+  verification      KnowledgeVerificationMethod[]
+  taskLinks         TaskSkill[]
+  materialLinks     LearningMaterialSkill[]
+  reviewLinks       KnowledgeReviewItemSkill[]
+
+  @@unique([knowledgeMapId, code])
+  @@index([knowledgeMapId, kind, parentId])
+}
+
+model KnowledgeDependency {
+  skillId           String
+  prerequisiteId    String
+  type              KnowledgeDependencyType
+  rationale         String?
+  needsExpertReview Boolean                 @default(false)
+  createdAt         DateTime                @default(now())
+
+  skill        KnowledgeNode @relation("DependentKnowledgeNode", fields: [skillId], references: [id], onDelete: Cascade)
+  prerequisite KnowledgeNode @relation("PrerequisiteKnowledgeNode", fields: [prerequisiteId], references: [id], onDelete: Cascade)
+
+  @@id([skillId, prerequisiteId])
+  @@index([prerequisiteId, type])
+}
+
+model KnowledgeExamMapping {
+  skillId    String
+  examNumber Int
+  examPart   ExamPart
+  taskType   ExamTaskType
+  weight     Float        @default(1)
+  createdAt  DateTime     @default(now())
+
+  skill KnowledgeNode @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([skillId, examNumber, taskType])
+  @@index([examNumber, examPart, taskType])
+}
+
+model KnowledgeVerificationMethod {
+  skillId     String
+  method      SkillVerificationMethod
+  description String?
+  sortOrder   Int                     @default(0)
+
+  skill KnowledgeNode @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([skillId, method])
+}
+
+model TaskSkill {
+  taskId    String
+  skillId   String
+  role      TaskSkillRole @default(PRIMARY)
+  weight    Float         @default(1)
+  createdAt DateTime      @default(now())
+
+  task  Task          @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  skill KnowledgeNode @relation(fields: [skillId], references: [id], onDelete: Restrict)
+
+  @@id([taskId, skillId])
+  @@index([skillId, role])
+}
+
+model LearningMaterial {
+  id             String               @id @default(cuid())
+  knowledgeMapId String
+  fileName       String
+  title          String
+  pageCount      Int
+  checksum       String?
+  storageKey     String?
+  reviewStatus   MaterialReviewStatus @default(PENDING)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  knowledgeMap KnowledgeMap              @relation(fields: [knowledgeMapId], references: [id], onDelete: Cascade)
+  segments     LearningMaterialSegment[]
+
+  @@unique([knowledgeMapId, fileName])
+  @@index([knowledgeMapId, reviewStatus])
+}
+
+model LearningMaterialSegment {
+  id                String   @id @default(cuid())
+  materialId        String
+  title             String
+  pages             Int[]
+  notes             String?
+  sortOrder         Int      @default(0)
+  needsExpertReview Boolean  @default(false)
+  createdAt         DateTime @default(now())
+
+  material   LearningMaterial        @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  skillLinks LearningMaterialSkill[]
+
+  @@index([materialId, sortOrder])
+}
+
+model LearningMaterialSkill {
+  segmentId         String
+  skillId           String
+  role              MaterialSkillRole @default(REFERENCES)
+  confidence        Int               @default(100)
+  needsExpertReview Boolean           @default(false)
+
+  segment LearningMaterialSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  skill   KnowledgeNode           @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([segmentId, skillId])
+  @@index([skillId, role])
+}
+
+model KnowledgeReviewItem {
+  id             String                   @id @default(cuid())
+  knowledgeMapId String
+  code           String
+  type           KnowledgeReviewItemType
+  priority       KnowledgeReviewPriority?
+  title          String
+  description    String
+  resolvedAt     DateTime?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  knowledgeMap KnowledgeMap               @relation(fields: [knowledgeMapId], references: [id], onDelete: Cascade)
+  skillLinks   KnowledgeReviewItemSkill[]
+
+  @@unique([knowledgeMapId, code])
+  @@index([knowledgeMapId, type, priority])
+}
+
+model KnowledgeReviewItemSkill {
+  reviewItemId String
+  skillId      String
+
+  reviewItem KnowledgeReviewItem @relation(fields: [reviewItemId], references: [id], onDelete: Cascade)
+  skill      KnowledgeNode       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([reviewItemId, skillId])
+  @@index([skillId])
+}
+
+model KnowledgeMapReference {
+  id             String @id @default(cuid())
+  knowledgeMapId String
+  title          String
+  url            String
+  purpose        String
+  sortOrder      Int    @default(0)
+
+  knowledgeMap KnowledgeMap @relation(fields: [knowledgeMapId], references: [id], onDelete: Cascade)
+
+  @@unique([knowledgeMapId, url])
+  @@index([knowledgeMapId, sortOrder])
 }
