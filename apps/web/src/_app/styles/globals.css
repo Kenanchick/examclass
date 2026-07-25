@@ -288,7 +288,7 @@ body {
 }
 
 .topic-metro-canvas--animated {
-  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 540ms cubic-bezier(0.2, 0.82, 0.28, 1);
 }
 
 .topic-metro-core,
@@ -303,8 +303,8 @@ body {
 
 .topic-metro-station--mastered {
   box-shadow:
-    0 22px 50px rgb(24 52 76 / 13%),
-    0 0 0 8px color-mix(in srgb, var(--metro-glow) 22%, transparent);
+    0 18px 40px rgb(24 52 76 / 12%),
+    0 0 0 5px color-mix(in srgb, var(--metro-glow) 18%, transparent);
 }
 
 .topic-metro-flow {

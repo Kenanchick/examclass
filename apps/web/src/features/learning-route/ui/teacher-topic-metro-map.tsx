@@ -5,11 +5,11 @@ import {
   CalendarClock,
   Check,
   CheckCircle2,
+  Circle,
   Minus,
   Move,
   Plus,
   RotateCcw,
-  Sparkles,
 } from "lucide-react";
 import {
   memo,
@@ -25,33 +25,35 @@ import {
 } from "react";
 import type { TeacherRoadmapNode } from "@/entities/learning-route/model/teacher-route";
 
-const METRO_WIDTH = 7600;
-const METRO_HEIGHT = 7600;
+const METRO_WIDTH = 6800;
+const METRO_HEIGHT = 6800;
 const METRO_CENTER = { x: METRO_WIDTH / 2, y: METRO_HEIGHT / 2 };
-const CORE_WIDTH = 520;
-const CORE_HEIGHT = 270;
-const SUBTOPIC_WIDTH = 420;
-const SUBTOPIC_HEIGHT = 200;
-const SKILL_WIDTH = 380;
-const SKILL_HEIGHT = 136;
-const SUBTOPIC_RADIUS_X = 1350;
-const SUBTOPIC_RADIUS_Y = 1350;
-const FIRST_SKILL_DISTANCE = 420;
-const SKILL_DISTANCE_STEP = 210;
-const SKILL_LABEL_OFFSET = 210;
-const INITIAL_SCALE = 0.2;
-const MIN_SCALE = 0.12;
+const CORE_WIDTH = 580;
+const CORE_HEIGHT = 300;
+const SUBTOPIC_WIDTH = 530;
+const SUBTOPIC_HEIGHT = 250;
+const SKILL_WIDTH = 480;
+const SKILL_HEIGHT = 168;
+const SUBTOPIC_RADIUS_X = 760;
+const SUBTOPIC_RADIUS_Y = 760;
+const FIRST_SKILL_DISTANCE = 330;
+const SKILL_DISTANCE_STEP = 255;
+const SKILL_LABEL_OFFSET = 270;
+const INITIAL_SCALE = 0.36;
+const MIN_SCALE = 0.18;
 const MAX_SCALE = 1.25;
+const SKILL_FOCUS_SCALE = 0.72;
+const SKILL_OPEN_DELAY = 540;
 
 const branchPalette = [
-  { color: "#2578b5", tint: "#eaf5fd", glow: "#86c9f3" },
-  { color: "#15836f", tint: "#e8f7f3", glow: "#76d6c2" },
-  { color: "#d2760c", tint: "#fff3df", glow: "#f3bf6c" },
-  { color: "#c34f78", tint: "#fdeef4", glow: "#ef9ebb" },
-  { color: "#7955b7", tint: "#f3eefc", glow: "#bea8e7" },
-  { color: "#3b8a4e", tint: "#edf8ef", glow: "#91d29e" },
-  { color: "#167f9c", tint: "#eaf7fa", glow: "#83cbdc" },
-  { color: "#a86118", tint: "#fff4e7", glow: "#e6b47c" },
+  { color: "#0b527d", glow: "#7d9fb5" },
+  { color: "#176558", glow: "#81a79e" },
+  { color: "#8a5a25", glow: "#bca281" },
+  { color: "#874553", glow: "#ba929b" },
+  { color: "#4b5f7a", glow: "#929fad" },
+  { color: "#496a50", glow: "#91a695" },
+  { color: "#326673", glow: "#8fa9af" },
+  { color: "#70513a", glow: "#a89484" },
 ] as const;
 
 type MetroViewport = { x: number; y: number; scale: number };
@@ -152,6 +154,7 @@ function TeacherTopicMetroMapComponent({
   const frameRef = useRef<number | null>(null);
   const pendingViewportRef = useRef<MetroViewport | null>(null);
   const transitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const skillOpenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const viewportStateRef = useRef<MetroViewport>({
     x: 0,
     y: 0,
@@ -307,6 +310,88 @@ function TeacherTopicMetroMapComponent({
     [applyViewport],
   );
 
+  const focusPoint = useCallback(
+    (
+      point: Point,
+      scale: number,
+      horizontalPosition: "center" | "detail" = "center",
+    ) => {
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+      const bounds = viewport.getBoundingClientRect();
+      const targetX =
+        horizontalPosition === "detail" && bounds.width >= 960
+          ? (bounds.width - 540) / 2
+          : bounds.width / 2;
+
+      applyViewport(
+        {
+          scale,
+          x: targetX - point.x * scale,
+          y: bounds.height / 2 - point.y * scale,
+        },
+        true,
+      );
+    },
+    [applyViewport],
+  );
+
+  const focusBranch = useCallback(
+    (branch: BranchLayout) => {
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+      const bounds = viewport.getBoundingClientRect();
+      const left = Math.min(
+        branch.hub.x - SUBTOPIC_WIDTH / 2,
+        ...branch.skills.map(({ label }) => label.x - SKILL_WIDTH / 2),
+      );
+      const right = Math.max(
+        branch.hub.x + SUBTOPIC_WIDTH / 2,
+        ...branch.skills.map(({ label }) => label.x + SKILL_WIDTH / 2),
+      );
+      const top = Math.min(
+        branch.hub.y - SUBTOPIC_HEIGHT / 2,
+        ...branch.skills.map(({ label }) => label.y - SKILL_HEIGHT / 2),
+      );
+      const bottom = Math.max(
+        branch.hub.y + SUBTOPIC_HEIGHT / 2,
+        ...branch.skills.map(({ label }) => label.y + SKILL_HEIGHT / 2),
+      );
+      const scale = Math.max(
+        0.48,
+        Math.min(
+          0.62,
+          (bounds.width - 160) / Math.max(1, right - left),
+          (bounds.height - 160) / Math.max(1, bottom - top),
+        ),
+      );
+
+      focusPoint(
+        {
+          x: (left + right) / 2,
+          y: (top + bottom) / 2,
+        },
+        scale,
+      );
+    },
+    [focusPoint],
+  );
+
+  const openSkillWithFocus = useCallback(
+    (skillLayout: SkillLayout) => {
+      if (skillOpenTimerRef.current) {
+        clearTimeout(skillOpenTimerRef.current);
+      }
+
+      focusPoint(skillLayout.label, SKILL_FOCUS_SCALE, "detail");
+      skillOpenTimerRef.current = setTimeout(() => {
+        skillOpenTimerRef.current = null;
+        onSkillOpen(skillLayout.skill.code);
+      }, SKILL_OPEN_DELAY);
+    },
+    [focusPoint, onSkillOpen],
+  );
+
   useLayoutEffect(() => {
     const frame = requestAnimationFrame(() => {
       const viewport = viewportRef.current;
@@ -354,6 +439,9 @@ function TeacherTopicMetroMapComponent({
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
       if (transitionTimerRef.current) {
         clearTimeout(transitionTimerRef.current);
+      }
+      if (skillOpenTimerRef.current) {
+        clearTimeout(skillOpenTimerRef.current);
       }
     },
     [],
@@ -479,10 +567,10 @@ function TeacherTopicMetroMapComponent({
                     <path
                       d={hubPath}
                       fill="none"
-                      opacity="0.22"
+                      opacity="0.16"
                       stroke={branch.color.glow}
                       strokeLinecap="round"
-                      strokeWidth="34"
+                      strokeWidth="28"
                     />
                   )}
                   <path
@@ -570,14 +658,24 @@ function TeacherTopicMetroMapComponent({
           </svg>
 
           <div
-            className="topic-metro-core absolute z-20 overflow-hidden rounded-[2.4rem] border-2 border-[#1c5e91] bg-[#073e68] p-8 text-white shadow-[0_34px_90px_rgba(7,62,104,0.32)]"
+            aria-label="Сфокусироваться на центральной теме"
+            className="topic-metro-core absolute z-20 cursor-zoom-in overflow-hidden rounded-[2rem] border-2 border-[#1c5e91] bg-[#073e68] p-8 text-white shadow-[0_28px_70px_rgba(7,62,104,0.28)]"
+            onClick={() => focusPoint(METRO_CENTER, 0.46)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                focusPoint(METRO_CENTER, 0.46);
+              }
+            }}
             onPointerDown={(event) => event.stopPropagation()}
+            role="button"
             style={{
               height: CORE_HEIGHT,
               left: METRO_CENTER.x - CORE_WIDTH / 2,
               top: METRO_CENTER.y - CORE_HEIGHT / 2,
               width: CORE_WIDTH,
             }}
+            tabIndex={0}
           >
             <div className="absolute -right-10 -top-14 size-52 rounded-full bg-[#4ca2d8]/20 blur-2xl" />
             <div className="relative flex h-full flex-col">
@@ -623,19 +721,25 @@ function TeacherTopicMetroMapComponent({
           {branches.map((branch, branchIndex) => (
             <div key={branch.subtopic.code}>
               <article
-                className={`topic-metro-station absolute z-10 flex flex-col rounded-[1.8rem] border-2 p-5 ${
+                aria-label={`Приблизить ветку «${branch.subtopic.name}»`}
+                className={`topic-metro-station absolute z-10 flex cursor-zoom-in flex-col rounded-[1.25rem] border-2 p-6 ${
                   branch.subtopic.isMastered
                     ? "topic-metro-station--mastered bg-white"
-                    : "bg-[#f1f4f6] opacity-70 grayscale-[35%]"
+                    : "bg-[#f3f5f6] opacity-80 grayscale-[25%]"
                 }`}
+                onClick={() => focusBranch(branch)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    focusBranch(branch);
+                  }
+                }}
                 onPointerDown={(event) => event.stopPropagation()}
+                role="button"
                 style={
                   {
                     "--metro-glow": branch.color.glow,
                     animationDelay: `${90 + branchIndex * 55}ms`,
-                    background: branch.subtopic.isMastered
-                      ? `linear-gradient(145deg, #ffffff, ${branch.color.tint})`
-                      : undefined,
                     borderColor: branch.subtopic.isMastered
                       ? branch.color.color
                       : "#cbd2d8",
@@ -646,10 +750,11 @@ function TeacherTopicMetroMapComponent({
                     width: SUBTOPIC_WIDTH,
                   } as CSSProperties
                 }
+                tabIndex={0}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex items-start gap-5">
                   <span
-                    className="grid size-12 shrink-0 place-items-center rounded-2xl text-white"
+                    className="grid size-14 shrink-0 place-items-center rounded-xl text-white"
                     style={{
                       background: branch.subtopic.isMastered
                         ? branch.color.color
@@ -657,36 +762,37 @@ function TeacherTopicMetroMapComponent({
                     }}
                   >
                     {branch.subtopic.isMastered ? (
-                      <Check className="size-6" strokeWidth={3} />
+                      <Check className="size-7" strokeWidth={3} />
                     ) : (
-                      <Sparkles className="size-5" />
+                      <Circle className="size-6" strokeWidth={3} />
                     )}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[23px] font-bold leading-[1.08] tracking-[-0.035em] text-ink">
+                    <p className="text-[32px] font-bold leading-[1.08] tracking-[-0.035em] text-ink">
                       {branch.subtopic.name}
                     </p>
-                    <p className="mt-1 text-base font-semibold text-muted">
+                    <p className="mt-2 text-lg font-semibold text-muted">
                       {branch.subtopic.masteredSkills}/
                       {branch.subtopic.skills.length} блоков
                     </p>
                   </div>
                 </div>
                 <button
-                  className="mt-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70"
+                  className="mt-auto inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg px-4 text-base font-bold text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70"
                   disabled={updatingSubtopicCode === branch.subtopic.code}
-                  onClick={() =>
+                  onClick={(event) => {
+                    event.stopPropagation();
                     void changeSubtopicStatus({
                       code: branch.subtopic.code,
                       name: branch.subtopic.name,
                       status: branch.subtopic.isMastered
                         ? "UNSTUDIED"
                         : "MASTERED",
-                    })
-                  }
+                    });
+                  }}
                   style={{
                     background: branch.subtopic.isMastered
-                      ? "#7b8791"
+                      ? "#65717b"
                       : branch.color.color,
                   }}
                   type="button"
@@ -706,21 +812,21 @@ function TeacherTopicMetroMapComponent({
 
               {branch.skills.map((skillLayout) => (
                 <button
-                  className={`topic-metro-skill absolute z-20 flex cursor-pointer items-center gap-3 rounded-[1.35rem] border px-4 text-left transition hover:-translate-y-1 ${
+                  className={`topic-metro-skill absolute z-20 flex cursor-zoom-in items-center gap-4 rounded-xl border-2 px-5 text-left transition hover:-translate-y-1 ${
                     skillLayout.isPassed
                       ? "bg-white"
-                      : "border-[#d6dce1] bg-[#eef1f3] text-[#75808a] opacity-75 grayscale-[45%]"
+                      : "border-[#d4d9de] bg-[#f0f2f4] text-[#68737d] opacity-80 grayscale-[25%]"
                   }`}
                   key={skillLayout.skill.code}
-                  onClick={() => onSkillOpen(skillLayout.skill.code)}
+                  onClick={() => openSkillWithFocus(skillLayout)}
                   onPointerDown={(event) => event.stopPropagation()}
                   style={{
                     borderColor: skillLayout.isPassed
                       ? branch.color.color
                       : undefined,
                     boxShadow: skillLayout.isPassed
-                      ? `0 16px 38px ${branch.color.glow}55`
-                      : "0 10px 24px rgb(36 54 70 / 8%)",
+                      ? `0 14px 30px ${branch.color.glow}42`
+                      : "0 8px 20px rgb(36 54 70 / 7%)",
                     height: SKILL_HEIGHT,
                     left: skillLayout.label.x - SKILL_WIDTH / 2,
                     top: skillLayout.label.y - SKILL_HEIGHT / 2,
@@ -729,7 +835,7 @@ function TeacherTopicMetroMapComponent({
                   type="button"
                 >
                   <span
-                    className="grid size-9 shrink-0 place-items-center rounded-full text-white"
+                    className="grid size-11 shrink-0 place-items-center rounded-full text-white"
                     style={{
                       background: skillLayout.isPassed
                         ? branch.color.color
@@ -737,17 +843,17 @@ function TeacherTopicMetroMapComponent({
                     }}
                   >
                     {skillLayout.isPassed ? (
-                      <Check className="size-5" strokeWidth={3} />
+                      <Check className="size-6" strokeWidth={3} />
                     ) : (
-                      <span className="size-2.5 rounded-full bg-white/80" />
+                      <span className="size-3 rounded-full bg-white/85" />
                     )}
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-[17px] font-bold leading-[1.12] tracking-[-0.025em] text-ink">
+                    <span className="block text-[26px] font-bold leading-[1.12] tracking-[-0.025em] text-ink">
                       {skillLayout.skill.name}
                     </span>
                     <span
-                      className="mt-1 block text-sm font-bold"
+                      className="mt-2 block text-base font-bold"
                       style={{
                         color: skillLayout.isPassed
                           ? branch.color.color
