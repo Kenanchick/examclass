@@ -256,12 +256,12 @@ export function TeacherTrajectoryPage({
                 <header className="flex min-w-0 items-center gap-3">
                   <Link
                     aria-label="К ученикам"
-                    className="grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-white text-muted transition hover:border-[#a8c7df] hover:text-brand"
+                    className="grid size-10 shrink-0 place-items-center rounded-lg border border-[#cbd6de] bg-white text-muted transition hover:border-[#789bb3] hover:text-brand"
                     href="/students"
                   >
                     <ArrowLeft className="size-4" />
                   </Link>
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#eaf4ff] text-brand">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-lg border border-[#b9ccd8] bg-[#e7eef2] text-[#0b527d]">
                     <Map className="size-5" />
                   </span>
                   <div className="min-w-0">

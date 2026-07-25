@@ -74,47 +74,71 @@ type HighlightedLink =
 
 const statusPresentation: Record<
   TeacherRoadmapStatus,
-  { color: string; background: string; border: string }
+  {
+    color: string;
+    background: string;
+    border: string;
+    label: string;
+    numberColor?: string;
+    surface: string;
+  }
 > = {
   MASTERED: {
-    color: "#287651",
-    background: "#edf8f2",
-    border: "#a9d8bf",
+    color: "#236548",
+    background: "#dfece5",
+    border: "#8fb39f",
+    label: "Освоено",
+    surface: "#f6faf7",
   },
   LEARNING: {
-    color: "#725211",
-    background: "#fff8e8",
-    border: "#ead19a",
+    color: "#7d5722",
+    background: "#f0e5d4",
+    border: "#c8ad83",
+    label: "В работе",
+    surface: "#fbf8f3",
   },
   CURRENT_PRIORITY: {
-    color: "#ffffff",
-    background: "#0b4977",
-    border: "#0b4977",
+    color: "#0b527d",
+    background: "#0b527d",
+    border: "#477795",
+    label: "Текущий приоритет",
+    numberColor: "#ffffff",
+    surface: "#f0f5f8",
   },
   AVAILABLE: {
-    color: "#315c7e",
-    background: "#f2f7fb",
-    border: "#c8d8e5",
+    color: "#405f75",
+    background: "#e3ebf0",
+    border: "#aebfca",
+    label: "Доступно",
+    surface: "#f7f9fa",
   },
   BLOCKED: {
-    color: "#6c7279",
-    background: "#f4f5f6",
-    border: "#d5d9dd",
+    color: "#666f76",
+    background: "#e6e9eb",
+    border: "#c5cbd0",
+    label: "Нужна база",
+    surface: "#f7f8f8",
   },
   NEEDS_REVIEW: {
-    color: "#9a4e32",
-    background: "#fff2ed",
-    border: "#e8bbaa",
+    color: "#87483b",
+    background: "#efdfda",
+    border: "#c99e94",
+    label: "На повторение",
+    surface: "#fbf7f6",
   },
   INSUFFICIENT_DATA: {
-    color: "#67547d",
-    background: "#f7f2fb",
-    border: "#d9c8e6",
+    color: "#62576a",
+    background: "#e9e5eb",
+    border: "#beb4c3",
+    label: "Нужно проверить",
+    surface: "#faf8fa",
   },
   TEACHER_ASSIGNED: {
-    color: "#315394",
-    background: "#eef3ff",
-    border: "#b6c8ec",
+    color: "#3d5576",
+    background: "#e1e7ef",
+    border: "#9dadc2",
+    label: "Назначено преподавателем",
+    surface: "#f6f8fa",
   },
 };
 
@@ -506,10 +530,10 @@ function RoadmapCard({
   return (
     <button
       aria-label={`Задание ${node.examNumber}: ${node.title}`}
-      className={`roadmap-node absolute cursor-pointer overflow-hidden rounded-[2rem] border bg-white p-7 text-left shadow-[0_16px_40px_rgba(20,55,88,0.09)] outline-none transition-[box-shadow,border-color,transform] duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_54px_rgba(20,55,88,0.16)] focus-visible:ring-4 focus-visible:ring-[#b8d7f4] ${
+      className={`roadmap-node roadmap-node-card absolute cursor-pointer overflow-hidden rounded-[1.5rem] border-2 p-7 text-left shadow-[0_14px_34px_rgba(20,45,65,0.09)] outline-none transition-[box-shadow,border-color,transform] duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_44px_rgba(20,45,65,0.14)] focus-visible:ring-4 focus-visible:ring-[#b8cbd8] ${
         node.isCurrent ? "roadmap-node--current" : ""
       } ${isPerfect ? "roadmap-node--perfect" : ""} ${
-        selected ? "ring-4 ring-[#c9e2f8]" : ""
+        selected ? "ring-4 ring-[#b8cbd8]" : ""
       } ${connectionHighlighted ? "roadmap-node--linked" : ""}`}
       onBlur={() => onReviewHighlightChange?.(false)}
       onClick={onOpen}
@@ -518,7 +542,7 @@ function RoadmapCard({
       onPointerLeave={() => onReviewHighlightChange?.(false)}
       style={
         {
-          "--roadmap-border": presentation.border,
+          backgroundColor: presentation.surface,
           borderColor: presentation.border,
           height: CARD_HEIGHT,
           left: position.x,
@@ -528,27 +552,35 @@ function RoadmapCard({
       }
       type="button"
     >
+      <span
+        aria-hidden
+        className="absolute inset-x-0 top-0 h-2"
+        style={{ background: presentation.color }}
+      />
       {editMode && (
         <span className="absolute right-5 top-4 rounded-full bg-[#0b4977] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.08em] text-white shadow-sm">
           Шаг {routeStep}
         </span>
       )}
-      {isPerfect && (
-        <span
-          aria-hidden
-          className="roadmap-perfect-shine pointer-events-none absolute inset-0"
-        />
-      )}
       <div className="flex h-full items-center gap-7">
         <NumberBurst
           background={presentation.background}
-          color={presentation.color}
+          color={presentation.numberColor ?? presentation.color}
           value={node.examNumber}
         />
         <div className="min-w-0 flex-1">
           <h3 className="line-clamp-3 text-[34px] font-bold leading-[1.1] tracking-[-0.045em] text-ink">
             {node.title}
           </h3>
+          <span
+            className="mt-4 inline-flex rounded-lg border bg-white/70 px-3 py-1.5 text-sm font-bold"
+            style={{
+              borderColor: presentation.border,
+              color: presentation.color,
+            }}
+          >
+            {presentation.label}
+          </span>
         </div>
         <div className="scale-105">
           <ProgressRing color={presentation.color} value={node.mastery} />
@@ -595,7 +627,7 @@ function ReviewRoadmapCard({
   return (
     <div
       aria-label={`Повторение задания ${review.sourceExamNumber}: ${review.title}`}
-      className={`roadmap-node absolute cursor-pointer overflow-hidden rounded-[2rem] border border-[#c96f08] bg-[#e58910] p-7 text-left text-white shadow-[0_18px_44px_rgba(184,105,0,0.24)] transition-[box-shadow,transform] duration-300 hover:-translate-y-1.5 hover:bg-[#d87908] hover:shadow-[0_26px_58px_rgba(184,105,0,0.34)] focus-visible:ring-4 focus-visible:ring-[#ffd99a] ${
+      className={`roadmap-node absolute cursor-pointer overflow-hidden rounded-[1.5rem] border-2 border-[#784714] bg-[#965b1d] p-7 text-left text-white shadow-[0_16px_38px_rgba(91,52,12,0.22)] transition-[box-shadow,transform] duration-300 hover:-translate-y-1.5 hover:bg-[#865019] hover:shadow-[0_22px_48px_rgba(91,52,12,0.3)] focus-visible:ring-4 focus-visible:ring-[#d8bd98] ${
         connectionHighlighted ? "roadmap-node--linked-review" : ""
       }`}
       onBlur={() => onHighlightChange(false)}
@@ -1307,8 +1339,8 @@ export function TeacherRoadmapBoard({
   };
 
   return (
-    <section className="flex h-dvh min-h-0 flex-col overflow-hidden border-line bg-white">
-      <div className="relative z-50 flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-line bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur-xl sm:px-5">
+    <section className="flex h-dvh min-h-0 flex-col overflow-hidden border-line bg-[#f5f8fa]">
+      <div className="relative z-50 flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[#d4dee5] bg-[#fbfcfd]/96 px-4 py-2.5 shadow-[0_4px_18px_rgba(25,50,70,0.06)] backdrop-blur-xl sm:px-5">
         <div className="min-w-0">{header}</div>
         <div className="flex items-center gap-2">
           <button
@@ -1349,7 +1381,7 @@ export function TeacherRoadmapBoard({
           </button>
           <button
             aria-label="Поместить весь маршрут в экран"
-            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-xs font-bold text-muted transition hover:border-[#a8c7df] hover:text-brand"
+            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#cbd6de] bg-white px-3 text-xs font-bold text-muted transition hover:border-[#789bb3] hover:text-brand"
             onClick={fitRoute}
             title="Весь маршрут"
             type="button"
@@ -1359,7 +1391,7 @@ export function TeacherRoadmapBoard({
           </button>
           <button
             aria-label="Вернуться к текущей теме"
-            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-xs font-bold text-muted transition hover:border-[#a8c7df] hover:text-brand"
+            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[#cbd6de] bg-white px-3 text-xs font-bold text-muted transition hover:border-[#789bb3] hover:text-brand"
             onClick={() => centerNode(roadmap.route.currentExamNumber)}
             title="Текущая тема"
             type="button"
@@ -1369,10 +1401,10 @@ export function TeacherRoadmapBoard({
           </button>
           <button
             aria-label="Редактировать"
-            className={`ml-1 inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm font-bold transition ${
+            className={`ml-1 inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm font-bold transition ${
               editMode
                 ? "border-brand bg-brand text-white"
-                : "border-line bg-white text-muted hover:text-brand"
+                : "border-[#cbd6de] bg-white text-muted hover:border-[#789bb3] hover:text-brand"
             }`}
             onClick={editMode ? cancelOrderEditing : onEditModeToggle}
             type="button"
@@ -1386,7 +1418,7 @@ export function TeacherRoadmapBoard({
       </div>
 
       <div
-        className={`roadmap-viewport relative min-h-0 flex-1 overflow-hidden bg-[#fbfcfe] touch-none ${
+        className={`roadmap-viewport relative min-h-0 flex-1 overflow-hidden bg-[#f5f8fa] touch-none ${
           isDragging
             ? "roadmap-viewport--dragging cursor-grabbing"
             : "cursor-grab"
@@ -1398,7 +1430,7 @@ export function TeacherRoadmapBoard({
         onWheel={onWheel}
         ref={viewportElementRef}
       >
-        <div className="pointer-events-none absolute left-5 top-4 z-30 inline-flex items-center gap-2 rounded-full border border-line bg-white/92 px-3 py-2 text-xs font-semibold text-muted shadow-sm backdrop-blur">
+        <div className="pointer-events-none absolute left-5 top-4 z-30 inline-flex items-center gap-2 rounded-lg border border-[#cbd6de] bg-white/94 px-3 py-2 text-xs font-semibold text-muted shadow-sm backdrop-blur">
           <Move className="size-4 text-brand" />
           Тяните доску · масштабируйте жестом
         </div>
@@ -1452,7 +1484,7 @@ export function TeacherRoadmapBoard({
                 <path
                   className="roadmap-arrow-head"
                   d="M0,0 L24,11 L0,22 Z"
-                  fill="#318dc6"
+                  fill="#286f96"
                 />
               </marker>
               <marker
@@ -1468,7 +1500,7 @@ export function TeacherRoadmapBoard({
                 <path
                   className="roadmap-arrow-head"
                   d="M0,0 L22,10 L0,20 Z"
-                  fill="#e19a2d"
+                  fill="#966329"
                 />
               </marker>
               <marker
@@ -1484,7 +1516,7 @@ export function TeacherRoadmapBoard({
                 <path
                   className="roadmap-arrow-head"
                   d="M0,0 L26,12 L0,24 Z"
-                  fill="#d87300"
+                  fill="#8b5319"
                 />
               </marker>
             </defs>
@@ -1492,7 +1524,7 @@ export function TeacherRoadmapBoard({
               className="roadmap-route-glow"
               d={routePaths.join(" ")}
               fill="none"
-              stroke="#4eb4eb"
+              stroke="#89aec1"
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth="36"
@@ -1501,7 +1533,7 @@ export function TeacherRoadmapBoard({
               const to = displayedNodes[index + 1]!.examNumber;
               return (
                 <ConnectionPath
-                  color="#63b7e8"
+                  color="#3d86aa"
                   d={routePaths[index] ?? ""}
                   markerEnd="url(#roadmap-arrow-main)"
                   key={`main-${node.examNumber}`}
@@ -1522,7 +1554,7 @@ export function TeacherRoadmapBoard({
                   highlightedLink?.kind === "review" &&
                   highlightedLink.moduleKey === review.moduleKey
                 }
-                color="#f4c986"
+                color="#b39368"
                 d={reviewPaths[index] ?? ""}
                 kind="review"
                 key={`review-${review.moduleKey}`}
@@ -1543,7 +1575,7 @@ export function TeacherRoadmapBoard({
             ))}
             {visibleCustomNodes.length > 0 && (
               <ConnectionPath
-                color="#f2d39d"
+                color="#b39a77"
                 d={customPath}
                 kind="custom"
                 markerEnd="url(#roadmap-arrow-custom)"
@@ -1561,11 +1593,11 @@ export function TeacherRoadmapBoard({
               width={7}
             />
             <FlowingDotsPath
-              color="#b85c05"
+              color="#6f4217"
               d={highlightedReviewPath}
               width={7}
             />
-            <FlowingDotsPath color="#bd6908" d={customPath} width={7} />
+            <FlowingDotsPath color="#74502e" d={customPath} width={7} />
           </svg>
 
           {[0, 1, 2].map((trainIndex) => (
@@ -1580,8 +1612,8 @@ export function TeacherRoadmapBoard({
                 } as CSSProperties
               }
             >
-              <span className="roadmap-train-light absolute -inset-4 rounded-full bg-[#4cc5ff]/35 blur-md" />
-              <span className="relative grid size-14 place-items-center rounded-2xl border-4 border-white bg-[#0877b7] text-white shadow-[0_10px_26px_rgba(8,119,183,0.4)]">
+              <span className="roadmap-train-light absolute -inset-2 rounded-xl bg-[#729eb4]/25 blur-sm" />
+              <span className="relative grid size-14 place-items-center rounded-xl border-[3px] border-white bg-[#145d82] text-white shadow-[0_8px_18px_rgba(20,72,101,0.3)]">
                 <TrainFront className="size-7" strokeWidth={2.5} />
               </span>
             </div>
@@ -1669,10 +1701,10 @@ export function TeacherRoadmapBoard({
               className="pointer-events-none absolute flex items-center gap-3"
               style={{ left: START_X, top: customStartY - 64 }}
             >
-              <span className="grid size-9 place-items-center rounded-xl bg-[#fff2cf] font-extrabold text-[#ad6500]">
+              <span className="grid size-9 place-items-center rounded-lg bg-[#eadbc4] font-extrabold text-[#76502a]">
                 +
               </span>
-              <span className="text-sm font-bold uppercase tracking-[0.12em] text-[#ad6500]">
+              <span className="text-sm font-bold uppercase tracking-[0.12em] text-[#76502a]">
                 Дополнительные темы преподавателя
               </span>
             </div>
@@ -1681,7 +1713,7 @@ export function TeacherRoadmapBoard({
             const position = customNodePosition(index, customStartY);
             return (
               <button
-                className={`roadmap-node pointer-events-auto absolute cursor-pointer overflow-hidden rounded-[2rem] border border-[#f0bd5f] bg-[#fffaf0] p-7 text-left shadow-[0_16px_40px_rgba(184,105,0,0.12)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_50px_rgba(184,105,0,0.2)] ${
+                className={`roadmap-node pointer-events-auto absolute cursor-pointer overflow-hidden rounded-[1.5rem] border-2 border-[#c6a87d] bg-[#faf7f1] p-7 text-left shadow-[0_14px_34px_rgba(91,65,34,0.11)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_44px_rgba(91,65,34,0.18)] ${
                   highlightedLink?.kind === "custom" && index === 0
                     ? "roadmap-node--linked-custom"
                     : ""
@@ -1698,11 +1730,11 @@ export function TeacherRoadmapBoard({
                 type="button"
               >
                 <div className="flex items-start gap-4">
-                  <span className="grid size-20 shrink-0 place-items-center rounded-[1.4rem] bg-[#ffe7b0] text-base font-extrabold text-[#a85f00]">
+                  <span className="grid size-20 shrink-0 place-items-center rounded-xl bg-[#eadbc4] text-base font-extrabold text-[#76502a]">
                     ДОП
                   </span>
                   <div className="min-w-0">
-                    <span className="rounded-full bg-[#ffe7b0] px-3 py-1.5 text-xs font-bold uppercase tracking-[0.08em] text-[#a85f00]">
+                    <span className="rounded-lg border border-[#c6a87d] bg-white/70 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.08em] text-[#76502a]">
                       Тема преподавателя
                     </span>
                     <h3 className="mt-3 line-clamp-2 text-[30px] font-bold leading-[1.12] tracking-[-0.04em] text-ink">
