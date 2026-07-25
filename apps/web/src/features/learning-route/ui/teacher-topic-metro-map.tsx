@@ -5,7 +5,6 @@ import {
   CalendarClock,
   Check,
   CheckCircle2,
-  LocateFixed,
   Minus,
   Move,
   Plus,
@@ -220,47 +219,6 @@ export function TeacherTopicMetroMap({
     [commitViewport],
   );
 
-  const fitMap = useCallback(
-    (animate = false) => {
-      const viewport = viewportRef.current;
-      if (!viewport) return;
-      const bounds = viewport.getBoundingClientRect();
-      const fittedScale = Math.min(
-        0.72,
-        (bounds.width - 72) / METRO_WIDTH,
-        (bounds.height - 72) / METRO_HEIGHT,
-      );
-      const scale = Math.max(MIN_SCALE, fittedScale);
-      applyViewport(
-        {
-          scale,
-          x: (bounds.width - METRO_WIDTH * scale) / 2,
-          y: (bounds.height - METRO_HEIGHT * scale) / 2,
-        },
-        animate,
-      );
-    },
-    [applyViewport],
-  );
-
-  const centerMap = useCallback(
-    (animate = true) => {
-      const viewport = viewportRef.current;
-      if (!viewport) return;
-      const bounds = viewport.getBoundingClientRect();
-      const scale = Math.max(0.42, viewportStateRef.current.scale);
-      applyViewport(
-        {
-          scale,
-          x: bounds.width / 2 - METRO_CENTER.x * scale,
-          y: bounds.height / 2 - METRO_CENTER.y * scale,
-        },
-        animate,
-      );
-    },
-    [applyViewport],
-  );
-
   const setScaleAtPoint = useCallback(
     (
       nextScale: number,
@@ -291,12 +249,22 @@ export function TeacherTopicMetroMap({
   );
 
   useLayoutEffect(() => {
-    const frame = requestAnimationFrame(() => centerMap(false));
+    const frame = requestAnimationFrame(() => {
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+      const bounds = viewport.getBoundingClientRect();
+      const scale = 0.42;
+      applyViewport({
+        scale,
+        x: bounds.width / 2 - METRO_CENTER.x * scale,
+        y: bounds.height / 2 - METRO_CENTER.y * scale,
+      });
+    });
 
     return () => {
       cancelAnimationFrame(frame);
     };
-  }, [centerMap]);
+  }, [applyViewport]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -734,7 +702,10 @@ export function TeacherTopicMetroMap({
           ))}
         </div>
 
-        <div className="absolute bottom-5 right-5 z-30 flex items-center gap-2 rounded-2xl border border-line bg-white/94 p-2 shadow-[0_16px_40px_rgba(15,43,76,0.13)] backdrop-blur">
+        <div
+          className="absolute bottom-5 right-5 z-30 flex items-center gap-2 rounded-2xl border border-line bg-white/94 p-2 shadow-[0_16px_40px_rgba(15,43,76,0.13)] backdrop-blur"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
           <button
             aria-label="Уменьшить метро-карту"
             className="roadmap-toolbar-button"
@@ -770,26 +741,6 @@ export function TeacherTopicMetroMap({
             type="button"
           >
             <Plus className="size-4" />
-          </button>
-          <button
-            aria-label="Показать всю метро-карту"
-            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-xs font-bold text-muted transition hover:border-[#a8c7df] hover:text-brand"
-            onClick={() => fitMap(true)}
-            title="Вся карта"
-            type="button"
-          >
-            <Sparkles className="size-4" />
-            <span className="hidden sm:inline">Вся карта</span>
-          </button>
-          <button
-            aria-label="Вернуться к центральной станции"
-            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-xs font-bold text-muted transition hover:border-[#a8c7df] hover:text-brand"
-            onClick={() => centerMap(true)}
-            title="Центральная станция"
-            type="button"
-          >
-            <LocateFixed className="size-4" />
-            <span className="hidden sm:inline">В центр</span>
           </button>
         </div>
       </div>
