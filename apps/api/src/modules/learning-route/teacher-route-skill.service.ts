@@ -605,6 +605,14 @@ export class TeacherRouteSkillService {
         where: { id: module.id },
         data: { estimatedMinutes: Math.max(20, skillCount * 25) },
       });
+      const routeMinutes = await transaction.learningRouteModule.aggregate({
+        where: { routeId: route.id },
+        _sum: { estimatedMinutes: true },
+      });
+      await transaction.learningRoute.update({
+        where: { id: route.id },
+        data: { totalPlannedMinutes: routeMinutes._sum.estimatedMinutes ?? 0 },
+      });
     });
   }
 
