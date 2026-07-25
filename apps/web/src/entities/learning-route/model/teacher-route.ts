@@ -305,8 +305,13 @@ export type TeacherRoadmapNode = {
   needsReview: boolean;
   skillCount: number;
   subtopics: Array<{
+    code: string;
     name: string;
     topic: string | null;
+    mastery: number;
+    confidence: number;
+    masteredSkills: number;
+    isMastered: boolean;
     skills: TeacherRoadmapSkill[];
   }>;
   reasons: string[];
@@ -388,4 +393,9 @@ export type TeacherRoadmap = {
     to: number;
     kind: "KNOWLEDGE_DEPENDENCY";
   }>;
+};
+
+export type TeacherSubtopicStatusInput = {
+  status: "MASTERED" | "LEARNING" | "NEEDS_REINFORCEMENT";
+  reason: string;
 };

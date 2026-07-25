@@ -12,6 +12,7 @@ import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CreateTeacherRouteModuleDto } from './dto/create-teacher-route-module.dto';
 import { TeacherModuleActionDto } from './dto/teacher-module-action.dto';
 import { TeacherSkillActionDto } from './dto/teacher-skill-action.dto';
+import { TeacherSubtopicStatusDto } from './dto/teacher-subtopic-status.dto';
 import { UpdateLearningLoadDto } from './dto/update-learning-load.dto';
 import { LearningRouteService } from './learning-route.service';
 import { TeacherRoadmapService } from './teacher-roadmap.service';
@@ -77,6 +78,21 @@ export class TeacherLearningRouteController {
     @Body() dto: TeacherSkillActionDto,
   ) {
     return this.skills.applyAction(userId, studentId, skillCode, dto);
+  }
+
+  @Post('students/:studentId/subtopics/:subtopicCode/status')
+  applySubtopicStatus(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string,
+    @Param('subtopicCode') subtopicCode: string,
+    @Body() dto: TeacherSubtopicStatusDto,
+  ) {
+    return this.skills.applySubtopicStatus(
+      userId,
+      studentId,
+      subtopicCode,
+      dto,
+    );
   }
 
   @Post('students/:studentId/modules/:moduleKey/actions')

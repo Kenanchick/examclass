@@ -31,6 +31,53 @@ const getPrimaryExamNumber = (
       right.weight - left.weight || left.examNumber - right.examNumber,
   )[0]?.examNumber;
 
+const getEffectiveMetrics = (
+  state:
+    | {
+        mastery: number;
+        confidence: number;
+        status: string;
+        needsReview?: boolean;
+      }
+    | null
+    | undefined,
+  control:
+    | {
+        manualStatus: string | null;
+        autoStatusEnabled: boolean;
+        reviewScheduledAt?: Date | null;
+      }
+    | null
+    | undefined,
+) => {
+  const status = state
+    ? getEffectiveSkillStatus(state.status, control)
+    : 'INSUFFICIENT_DATA';
+  if (control?.autoStatusEnabled !== false || !control.manualStatus) {
+    return {
+      status,
+      mastery: state?.mastery ?? 0.5,
+      confidence: state?.confidence ?? 0,
+    };
+  }
+
+  const manualMastery: Record<string, number> = {
+    UNSTUDIED: 0,
+    WEAK: 0.3,
+    LEARNING: 0.55,
+    NEEDS_REINFORCEMENT: 0.72,
+    MASTERED: 0.9,
+    NEEDS_REVIEW: 0.76,
+    TEACHER_CONFIRMED: 0.95,
+  };
+
+  return {
+    status,
+    mastery: manualMastery[control.manualStatus] ?? state?.mastery ?? 0.5,
+    confidence: Math.max(state?.confidence ?? 0, 0.86),
+  };
+};
+
 @Injectable()
 export class TeacherRoadmapService {
   constructor(
@@ -267,18 +314,22 @@ export class TeacherRoadmapService {
       const totalWeight =
         matching.reduce((sum, item) => sum + item.mapping.weight, 0) || 1;
       const mastery = clamp01(
-        matching.reduce(
-          (sum, { node, mapping }) =>
-            sum + (node.skillStates[0]?.mastery ?? 0.5) * mapping.weight,
-          0,
-        ) / totalWeight,
+        matching.reduce((sum, { node, mapping }) => {
+          const metrics = getEffectiveMetrics(
+            node.skillStates[0],
+            node.teacherSkillControls[0],
+          );
+          return sum + metrics.mastery * mapping.weight;
+        }, 0) / totalWeight,
       );
       const confidence = clamp01(
-        matching.reduce(
-          (sum, { node, mapping }) =>
-            sum + (node.skillStates[0]?.confidence ?? 0) * mapping.weight,
-          0,
-        ) / totalWeight,
+        matching.reduce((sum, { node, mapping }) => {
+          const metrics = getEffectiveMetrics(
+            node.skillStates[0],
+            node.teacherSkillControls[0],
+          );
+          return sum + metrics.confidence * mapping.weight;
+        }, 0) / totalWeight,
       );
       const matchingCodes = new Set(
         matching
@@ -304,13 +355,13 @@ export class TeacherRoadmapService {
           const prerequisite = link.prerequisite;
           const systemState = prerequisite.skillStates[0];
           const control = prerequisite.teacherSkillControls[0];
-          const effectiveStatus = systemState
-            ? getEffectiveSkillStatus(systemState.status, control)
-            : 'INSUFFICIENT_DATA';
+          const effectiveMetrics = getEffectiveMetrics(systemState, control);
           const blocking =
             link.type === 'REQUIRED' &&
-            !['MASTERED', 'TEACHER_CONFIRMED'].includes(effectiveStatus) &&
-            (systemState?.mastery ?? 0.5) < 0.68;
+            !['MASTERED', 'TEACHER_CONFIRMED'].includes(
+              effectiveMetrics.status,
+            ) &&
+            effectiveMetrics.mastery < 0.68;
 
           return {
             name: prerequisite.name,
@@ -339,6 +390,7 @@ export class TeacherRoadmapService {
       const subtopicMap = new Map<
         string,
         {
+          code: string;
           name: string;
           topic: string | null;
           skills: Array<{
@@ -357,8 +409,10 @@ export class TeacherRoadmapService {
       for (const { node } of matching) {
         const state = node.skillStates[0];
         const control = node.teacherSkillControls[0];
+        const metrics = getEffectiveMetrics(state, control);
         const subtopicName = node.parent?.name ?? 'Другие навыки';
         const group = subtopicMap.get(subtopicName) ?? {
+          code: node.parent?.code ?? `other-${examNumber}`,
           name: subtopicName,
           topic: node.parent?.parent?.name ?? null,
           skills: [],
@@ -367,17 +421,36 @@ export class TeacherRoadmapService {
           code: node.code,
           name: node.name,
           description: node.description,
-          mastery: state?.mastery ?? 0.5,
-          confidence: state?.confidence ?? 0,
-          status: state
-            ? getEffectiveSkillStatus(state.status, control)
-            : 'INSUFFICIENT_DATA',
+          mastery: metrics.mastery,
+          confidence: metrics.confidence,
+          status: metrics.status,
           evidenceCount: state?.distinctEvidenceCount ?? 0,
           lastVerifiedAt: state?.lastVerifiedAt ?? null,
           isFoundational: node.isFoundational,
         });
         subtopicMap.set(subtopicName, group);
       }
+      const subtopics = [...subtopicMap.values()].map((subtopic) => {
+        const subtopicMastery =
+          subtopic.skills.reduce((total, skill) => total + skill.mastery, 0) /
+          Math.max(1, subtopic.skills.length);
+        const subtopicConfidence =
+          subtopic.skills.reduce(
+            (total, skill) => total + skill.confidence,
+            0,
+          ) / Math.max(1, subtopic.skills.length);
+        const masteredSkills = subtopic.skills.filter((skill) =>
+          ['MASTERED', 'TEACHER_CONFIRMED'].includes(skill.status),
+        ).length;
+
+        return {
+          ...subtopic,
+          mastery: clamp01(subtopicMastery),
+          confidence: clamp01(subtopicConfidence),
+          masteredSkills,
+          isMastered: masteredSkills === subtopic.skills.length,
+        };
+      });
       const attempts = matching
         .flatMap(({ node }) => evidenceBySkillId.get(node.id) ?? [])
         .sort(
@@ -411,7 +484,7 @@ export class TeacherRoadmapService {
         isTeacherAssigned,
         needsReview,
         skillCount: matching.length,
-        subtopics: [...subtopicMap.values()],
+        subtopics,
         reasons,
         prerequisites: [...prerequisiteByName.values()].slice(0, 12),
         unlocksExamNumbers: EXAM_ROADMAP_CONNECTIONS.filter(

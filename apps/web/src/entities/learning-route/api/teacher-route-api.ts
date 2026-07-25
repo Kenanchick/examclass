@@ -8,6 +8,7 @@ import type {
   TeacherRouteHistoryItem,
   TeacherSkillActionInput,
   TeacherSkillDetail,
+  TeacherSubtopicStatusInput,
 } from "../model/teacher-route";
 
 const routePath = (studentId: string) =>
@@ -62,6 +63,22 @@ export async function applyTeacherSkillAction({
 }) {
   const response = await apiClient.post(
     `${routePath(studentId)}/skills/${encodeURIComponent(skillCode)}/actions`,
+    data,
+  );
+  return response.data;
+}
+
+export async function applyTeacherSubtopicStatus({
+  studentId,
+  subtopicCode,
+  data,
+}: {
+  studentId: string;
+  subtopicCode: string;
+  data: TeacherSubtopicStatusInput;
+}) {
+  const response = await apiClient.post(
+    `${routePath(studentId)}/subtopics/${encodeURIComponent(subtopicCode)}/status`,
     data,
   );
   return response.data;

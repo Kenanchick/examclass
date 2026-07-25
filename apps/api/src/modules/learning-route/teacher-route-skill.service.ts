@@ -6,12 +6,14 @@ import {
 import {
   LearningGoalStatus,
   LearningRouteStatus,
+  KnowledgeNodeKind,
   StudentSkillStatus,
   TeacherInstructionStatus,
   TeacherRouteActionType,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
 import { TeacherSkillActionDto } from './dto/teacher-skill-action.dto';
+import { TeacherSubtopicStatusDto } from './dto/teacher-subtopic-status.dto';
 import { LearningRouteAccessService } from './learning-route-access.service';
 import { LearningRouteService } from './learning-route.service';
 import { createTeacherRouteChange } from './teacher-route-change';
@@ -96,6 +98,117 @@ export class TeacherRouteSkillService {
     }
 
     return { control: after };
+  }
+
+  async applySubtopicStatus(
+    teacherId: string,
+    studentId: string,
+    subtopicCode: string,
+    dto: TeacherSubtopicStatusDto,
+  ) {
+    await this.access.assertTeacherStudent(teacherId, studentId);
+    const allowedStatuses = new Set<StudentSkillStatus>([
+      StudentSkillStatus.MASTERED,
+      StudentSkillStatus.LEARNING,
+      StudentSkillStatus.NEEDS_REINFORCEMENT,
+    ]);
+    if (!allowedStatuses.has(dto.status)) {
+      throw new BadRequestException(
+        'Для подтемы можно выбрать освоение, изучение или закрепление',
+      );
+    }
+
+    const goal = await this.prisma.studentLearningGoal.findFirst({
+      where: { studentId, status: LearningGoalStatus.ACTIVE },
+      orderBy: { createdAt: 'desc' },
+      select: { knowledgeMapId: true },
+    });
+    if (!goal) {
+      throw new NotFoundException('Активная учебная цель не найдена');
+    }
+
+    const [subtopic, route] = await Promise.all([
+      this.prisma.knowledgeNode.findUnique({
+        where: {
+          knowledgeMapId_code: {
+            knowledgeMapId: goal.knowledgeMapId,
+            code: subtopicCode,
+          },
+        },
+        select: {
+          kind: true,
+          name: true,
+          children: {
+            where: { kind: KnowledgeNodeKind.SKILL },
+            select: {
+              id: true,
+              skillStates: {
+                where: { studentId },
+                take: 1,
+                select: { status: true },
+              },
+              teacherSkillControls: {
+                where: { studentId },
+                take: 1,
+              },
+            },
+          },
+        },
+      }),
+      this.prisma.learningRoute.findFirst({
+        where: { studentId, status: LearningRouteStatus.ACTIVE },
+        orderBy: { generatedAt: 'desc' },
+        select: { id: true },
+      }),
+    ]);
+
+    if (!subtopic || subtopic.kind !== KnowledgeNodeKind.SUBTOPIC) {
+      throw new NotFoundException('Подтема не найдена');
+    }
+    if (subtopic.children.length === 0) {
+      throw new BadRequestException('В подтеме нет проверяемых навыков');
+    }
+
+    await this.prisma.$transaction(async (transaction) => {
+      for (const skill of subtopic.children) {
+        const before = skill.teacherSkillControls[0] ?? null;
+        const after = await transaction.teacherSkillControl.upsert({
+          where: {
+            studentId_skillId: { studentId, skillId: skill.id },
+          },
+          update: {
+            manualStatus: dto.status,
+            autoStatusEnabled: false,
+            lastAuthorId: teacherId,
+          },
+          create: {
+            studentId,
+            skillId: skill.id,
+            lastAuthorId: teacherId,
+            manualStatus: dto.status,
+            autoStatusEnabled: false,
+          },
+        });
+
+        await transaction.teacherRouteChange.create({
+          data: createTeacherRouteChange({
+            studentId,
+            authorId: teacherId,
+            routeId: route?.id ?? null,
+            skillId: skill.id,
+            action: TeacherRouteActionType.CHANGE_SKILL_STATUS,
+            reason: `${dto.reason} · Подтема «${subtopic.name}»`,
+            before,
+            after,
+          }),
+        });
+      }
+    });
+
+    return {
+      updatedSkills: subtopic.children.length,
+      route: await this.routes.rebuildTeacherStudentRoute(teacherId, studentId),
+    };
   }
 
   async getDetail(teacherId: string, studentId: string, skillCode: string) {

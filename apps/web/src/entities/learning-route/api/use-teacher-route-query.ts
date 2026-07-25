@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   applyTeacherModuleAction,
   applyTeacherSkillAction,
+  applyTeacherSubtopicStatus,
   createTeacherRouteModule,
   getTeacherKnowledgeProfile,
   getTeacherLearningRoute,
@@ -75,6 +76,14 @@ export function useTeacherSkillActionMutation(studentId: string) {
   const invalidate = useInvalidateTeacherRoute(studentId);
   return useMutation({
     mutationFn: applyTeacherSkillAction,
+    onSuccess: invalidate,
+  });
+}
+
+export function useTeacherSubtopicStatusMutation(studentId: string) {
+  const invalidate = useInvalidateTeacherRoute(studentId);
+  return useMutation({
+    mutationFn: applyTeacherSubtopicStatus,
     onSuccess: invalidate,
   });
 }
