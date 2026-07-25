@@ -5,32 +5,10 @@ import {
   CalendarClock,
   CheckCircle2,
   ChevronRight,
-  Clock3,
   RotateCcw,
   X,
 } from "lucide-react";
 import type { TeacherRoadmapNode } from "@/entities/learning-route/model/teacher-route";
-
-const statusLabels: Record<string, string> = {
-  UNKNOWN: "Недостаточно данных",
-  UNSTUDIED: "Ещё не изучалось",
-  GAP: "Есть пробел",
-  DEVELOPING: "Формируется",
-  MASTERED: "Освоено",
-  INSUFFICIENT_DATA: "Недостаточно данных",
-  WEAK: "Слабый навык",
-  LEARNING: "Изучается",
-  NEEDS_REINFORCEMENT: "Требует закрепления",
-  NEEDS_REVIEW: "Требует повторения",
-  TEACHER_CONFIRMED: "Подтверждено преподавателем",
-};
-
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
 
 type TeacherRoadmapDetailProps = {
   node: TeacherRoadmapNode;
@@ -38,7 +16,7 @@ type TeacherRoadmapDetailProps = {
   onSubtopicStatusChange: (action: {
     code: string;
     name: string;
-    status: "MASTERED" | "LEARNING";
+    status: "MASTERED" | "UNSTUDIED";
   }) => void;
   onReviewNode: () => void;
   onSkillOpen: (skillCode: string) => void;
@@ -85,14 +63,16 @@ export function TeacherRoadmapDetail({
         </div>
 
         <div className="space-y-6 p-5 sm:p-6">
-          <button
-            className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#fff3df] px-4 text-sm font-bold text-[#9a5a08] transition hover:-translate-y-0.5 hover:bg-[#ffebcb]"
-            onClick={onReviewNode}
-            type="button"
-          >
-            <CalendarClock className="size-5" />
-            Отправить всё задание на повторение
-          </button>
+          {node.isPassed && (
+            <button
+              className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#e58910] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#c96f08]"
+              onClick={onReviewNode}
+              type="button"
+            >
+              <CalendarClock className="size-5" />
+              Отправить всё задание на повторение
+            </button>
+          )}
 
           <section>
             <div className="flex items-center justify-between gap-3">
@@ -121,38 +101,51 @@ export function TeacherRoadmapDetail({
                       )}
                     </div>
                     <span className="text-right text-xs font-semibold text-muted">
-                      <span className="block font-bold text-ink">
-                        {Math.round(subtopic.mastery * 100)}%
+                      <span
+                        className={`block font-bold ${
+                          subtopic.isMastered
+                            ? "text-[#287651]"
+                            : "text-muted"
+                        }`}
+                      >
+                        {subtopic.isMastered ? "Пройдено" : "Не пройдено"}
                       </span>
                       {subtopic.masteredSkills}/{subtopic.skills.length} навыков
                     </span>
                     <ChevronRight className="size-4 text-muted transition group-open:rotate-90" />
                   </summary>
                   <div className="border-t border-line px-2 py-2">
-                    <button
-                      className={`mb-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold transition ${
-                        subtopic.isMastered
-                          ? "bg-[#edf8f2] text-success hover:bg-[#e2f3ea]"
-                          : "bg-brand text-white hover:bg-brand/90"
-                      }`}
-                      onClick={() =>
-                        onSubtopicStatusChange({
-                          code: subtopic.code,
-                          name: subtopic.name,
-                          status: subtopic.isMastered ? "LEARNING" : "MASTERED",
-                        })
-                      }
-                      type="button"
-                    >
-                      {subtopic.isMastered ? (
+                    {subtopic.isMastered ? (
+                      <button
+                        className="mb-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-[#b9ddc9] bg-[#eaf6ef] px-3 text-sm font-bold text-[#287651] transition hover:bg-[#d8efe2]"
+                        onClick={() =>
+                          onSubtopicStatusChange({
+                            code: subtopic.code,
+                            name: subtopic.name,
+                            status: "UNSTUDIED",
+                          })
+                        }
+                        type="button"
+                      >
                         <RotateCcw className="size-4" />
-                      ) : (
+                        Вернуть подтему в не пройдено
+                      </button>
+                    ) : (
+                      <button
+                        className="mb-2 flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand px-3 text-sm font-bold text-white transition hover:bg-brand/90"
+                        onClick={() =>
+                          onSubtopicStatusChange({
+                            code: subtopic.code,
+                            name: subtopic.name,
+                            status: "MASTERED",
+                          })
+                        }
+                        type="button"
+                      >
                         <CheckCircle2 className="size-4" />
-                      )}
-                      {subtopic.isMastered
-                        ? "Вернуть подтему в изучение"
-                        : "Отметить всю подтему освоенной"}
-                    </button>
+                        Отметить подтему пройденной
+                      </button>
+                    )}
                     {subtopic.skills.map((skill) => (
                       <button
                         className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-left transition hover:bg-panel"
@@ -162,11 +155,11 @@ export function TeacherRoadmapDetail({
                       >
                         <span
                           className={`size-2.5 shrink-0 rounded-full ${
-                            skill.mastery >= 0.8
+                            ["MASTERED", "TEACHER_CONFIRMED"].includes(
+                              skill.status,
+                            )
                               ? "bg-[#3f9a70]"
-                              : skill.confidence < 0.3
-                                ? "bg-[#9b80af]"
-                                : "bg-[#d29a32]"
+                              : "bg-[#a8b1ba]"
                           }`}
                         />
                         <span className="min-w-0 flex-1">
@@ -174,8 +167,11 @@ export function TeacherRoadmapDetail({
                             {skill.name}
                           </span>
                           <span className="mt-0.5 block text-xs text-muted">
-                            {statusLabels[skill.status] ?? "Требует проверки"} ·{" "}
-                            {Math.round(skill.mastery * 100)}%
+                            {["MASTERED", "TEACHER_CONFIRMED"].includes(
+                              skill.status,
+                            )
+                              ? "Пройдено"
+                              : "Не пройдено"}
                           </span>
                         </span>
                         <ChevronRight className="size-4 text-muted" />
@@ -187,40 +183,6 @@ export function TeacherRoadmapDetail({
             </div>
           </section>
 
-          <section className="rounded-2xl border border-line p-4">
-            <h3 className="flex items-center gap-2 font-bold text-ink">
-              <CheckCircle2 className="size-5 text-success" />
-              Когда узел будет завершён
-            </h3>
-            <p className="mt-2 text-sm leading-6 text-muted">
-              {node.completionCriteria.description}
-            </p>
-          </section>
-
-          {node.plannedReviews.length > 0 && (
-            <section>
-              <h3 className="flex items-center gap-2 font-bold text-ink">
-                <CalendarClock className="size-5 text-brand" />
-                Запланировано
-              </h3>
-              <div className="mt-3 space-y-2">
-                {node.plannedReviews.map((review) => (
-                  <div
-                    className="flex items-center gap-3 rounded-xl bg-panel/70 px-3 py-2.5 text-sm"
-                    key={`${review.type}-${review.date}-${review.skillName}`}
-                  >
-                    <Clock3 className="size-4 shrink-0 text-brand" />
-                    <span className="min-w-0 flex-1 font-semibold text-ink">
-                      {review.type}: {review.skillName}
-                    </span>
-                    <span className="shrink-0 text-xs text-muted">
-                      {formatDate(review.date)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
         </div>
       </aside>
     </>

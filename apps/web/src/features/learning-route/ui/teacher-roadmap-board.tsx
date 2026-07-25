@@ -3,13 +3,13 @@
 import {
   Crosshair,
   Edit3,
-  Focus,
   Maximize2,
   Minus,
   Move,
   Plus,
   Route,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import {
   useCallback,
@@ -27,86 +27,90 @@ import type {
   TeacherRoadmapStatus,
 } from "@/entities/learning-route/model/teacher-route";
 
-const BOARD_WIDTH = 2600;
-const BOARD_HEIGHT = 1760;
+const BOARD_WIDTH = 3480;
+const BOARD_HEIGHT = 2380;
 const CARD_WIDTH = 460;
 const CARD_HEIGHT = 230;
-const START_X = 155;
-const START_Y = 120;
+const REVIEW_CARD_WIDTH = 420;
+const REVIEW_CARD_HEIGHT = 250;
+const START_X = 560;
+const START_Y = 420;
 const COLUMN_GAP = 620;
 const ROW_GAP = 325;
-const REVIEW_START_Y = 1810;
-const DEFAULT_CUSTOM_START_Y = 1810;
+const REVIEW_FALLBACK_START_Y = 2140;
+const DEFAULT_CUSTOM_START_Y = 2360;
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 1.45;
 
 type Viewport = { x: number; y: number; scale: number };
+type BoardBox = { x: number; y: number; width: number; height: number };
 
 const statusPresentation: Record<
   TeacherRoadmapStatus,
-  { label: string; color: string; background: string; border: string }
+  { color: string; background: string; border: string }
 > = {
   MASTERED: {
-    label: "Освоено",
     color: "#287651",
     background: "#edf8f2",
     border: "#a9d8bf",
   },
   LEARNING: {
-    label: "Изучается",
     color: "#725211",
     background: "#fff8e8",
     border: "#ead19a",
   },
   CURRENT_PRIORITY: {
-    label: "Сейчас в работе",
     color: "#ffffff",
     background: "#0b4977",
     border: "#0b4977",
   },
   AVAILABLE: {
-    label: "Доступно",
     color: "#315c7e",
     background: "#f2f7fb",
     border: "#c8d8e5",
   },
   BLOCKED: {
-    label: "Нужна база",
     color: "#6c7279",
     background: "#f4f5f6",
     border: "#d5d9dd",
   },
   NEEDS_REVIEW: {
-    label: "Повторить",
     color: "#9a4e32",
     background: "#fff2ed",
     border: "#e8bbaa",
   },
   INSUFFICIENT_DATA: {
-    label: "Уточнить уровень",
     color: "#67547d",
     background: "#f7f2fb",
     border: "#d9c8e6",
   },
   TEACHER_ASSIGNED: {
-    label: "Назначено вами",
     color: "#315394",
     background: "#eef3ff",
     border: "#b6c8ec",
   },
 };
 
-const nodePosition = (examNumber: number) => {
+const nodeGridPosition = (examNumber: number) => {
   const index = examNumber - 1;
   const row = Math.floor(index / 4);
   const offset = index % 4;
-  const column = row % 2 === 0 ? offset : 3 - offset;
+  return { row, column: row % 2 === 0 ? offset : 3 - offset };
+};
 
+const nodePosition = (examNumber: number) => {
+  const { row, column } = nodeGridPosition(examNumber);
   return {
     x: START_X + column * COLUMN_GAP,
     y: START_Y + row * ROW_GAP,
   };
 };
+
+const nodeBox = (examNumber: number): BoardBox => ({
+  ...nodePosition(examNumber),
+  width: CARD_WIDTH,
+  height: CARD_HEIGHT,
+});
 
 const nodeCenter = (examNumber: number) => {
   const position = nodePosition(examNumber);
@@ -116,9 +120,45 @@ const nodeCenter = (examNumber: number) => {
   };
 };
 
-const reviewNodePosition = (index: number) => ({
-  x: START_X + (index % 4) * COLUMN_GAP,
-  y: REVIEW_START_Y + Math.floor(index / 4) * ROW_GAP,
+const reviewNodePosition = (
+  review: TeacherRoadmap["reviewNodes"][number],
+  index: number,
+) => {
+  const source = nodePosition(review.sourceExamNumber);
+  const { row, column } = nodeGridPosition(review.sourceExamNumber);
+
+  if (column === 0) {
+    return { x: 70, y: source.y - 10 };
+  }
+  if (row === 0) {
+    return {
+      x: source.x + (CARD_WIDTH - REVIEW_CARD_WIDTH) / 2,
+      y: 70,
+    };
+  }
+  if (column === 3) {
+    return { x: source.x + CARD_WIDTH + 90, y: source.y - 10 };
+  }
+  if (row === 4) {
+    return {
+      x: source.x + (CARD_WIDTH - REVIEW_CARD_WIDTH) / 2,
+      y: source.y + CARD_HEIGHT + 90,
+    };
+  }
+
+  return {
+    x: START_X + (index % 4) * COLUMN_GAP,
+    y: REVIEW_FALLBACK_START_Y + Math.floor(index / 4) * ROW_GAP,
+  };
+};
+
+const reviewBox = (
+  review: TeacherRoadmap["reviewNodes"][number],
+  index: number,
+): BoardBox => ({
+  ...reviewNodePosition(review, index),
+  width: REVIEW_CARD_WIDTH,
+  height: REVIEW_CARD_HEIGHT,
 });
 
 const customNodePosition = (index: number, customStartY: number) => ({
@@ -126,28 +166,70 @@ const customNodePosition = (index: number, customStartY: number) => ({
   y: customStartY + Math.floor(index / 4) * ROW_GAP,
 });
 
-const connectionPath = (from: number, to: number) => {
-  const start = nodeCenter(from);
-  const end = nodeCenter(to);
-  const horizontal = Math.abs(end.x - start.x) > Math.abs(end.y - start.y);
+const boxCenter = (box: BoardBox) => ({
+  x: box.x + box.width / 2,
+  y: box.y + box.height / 2,
+});
 
-  if (horizontal) {
-    const middle = (start.x + end.x) / 2;
-    return `M ${start.x} ${start.y} C ${middle} ${start.y}, ${middle} ${end.y}, ${end.x} ${end.y}`;
+const anchorAtEdge = (box: BoardBox, target: { x: number; y: number }) => {
+  const center = boxCenter(box);
+  const dx = target.x - center.x;
+  const dy = target.y - center.y;
+
+  if (Math.abs(dx) / box.width > Math.abs(dy) / box.height) {
+    return {
+      x: dx >= 0 ? box.x + box.width : box.x,
+      y: center.y,
+    };
   }
 
-  const middle = (start.y + end.y) / 2;
-  return `M ${start.x} ${start.y} C ${start.x} ${middle}, ${end.x} ${middle}, ${end.x} ${end.y}`;
+  return {
+    x: center.x,
+    y: dy >= 0 ? box.y + box.height : box.y,
+  };
 };
 
-const reviewConnectionPath = (from: number, reviewIndex: number) => {
-  const start = nodeCenter(from);
-  const review = reviewNodePosition(reviewIndex);
-  const end = { x: review.x + CARD_WIDTH / 2, y: review.y };
-  const bendY = Math.max(start.y + 150, end.y - 130);
-
-  return `M ${start.x} ${start.y} C ${start.x} ${bendY}, ${end.x} ${bendY}, ${end.x} ${end.y}`;
+const moveTowards = (
+  point: { x: number; y: number },
+  target: { x: number; y: number },
+  distance: number,
+) => {
+  const dx = target.x - point.x;
+  const dy = target.y - point.y;
+  const length = Math.hypot(dx, dy) || 1;
+  return {
+    x: point.x + (dx / length) * distance,
+    y: point.y + (dy / length) * distance,
+  };
 };
+
+const pathBetween = (from: BoardBox, to: BoardBox) => {
+  const start = anchorAtEdge(from, boxCenter(to));
+  const end = moveTowards(anchorAtEdge(to, boxCenter(from)), start, 18);
+  const horizontal = Math.abs(end.x - start.x) > Math.abs(end.y - start.y);
+  const handle = Math.max(
+    70,
+    (horizontal ? Math.abs(end.x - start.x) : Math.abs(end.y - start.y)) *
+      0.42,
+  );
+
+  if (horizontal) {
+    const direction = end.x >= start.x ? 1 : -1;
+    return `M ${start.x} ${start.y} C ${start.x + direction * handle} ${start.y}, ${end.x - direction * handle} ${end.y}, ${end.x} ${end.y}`;
+  }
+
+  const direction = end.y >= start.y ? 1 : -1;
+  return `M ${start.x} ${start.y} C ${start.x} ${start.y + direction * handle}, ${end.x} ${end.y - direction * handle}, ${end.x} ${end.y}`;
+};
+
+const connectionPath = (from: number, to: number) => {
+  return pathBetween(nodeBox(from), nodeBox(to));
+};
+
+const reviewConnectionPath = (
+  review: TeacherRoadmap["reviewNodes"][number],
+  index: number,
+) => pathBetween(nodeBox(review.sourceExamNumber), reviewBox(review, index));
 
 function ProgressRing({ value, color }: { value: number; color: string }) {
   const radius = 25;
@@ -251,35 +333,56 @@ function ReviewRoadmapCard({
   review,
   index,
   onOpen,
+  onRemove,
 }: {
   review: TeacherRoadmap["reviewNodes"][number];
   index: number;
   onOpen: () => void;
+  onRemove: () => void;
 }) {
-  const position = reviewNodePosition(index);
+  const position = reviewNodePosition(review, index);
 
   return (
-    <button
+    <div
       aria-label={`Повторение задания ${review.sourceExamNumber}: ${review.title}`}
-      className="roadmap-node absolute cursor-pointer overflow-hidden rounded-[1.75rem] border border-[#edae42] bg-[#fff8ea] p-6 text-left shadow-[0_16px_40px_rgba(184,105,0,0.14)] transition-[box-shadow,transform] duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_50px_rgba(184,105,0,0.22)] focus-visible:ring-4 focus-visible:ring-[#ffd99a]"
+      className="roadmap-node absolute cursor-pointer overflow-hidden rounded-[1.75rem] border border-[#c96f08] bg-[#e58910] p-6 text-left text-white shadow-[0_16px_40px_rgba(184,105,0,0.2)] transition-[box-shadow,transform] duration-300 hover:-translate-y-1.5 hover:bg-[#d87908] hover:shadow-[0_22px_50px_rgba(184,105,0,0.3)] focus-visible:ring-4 focus-visible:ring-[#ffd99a]"
       onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen();
+        }
+      }}
+      role="button"
       style={{
-        height: CARD_HEIGHT,
+        height: REVIEW_CARD_HEIGHT,
         left: position.x,
         top: position.y,
-        width: CARD_WIDTH,
+        width: REVIEW_CARD_WIDTH,
       }}
-      type="button"
+      tabIndex={0}
     >
+      <button
+        aria-label="Удалить повторение"
+        className="absolute right-4 top-4 grid size-9 place-items-center rounded-xl border border-white/30 bg-white/15 text-white transition hover:bg-white/25"
+        onClick={(event) => {
+          event.stopPropagation();
+          onRemove();
+        }}
+        onPointerDown={(event) => event.stopPropagation()}
+        type="button"
+      >
+        <Trash2 className="size-4" />
+      </button>
       <div className="flex items-start gap-4">
-        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-[#ffe2a5] text-xl font-extrabold text-[#a85f00]">
+        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-white/20 text-xl font-extrabold text-white">
           {review.sourceExamNumber}
         </span>
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#a85f00]">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-white/80">
             Повторение
           </p>
-          <h3 className="mt-1 line-clamp-2 text-[25px] font-bold leading-[1.12] tracking-[-0.045em] text-ink">
+          <h3 className="mt-1 line-clamp-2 text-[25px] font-bold leading-[1.12] tracking-[-0.045em] text-white">
             {review.title}
           </h3>
         </div>
@@ -287,19 +390,19 @@ function ReviewRoadmapCard({
       <div className="mt-5 flex flex-wrap gap-2">
         {review.subtopics.slice(0, 3).map((subtopic) => (
           <span
-            className="max-w-full truncate rounded-full border border-[#f0c56f] bg-white/70 px-3 py-1.5 text-xs font-bold text-[#8d5709]"
+            className="max-w-full truncate rounded-full border border-white/35 bg-white/15 px-3 py-1.5 text-xs font-bold text-white"
             key={subtopic.code}
           >
             {subtopic.name}
           </span>
         ))}
         {review.subtopics.length > 3 && (
-          <span className="rounded-full border border-[#f0c56f] bg-white/70 px-3 py-1.5 text-xs font-bold text-[#8d5709]">
+          <span className="rounded-full border border-white/35 bg-white/15 px-3 py-1.5 text-xs font-bold text-white">
             +{review.subtopics.length - 3}
           </span>
         )}
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -313,6 +416,7 @@ type TeacherRoadmapBoardProps = {
   onCustomOpen: (moduleKey: string) => void;
   onModeChange: (mode: "PERSONAL" | "FULL") => void;
   onNodeOpen: (examNumber: number) => void;
+  onReviewRemove: (examNumber: number) => void;
 };
 
 export function TeacherRoadmapBoard({
@@ -325,6 +429,7 @@ export function TeacherRoadmapBoard({
   onCustomOpen,
   onModeChange,
   onNodeOpen,
+  onReviewRemove,
 }: TeacherRoadmapBoardProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
   const [viewport, setViewport] = useState<Viewport>({
@@ -347,20 +452,28 @@ export function TeacherRoadmapBoard({
         : roadmap.customNodes.filter((module) => !module.isHidden),
     [editMode, roadmap.customNodes],
   );
-  const reviewRows = Math.ceil(roadmap.reviewNodes.length / 4);
-  const customStartY =
-    reviewRows > 0
-      ? REVIEW_START_Y + reviewRows * ROW_GAP + 70
-      : DEFAULT_CUSTOM_START_Y;
-  const reviewBottom =
-    reviewRows > 0 ? REVIEW_START_Y + (reviewRows - 1) * ROW_GAP + CARD_HEIGHT : 0;
+  const reviewPositions = useMemo(
+    () =>
+      roadmap.reviewNodes.map((review, index) =>
+        reviewNodePosition(review, index),
+      ),
+    [roadmap.reviewNodes],
+  );
+  const reviewBottom = Math.max(
+    0,
+    ...reviewPositions.map((position) => position.y + REVIEW_CARD_HEIGHT),
+  );
+  const customStartY = Math.max(
+    DEFAULT_CUSTOM_START_Y,
+    reviewBottom + 130,
+  );
   const customBottom =
     visibleCustomNodes.length > 0
       ? customStartY +
         (Math.ceil(visibleCustomNodes.length / 4) - 1) * ROW_GAP +
         CARD_HEIGHT
       : 0;
-  const canvasHeight = Math.max(BOARD_HEIGHT, reviewBottom, customBottom) + 80;
+  const canvasHeight = Math.max(BOARD_HEIGHT, reviewBottom, customBottom) + 120;
 
   const fitRoute = useCallback(() => {
     const element = viewportRef.current;
@@ -599,13 +712,13 @@ export function TeacherRoadmapBoard({
             <defs>
               <marker
                 id="roadmap-arrow-main"
-                markerHeight="8"
-                markerWidth="8"
+                markerHeight="10"
+                markerWidth="10"
                 orient="auto"
-                refX="7"
-                refY="4"
+                refX="9"
+                refY="5"
               >
-                <path d="M0,0 L8,4 L0,8 Z" fill="#7da8ca" />
+                <path d="M0,0 L10,5 L0,10 Z" fill="#7da8ca" />
               </marker>
               <marker
                 id="roadmap-arrow-custom"
@@ -619,13 +732,13 @@ export function TeacherRoadmapBoard({
               </marker>
               <marker
                 id="roadmap-arrow-review"
-                markerHeight="9"
-                markerWidth="9"
+                markerHeight="12"
+                markerWidth="12"
                 orient="auto"
-                refX="8"
-                refY="4.5"
+                refX="11"
+                refY="6"
               >
-                <path d="M0,0 L9,4.5 L0,9 Z" fill="#d98412" />
+                <path d="M0,0 L12,6 L0,12 Z" fill="#d87300" />
               </marker>
             </defs>
             {roadmap.nodes.slice(0, -1).map((node) => (
@@ -643,11 +756,11 @@ export function TeacherRoadmapBoard({
             {roadmap.reviewNodes.map((review, index) => (
               <path
                 className="roadmap-main-line"
-                d={reviewConnectionPath(review.sourceExamNumber, index)}
+                d={reviewConnectionPath(review, index)}
                 fill="none"
                 key={`review-${review.moduleKey}`}
                 markerEnd="url(#roadmap-arrow-review)"
-                stroke="#d98412"
+                stroke="#d87300"
                 strokeLinecap="round"
                 strokeWidth="5"
               />
@@ -682,19 +795,6 @@ export function TeacherRoadmapBoard({
             </div>
           ))}
 
-          {roadmap.reviewNodes.length > 0 && (
-            <div
-              className="pointer-events-none absolute flex items-center gap-3"
-              style={{ left: START_X, top: REVIEW_START_Y - 64 }}
-            >
-              <span className="grid size-9 place-items-center rounded-xl bg-[#ffe2a5] font-extrabold text-[#a85f00]">
-                ↻
-              </span>
-              <span className="text-sm font-bold uppercase tracking-[0.12em] text-[#a85f00]">
-                Повторение
-              </span>
-            </div>
-          )}
           {roadmap.reviewNodes.map((review, index) => (
             <div
               className="pointer-events-auto"
@@ -707,6 +807,7 @@ export function TeacherRoadmapBoard({
                   onNodeOpen(review.sourceExamNumber);
                   centerNode(review.sourceExamNumber);
                 }}
+                onRemove={() => onReviewRemove(review.sourceExamNumber)}
                 review={review}
               />
             </div>
@@ -773,24 +874,6 @@ export function TeacherRoadmapBoard({
         </div>
       </div>
 
-      <footer className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-line px-5 py-3">
-        {Object.entries(statusPresentation).map(([status, presentation]) => (
-          <span
-            className="inline-flex items-center gap-2 text-xs font-semibold text-muted"
-            key={status}
-          >
-            <span
-              className="size-2.5 rounded-full"
-              style={{ background: presentation.color }}
-            />
-            {presentation.label}
-          </span>
-        ))}
-        <span className="ml-auto hidden items-center gap-2 text-xs font-semibold text-muted lg:inline-flex">
-          <Focus className="size-4 text-brand" />
-          Нажмите на узел, чтобы увидеть навыки и причины
-        </span>
-      </footer>
     </section>
   );
 }

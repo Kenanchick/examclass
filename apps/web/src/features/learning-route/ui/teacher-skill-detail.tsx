@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, CheckCircle2, X } from "lucide-react";
+import { CalendarClock, CheckCircle2, RotateCcw, X } from "lucide-react";
 import type { TeacherSkillDetail } from "@/entities/learning-route/model/teacher-route";
 
 export type SkillActionRequest = {
@@ -54,6 +54,10 @@ export function TeacherSkillDetailPanel({
     );
   }
 
+  const isPassed = ["MASTERED", "TEACHER_CONFIRMED"].includes(
+    detail.effectiveStatus,
+  );
+
   return (
     <div className="max-h-[78vh] overflow-y-auto p-5 scrollbar-thin sm:p-7">
       <div className="flex items-start justify-between gap-4">
@@ -81,35 +85,55 @@ export function TeacherSkillDetailPanel({
       </div>
 
       <div className="mt-7 grid gap-3 sm:grid-cols-2">
-        <button
-          className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#eaf6ef] px-4 text-sm font-bold text-[#287651] transition hover:-translate-y-0.5 hover:bg-[#dff1e7]"
-          onClick={() =>
-            onAction({
-              action: "CHANGE_SKILL_STATUS",
-              title: "Отметить навык освоенным",
-              status: "MASTERED",
-              immediate: true,
-            })
-          }
-          type="button"
-        >
-          <CheckCircle2 className="size-5" />
-          Освоено
-        </button>
-        <button
-          className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#fff3df] px-4 text-sm font-bold text-[#9a5a08] transition hover:-translate-y-0.5 hover:bg-[#ffebcb]"
-          onClick={() =>
-            onAction({
-              action: "SCHEDULE_REVIEW",
-              title: "Поставить навык на повторение",
-              immediate: true,
-            })
-          }
-          type="button"
-        >
-          <CalendarClock className="size-5" />
-          На повторение
-        </button>
+        {isPassed ? (
+          <button
+            className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#eaf6ef] px-4 text-sm font-bold text-[#287651] transition hover:-translate-y-0.5 hover:bg-[#d8efe2]"
+            onClick={() =>
+              onAction({
+                action: "CHANGE_SKILL_STATUS",
+                title: "Вернуть навык в состояние «Не пройдено»",
+                status: "UNSTUDIED",
+                immediate: true,
+              })
+            }
+            type="button"
+          >
+            <RotateCcw className="size-5" />
+            Вернуть в не пройдено
+          </button>
+        ) : (
+          <button
+            className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-brand/90"
+            onClick={() =>
+              onAction({
+                action: "CHANGE_SKILL_STATUS",
+                title: "Отметить навык пройденным",
+                status: "MASTERED",
+                immediate: true,
+              })
+            }
+            type="button"
+          >
+            <CheckCircle2 className="size-5" />
+            Тема пройдена
+          </button>
+        )}
+        {isPassed && (
+          <button
+            className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#e58910] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#c96f08]"
+            onClick={() =>
+              onAction({
+                action: "SCHEDULE_REVIEW",
+                title: "Поставить навык на повторение",
+                immediate: true,
+              })
+            }
+            type="button"
+          >
+            <CalendarClock className="size-5" />
+            На повторение
+          </button>
+        )}
       </div>
     </div>
   );

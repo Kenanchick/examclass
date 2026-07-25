@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   useCreateTeacherRouteModuleMutation,
+  useDeleteTeacherNodeReviewMutation,
   useTeacherModuleActionMutation,
   useTeacherNodeReviewMutation,
   useTeacherRoadmapQuery,
@@ -15,7 +16,6 @@ import {
 import type {
   TeacherModuleActionInput,
   TeacherSkillActionInput,
-  TeacherSubtopicStatusInput,
 } from "@/entities/learning-route/model/teacher-route";
 import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
 import { useTeacherRouteWorkspaceStore } from "@/features/learning-route/model/use-teacher-route-workspace-store";
@@ -50,12 +50,6 @@ type PendingAction =
       skillCode: string;
       title: string;
       data: Omit<SkillActionRequest, "title">;
-    }
-  | {
-      scope: "subtopic";
-      subtopicCode: string;
-      title: string;
-      data: Omit<TeacherSubtopicStatusInput, "reason">;
     };
 
 export function TeacherTrajectoryPage({
@@ -92,6 +86,7 @@ export function TeacherTrajectoryPage({
   const skillMutation = useTeacherSkillActionMutation(studentId);
   const subtopicMutation = useTeacherSubtopicStatusMutation(studentId);
   const nodeReviewMutation = useTeacherNodeReviewMutation(studentId);
+  const deleteNodeReviewMutation = useDeleteTeacherNodeReviewMutation(studentId);
   const moduleMutation = useTeacherModuleActionMutation(studentId);
   const customModuleMutation = useCreateTeacherRouteModuleMutation(studentId);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
@@ -130,7 +125,9 @@ export function TeacherTrajectoryPage({
         reason:
           data.action === "SCHEDULE_REVIEW"
             ? "Добавлено преподавателем в повторение"
-            : "Отмечено преподавателем как освоенное",
+            : data.status === "UNSTUDIED"
+              ? "Возвращено преподавателем в состояние «Не пройдено»"
+              : "Отмечено преподавателем как пройденное",
         ...(data.action === "SCHEDULE_REVIEW" && selectedExamNumber
           ? { sourceExamNumber: selectedExamNumber }
           : {}),
@@ -169,23 +166,6 @@ export function TeacherTrajectoryPage({
           onError: (error) =>
             setActionError(
               getApiErrorMessage(error, "Не удалось изменить модуль."),
-            ),
-        },
-      );
-      return;
-    }
-    if (pendingAction.scope === "subtopic") {
-      subtopicMutation.mutate(
-        {
-          studentId,
-          subtopicCode: pendingAction.subtopicCode,
-          data: { ...pendingAction.data, reason },
-        },
-        {
-          onSuccess: () => setPendingAction(null),
-          onError: (error) =>
-            setActionError(
-              getApiErrorMessage(error, "Не удалось изменить подтему."),
             ),
         },
       );
@@ -303,6 +283,21 @@ export function TeacherTrajectoryPage({
               setSelectedCustomModuleKey(null);
               selectExamNumber(examNumber);
             }}
+            onReviewRemove={(examNumber) => {
+              setActionError(null);
+              deleteNodeReviewMutation.mutate(
+                { studentId, examNumber },
+                {
+                  onError: (error) =>
+                    setActionError(
+                      getApiErrorMessage(
+                        error,
+                        "Не удалось удалить карточку повторения.",
+                      ),
+                    ),
+                },
+              );
+            }}
             roadmap={roadmap}
             selectedExamNumber={selectedExamNumber}
           />
@@ -318,15 +313,25 @@ export function TeacherTrajectoryPage({
           }}
           onSubtopicStatusChange={({ code, name, status }) => {
             setActionError(null);
-            setPendingAction({
-              scope: "subtopic",
-              subtopicCode: code,
-              title:
-                status === "MASTERED"
-                  ? `Отметить «${name}» освоенной`
-                  : `Вернуть «${name}» в изучение`,
-              data: { status },
-            });
+            subtopicMutation.mutate(
+              {
+                studentId,
+                subtopicCode: code,
+                data: {
+                  status,
+                  reason:
+                    status === "MASTERED"
+                      ? `Отмечено преподавателем как пройденное: «${name}»`
+                      : `Возвращено преподавателем в состояние «Не пройдено»: «${name}»`,
+                },
+              },
+              {
+                onError: (error) =>
+                  setActionError(
+                    getApiErrorMessage(error, "Не удалось отметить подтему."),
+                  ),
+              },
+            );
           }}
           onReviewNode={() => {
             setActionError(null);
@@ -391,14 +396,12 @@ export function TeacherTrajectoryPage({
         isOpen={Boolean(pendingAction)}
         isPending={
           skillMutation.isPending ||
-          moduleMutation.isPending ||
-          subtopicMutation.isPending
+          moduleMutation.isPending
         }
         onClose={() => {
           if (
             !skillMutation.isPending &&
-            !moduleMutation.isPending &&
-            !subtopicMutation.isPending
+            !moduleMutation.isPending
           ) {
             setPendingAction(null);
             setActionError(null);
