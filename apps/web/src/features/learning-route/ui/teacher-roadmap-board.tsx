@@ -252,21 +252,50 @@ const connectionPath = (from: number, to: number) => {
 const reviewConnectionPath = (
   review: TeacherRoadmap["reviewNodes"][number],
   index: number,
-) => pathBetween(nodeBox(review.sourceExamNumber), reviewBox(review, index));
+) => {
+  const source = nodeBox(review.sourceExamNumber);
+  const target = reviewBox(review, index);
+  const { column, row } = nodeGridPosition(review.sourceExamNumber);
 
-function AnimatedConnectionPath({
+  if (column === 0 || column === 3 || row === 0 || row === 4) {
+    return pathBetween(source, target);
+  }
+
+  const exitsRight = column < 2;
+  const start = {
+    x: exitsRight ? source.x + source.width : source.x,
+    y: source.y + source.height / 2,
+  };
+  const laneOffset = 24 + index * 18;
+  const laneX = exitsRight
+    ? source.x + source.width + laneOffset
+    : source.x - laneOffset;
+  const targetCenterX = target.x + target.width / 2;
+  const approachY = target.y - 72;
+
+  return [
+    `M ${start.x} ${start.y}`,
+    `C ${laneX} ${start.y}, ${laneX} ${start.y + 44}, ${laneX} ${start.y + 88}`,
+    `L ${laneX} ${approachY - 44}`,
+    `C ${laneX} ${approachY}, ${targetCenterX} ${approachY}, ${targetCenterX} ${target.y}`,
+  ].join(" ");
+};
+
+function ConnectionPath({
+  active = false,
   color,
   d,
+  kind = "route",
   markerEnd,
   onActiveChange,
-  shimmerColor,
   width,
 }: {
+  active?: boolean;
   color: string;
   d: string;
+  kind?: "route" | "review" | "custom";
   markerEnd: string;
   onActiveChange?: (active: boolean) => void;
-  shimmerColor: string;
   width: number;
 }) {
   const setActive = (active: boolean) => {
@@ -274,7 +303,11 @@ function AnimatedConnectionPath({
   };
 
   return (
-    <g className="roadmap-link-group">
+    <g
+      className={`roadmap-link-group roadmap-link-group--${kind} ${
+        active ? "roadmap-link-group--active" : ""
+      }`}
+    >
       <path
         className="roadmap-main-line"
         d={d}
@@ -287,16 +320,6 @@ function AnimatedConnectionPath({
         strokeWidth={width}
       />
       <path
-        className="roadmap-link-shimmer"
-        d={d}
-        fill="none"
-        pathLength="1"
-        stroke={shimmerColor}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={Math.max(2.5, width * 0.36)}
-      />
-      <path
         className="roadmap-link-hit"
         d={d}
         fill="none"
@@ -307,6 +330,59 @@ function AnimatedConnectionPath({
         strokeWidth={Math.max(36, width + 26)}
       />
     </g>
+  );
+}
+
+function FlowingDotsPath({
+  color,
+  d,
+  width,
+}: {
+  color: string;
+  d: string;
+  width: number;
+}) {
+  if (!d) return null;
+
+  return (
+    <path
+      className="roadmap-link-dots"
+      d={d}
+      fill="none"
+      stroke={color}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={width}
+    />
+  );
+}
+
+function NumberBurst({
+  background,
+  color,
+  value,
+}: {
+  background: string;
+  color: string;
+  value: number;
+}) {
+  return (
+    <span
+      className="relative grid size-[112px] shrink-0 place-items-center text-[29px] font-extrabold"
+      style={{ color }}
+    >
+      <svg
+        aria-hidden
+        className="absolute inset-0 size-full"
+        viewBox="0 0 100 100"
+      >
+        <path
+          d="M50 5C60 5 65 17 73 21C82 25 95 26 98 36C101 46 89 54 85 61C81 69 83 83 74 89C65 95 55 85 47 84C37 82 26 92 18 85C10 78 17 66 15 57C13 48 2 39 7 30C12 21 25 24 33 19C40 15 41 5 50 5Z"
+          fill={background}
+        />
+      </svg>
+      <span className="relative">{value}</span>
+    </span>
   );
 }
 
@@ -349,11 +425,13 @@ function RoadmapCard({
   node,
   connectionHighlighted,
   onOpen,
+  onReviewHighlightChange,
   selected,
 }: {
   node: TeacherRoadmapNode;
   connectionHighlighted: boolean;
   onOpen: () => void;
+  onReviewHighlightChange?: (active: boolean) => void;
   selected: boolean;
 }) {
   const presentation = statusPresentation[node.status];
@@ -368,7 +446,11 @@ function RoadmapCard({
       } ${isPerfect ? "roadmap-node--perfect" : ""} ${
         selected ? "ring-4 ring-[#c9e2f8]" : ""
       } ${connectionHighlighted ? "roadmap-node--linked" : ""}`}
+      onBlur={() => onReviewHighlightChange?.(false)}
       onClick={onOpen}
+      onFocus={() => onReviewHighlightChange?.(true)}
+      onPointerEnter={() => onReviewHighlightChange?.(true)}
+      onPointerLeave={() => onReviewHighlightChange?.(false)}
       style={
         {
           "--roadmap-border": presentation.border,
@@ -388,15 +470,11 @@ function RoadmapCard({
         />
       )}
       <div className="flex h-full items-center gap-7">
-        <span
-          className="relative grid size-24 shrink-0 place-items-center rounded-[1.55rem] text-[28px] font-extrabold"
-          style={{
-            background: presentation.background,
-            color: presentation.color,
-          }}
-        >
-          {node.examNumber}
-        </span>
+        <NumberBurst
+          background={presentation.background}
+          color={presentation.color}
+          value={node.examNumber}
+        />
         <div className="min-w-0 flex-1">
           <h3 className="line-clamp-3 text-[34px] font-bold leading-[1.1] tracking-[-0.045em] text-ink">
             {node.title}
@@ -414,12 +492,14 @@ function ReviewRoadmapCard({
   review,
   connectionHighlighted,
   index,
+  onHighlightChange,
   onOpen,
   onRemove,
 }: {
   review: TeacherRoadmap["reviewNodes"][number];
   connectionHighlighted: boolean;
   index: number;
+  onHighlightChange: (active: boolean) => void;
   onOpen: () => void;
   onRemove: () => void;
 }) {
@@ -449,6 +529,7 @@ function ReviewRoadmapCard({
       className={`roadmap-node absolute cursor-pointer overflow-hidden rounded-[2rem] border border-[#c96f08] bg-[#e58910] p-7 text-left text-white shadow-[0_18px_44px_rgba(184,105,0,0.24)] transition-[box-shadow,transform] duration-300 hover:-translate-y-1.5 hover:bg-[#d87908] hover:shadow-[0_26px_58px_rgba(184,105,0,0.34)] focus-visible:ring-4 focus-visible:ring-[#ffd99a] ${
         connectionHighlighted ? "roadmap-node--linked-review" : ""
       }`}
+      onBlur={() => onHighlightChange(false)}
       onClick={() => {
         cancelOpen();
         openTimerRef.current = setTimeout(onOpen, 260);
@@ -461,6 +542,7 @@ function ReviewRoadmapCard({
         event.preventDefault();
         removeReview();
       }}
+      onFocus={() => onHighlightChange(true)}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
@@ -468,6 +550,8 @@ function ReviewRoadmapCard({
           onOpen();
         }
       }}
+      onPointerEnter={() => onHighlightChange(true)}
+      onPointerLeave={() => onHighlightChange(false)}
       role="button"
       style={{
         height: REVIEW_CARD_HEIGHT,
@@ -491,9 +575,11 @@ function ReviewRoadmapCard({
         <Trash2 className="size-4" />
       </button>
       <div className="flex items-start gap-4">
-        <span className="grid size-20 shrink-0 place-items-center rounded-[1.4rem] bg-white/20 text-2xl font-extrabold text-white">
-          {review.sourceExamNumber}
-        </span>
+        <NumberBurst
+          background="rgb(255 255 255 / 22%)"
+          color="#ffffff"
+          value={review.sourceExamNumber}
+        />
         <div className="min-w-0">
           <p className="text-sm font-bold uppercase tracking-[0.12em] text-white/80">
             Повторение
@@ -551,6 +637,8 @@ export function TeacherRoadmapBoard({
     y: 0,
     scale: 0.58,
   });
+  const pendingViewportRef = useRef<Viewport | null>(null);
+  const viewportFrameRef = useRef<number | null>(null);
   const viewportAnimationTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
@@ -589,29 +677,85 @@ export function TeacherRoadmapBoard({
         CARD_HEIGHT
       : 0;
   const canvasHeight = Math.max(BOARD_HEIGHT, reviewBottom, customBottom) + 120;
+  const routePaths = useMemo(
+    () =>
+      roadmap.nodes
+        .slice(0, -1)
+        .map((node) => connectionPath(node.examNumber, node.examNumber + 1)),
+    [roadmap.nodes],
+  );
+  const reviewPaths = useMemo(
+    () =>
+      roadmap.reviewNodes.map((review, index) =>
+        reviewConnectionPath(review, index),
+      ),
+    [roadmap.reviewNodes],
+  );
+  const reviewByExamNumber = useMemo(
+    () =>
+      new Map(
+        roadmap.reviewNodes.map((review) => [review.sourceExamNumber, review]),
+      ),
+    [roadmap.reviewNodes],
+  );
+  const customPath =
+    visibleCustomNodes.length > 0
+      ? pathBetween(nodeBox(19), customNodeBox(0, customStartY))
+      : "";
+  const highlightedReviewIndex =
+    highlightedLink?.kind === "review"
+      ? roadmap.reviewNodes.findIndex(
+          (review) => review.moduleKey === highlightedLink.moduleKey,
+        )
+      : -1;
+  const highlightedReviewPath =
+    highlightedReviewIndex >= 0
+      ? (reviewPaths[highlightedReviewIndex] ?? "")
+      : "";
 
   const applyViewport = useCallback((next: Viewport, animate = false) => {
     viewportStateRef.current = next;
-    const canvas = canvasRef.current;
 
-    if (viewportAnimationTimerRef.current) {
-      clearTimeout(viewportAnimationTimerRef.current);
-      viewportAnimationTimerRef.current = null;
-    }
+    const commitViewport = () => {
+      const viewportToCommit = pendingViewportRef.current ?? next;
+      pendingViewportRef.current = null;
+      viewportFrameRef.current = null;
+      const canvas = canvasRef.current;
 
-    if (canvas) {
-      canvas.classList.toggle("roadmap-canvas--animated", animate);
-      canvas.style.transform = `translate3d(${next.x}px, ${next.y}px, 0) scale(${next.scale})`;
-      if (animate) {
-        viewportAnimationTimerRef.current = setTimeout(() => {
-          canvas.classList.remove("roadmap-canvas--animated");
-          viewportAnimationTimerRef.current = null;
-        }, 620);
+      if (viewportAnimationTimerRef.current) {
+        clearTimeout(viewportAnimationTimerRef.current);
+        viewportAnimationTimerRef.current = null;
       }
+
+      if (canvas) {
+        canvas.classList.toggle("roadmap-canvas--animated", animate);
+        canvas.style.transform = `translate3d(${viewportToCommit.x}px, ${viewportToCommit.y}px, 0) scale(${viewportToCommit.scale})`;
+        if (animate) {
+          viewportAnimationTimerRef.current = setTimeout(() => {
+            canvas.classList.remove("roadmap-canvas--animated");
+            viewportAnimationTimerRef.current = null;
+          }, 620);
+        }
+      }
+
+      if (scaleLabelRef.current) {
+        scaleLabelRef.current.textContent = `${Math.round(viewportToCommit.scale * 100)}%`;
+      }
+    };
+
+    if (animate) {
+      if (viewportFrameRef.current !== null) {
+        cancelAnimationFrame(viewportFrameRef.current);
+        viewportFrameRef.current = null;
+      }
+      pendingViewportRef.current = next;
+      commitViewport();
+      return;
     }
 
-    if (scaleLabelRef.current) {
-      scaleLabelRef.current.textContent = `${Math.round(next.scale * 100)}%`;
+    pendingViewportRef.current = next;
+    if (viewportFrameRef.current === null) {
+      viewportFrameRef.current = requestAnimationFrame(commitViewport);
     }
   }, []);
 
@@ -674,12 +818,44 @@ export function TeacherRoadmapBoard({
 
   useEffect(
     () => () => {
+      if (viewportFrameRef.current !== null) {
+        cancelAnimationFrame(viewportFrameRef.current);
+      }
       if (viewportAnimationTimerRef.current) {
         clearTimeout(viewportAnimationTimerRef.current);
       }
     },
     [],
   );
+
+  useEffect(() => {
+    const viewport = viewportElementRef.current;
+    if (!viewport) return;
+
+    let isVisible = true;
+    const updateAnimationState = () => {
+      viewport.classList.toggle(
+        "roadmap-viewport--paused",
+        document.hidden || !isVisible,
+      );
+    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry?.isIntersecting ?? false;
+        updateAnimationState();
+      },
+      { rootMargin: "160px" },
+    );
+
+    observer.observe(viewport);
+    document.addEventListener("visibilitychange", updateAnimationState);
+    updateAnimationState();
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", updateAnimationState);
+    };
+  }, []);
 
   const setScaleAtPoint = useCallback(
     (
@@ -845,7 +1021,9 @@ export function TeacherRoadmapBoard({
 
       <div
         className={`roadmap-viewport relative h-[760px] overflow-hidden bg-[#fbfcfe] touch-none sm:h-[860px] lg:h-[900px] ${
-          isDragging ? "cursor-grabbing" : "cursor-grab"
+          isDragging
+            ? "roadmap-viewport--dragging cursor-grabbing"
+            : "cursor-grab"
         }`}
         onPointerCancel={endDrag}
         onPointerDown={onPointerDown}
@@ -924,12 +1102,12 @@ export function TeacherRoadmapBoard({
                 />
               </marker>
             </defs>
-            {roadmap.nodes.slice(0, -1).map((node) => {
+            {roadmap.nodes.slice(0, -1).map((node, index) => {
               const to = node.examNumber + 1;
               return (
-                <AnimatedConnectionPath
-                  color="#79a8cc"
-                  d={connectionPath(node.examNumber, node.examNumber + 1)}
+                <ConnectionPath
+                  color="#b9d9ef"
+                  d={routePaths[index] ?? ""}
                   markerEnd="url(#roadmap-arrow-main)"
                   key={`main-${node.examNumber}`}
                   onActiveChange={(active) =>
@@ -939,15 +1117,19 @@ export function TeacherRoadmapBoard({
                         : null,
                     )
                   }
-                  shimmerColor="#e5f5ff"
-                  width={9}
+                  width={12}
                 />
               );
             })}
             {roadmap.reviewNodes.map((review, index) => (
-              <AnimatedConnectionPath
-                color="#d87300"
-                d={reviewConnectionPath(review, index)}
+              <ConnectionPath
+                active={
+                  highlightedLink?.kind === "review" &&
+                  highlightedLink.moduleKey === review.moduleKey
+                }
+                color="#f4c986"
+                d={reviewPaths[index] ?? ""}
+                kind="review"
                 key={`review-${review.moduleKey}`}
                 markerEnd="url(#roadmap-arrow-review)"
                 onActiveChange={(active) =>
@@ -961,47 +1143,75 @@ export function TeacherRoadmapBoard({
                       : null,
                   )
                 }
-                shimmerColor="#fff0c8"
-                width={8}
+                width={11}
               />
             ))}
             {visibleCustomNodes.length > 0 && (
-              <AnimatedConnectionPath
-                color="#d9901a"
-                d={pathBetween(nodeBox(19), customNodeBox(0, customStartY))}
+              <ConnectionPath
+                color="#f2d39d"
+                d={customPath}
+                kind="custom"
                 markerEnd="url(#roadmap-arrow-custom)"
                 onActiveChange={(active) =>
                   setHighlightedLink(
                     active ? { kind: "custom", from: 19 } : null,
                   )
                 }
-                shimmerColor="#fff0c8"
-                width={7}
+                width={10}
               />
             )}
+            <FlowingDotsPath
+              color="#376f9b"
+              d={routePaths.join(" ")}
+              width={8}
+            />
+            <FlowingDotsPath
+              color="#b85c05"
+              d={highlightedReviewPath}
+              width={7}
+            />
+            <FlowingDotsPath color="#bd6908" d={customPath} width={7} />
           </svg>
 
-          {roadmap.nodes.map((node) => (
-            <div
-              className="pointer-events-auto"
-              key={node.examNumber}
-              onPointerDown={(event) => event.stopPropagation()}
-            >
-              <RoadmapCard
-                connectionHighlighted={
-                  highlightedLink?.from === node.examNumber ||
-                  (highlightedLink?.kind === "route" &&
-                    highlightedLink.to === node.examNumber)
-                }
-                node={node}
-                onOpen={() => {
-                  onNodeOpen(node.examNumber);
-                  centerNode(node.examNumber);
-                }}
-                selected={selectedExamNumber === node.examNumber}
-              />
-            </div>
-          ))}
+          {roadmap.nodes.map((node) => {
+            const linkedReview = reviewByExamNumber.get(node.examNumber);
+
+            return (
+              <div
+                className="pointer-events-auto"
+                key={node.examNumber}
+                onPointerDown={(event) => event.stopPropagation()}
+              >
+                <RoadmapCard
+                  connectionHighlighted={
+                    highlightedLink?.from === node.examNumber ||
+                    (highlightedLink?.kind === "route" &&
+                      highlightedLink.to === node.examNumber)
+                  }
+                  node={node}
+                  onOpen={() => {
+                    onNodeOpen(node.examNumber);
+                    centerNode(node.examNumber);
+                  }}
+                  onReviewHighlightChange={
+                    linkedReview
+                      ? (active) =>
+                          setHighlightedLink(
+                            active
+                              ? {
+                                  kind: "review",
+                                  from: node.examNumber,
+                                  moduleKey: linkedReview.moduleKey,
+                                }
+                              : null,
+                          )
+                      : undefined
+                  }
+                  selected={selectedExamNumber === node.examNumber}
+                />
+              </div>
+            );
+          })}
 
           {roadmap.reviewNodes.map((review, index) => (
             <div
@@ -1019,6 +1229,17 @@ export function TeacherRoadmapBoard({
                   onNodeOpen(review.sourceExamNumber);
                   centerNode(review.sourceExamNumber);
                 }}
+                onHighlightChange={(active) =>
+                  setHighlightedLink(
+                    active
+                      ? {
+                          kind: "review",
+                          from: review.sourceExamNumber,
+                          moduleKey: review.moduleKey,
+                        }
+                      : null,
+                  )
+                }
                 onRemove={() => onReviewRemove(review.sourceExamNumber)}
                 review={review}
               />

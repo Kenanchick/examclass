@@ -157,7 +157,7 @@ body {
   }
 
   to {
-    stroke-dashoffset: -0.11;
+    stroke-dashoffset: -59;
   }
 }
 
@@ -213,9 +213,11 @@ body {
 }
 
 .roadmap-canvas {
-  contain: layout style;
-  backface-visibility: hidden;
-  transform: translateZ(0);
+  contain: layout style paint;
+}
+
+.roadmap-canvas--animated,
+.roadmap-viewport--dragging .roadmap-canvas {
   will-change: transform;
 }
 
@@ -231,12 +233,11 @@ body {
   transition: stroke-width 220ms ease;
 }
 
-.roadmap-link-shimmer {
+.roadmap-link-dots {
   pointer-events: none;
-  opacity: 0.52;
-  stroke-dasharray: 0.07 0.93;
-  animation: roadmap-link-flow 3.6s linear infinite;
-  transition: opacity 220ms ease;
+  opacity: 0.9;
+  stroke-dasharray: 1 58;
+  animation: roadmap-link-flow 1.8s linear infinite;
 }
 
 .roadmap-link-hit {
@@ -248,8 +249,23 @@ body {
   stroke-width: 13px;
 }
 
-.roadmap-link-group:hover .roadmap-link-shimmer {
+.roadmap-link-group--review .roadmap-main-line {
+  opacity: 0;
+  stroke-width: 5px;
+  transition:
+    opacity 220ms ease,
+    stroke-width 220ms ease;
+}
+
+.roadmap-link-group--review:hover .roadmap-main-line,
+.roadmap-link-group--review.roadmap-link-group--active .roadmap-main-line {
   opacity: 1;
+  stroke-width: 11px;
+}
+
+.roadmap-viewport--dragging .roadmap-link-dots,
+.roadmap-viewport--paused .roadmap-link-dots {
+  animation-play-state: paused;
 }
 
 .roadmap-secondary-line {
@@ -315,7 +331,7 @@ body {
     rgb(255 255 255 / 72%),
     transparent
   );
-  animation: roadmap-perfect-shimmer 4.8s 1.4s ease-in-out infinite;
+  animation: roadmap-perfect-shimmer 1.4s 800ms ease-in-out 1 both;
 }
 
 .roadmap-progress-ring {
@@ -376,7 +392,7 @@ body {
   }
 
   .roadmap-main-line,
-  .roadmap-link-shimmer,
+  .roadmap-link-dots,
   .roadmap-node,
   .roadmap-node--current,
   .roadmap-node--perfect,
@@ -390,7 +406,7 @@ body {
     stroke-dashoffset: 0;
   }
 
-  .roadmap-link-shimmer {
+  .roadmap-link-dots {
     display: none;
   }
 }
