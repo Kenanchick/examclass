@@ -32,24 +32,6 @@ const formatDate = (value: string) =>
     year: "numeric",
   }).format(new Date(value));
 
-function Metric({ label, value }: { label: string; value: number }) {
-  const percent = Math.round(value * 100);
-  return (
-    <div className="rounded-2xl bg-panel/70 p-3">
-      <div className="flex items-center justify-between gap-2 text-xs font-semibold text-muted">
-        <span>{label}</span>
-        <span className="font-bold text-ink">{percent}%</span>
-      </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
-        <span
-          className="block h-full rounded-full bg-brand transition-[width] duration-700"
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
 type TeacherRoadmapDetailProps = {
   node: TeacherRoadmapNode;
   onClose: () => void;
@@ -58,6 +40,7 @@ type TeacherRoadmapDetailProps = {
     name: string;
     status: "MASTERED" | "LEARNING";
   }) => void;
+  onReviewNode: () => void;
   onSkillOpen: (skillCode: string) => void;
 };
 
@@ -65,6 +48,7 @@ export function TeacherRoadmapDetail({
   node,
   onClose,
   onSubtopicStatusChange,
+  onReviewNode,
   onSkillOpen,
 }: TeacherRoadmapDetailProps) {
   return (
@@ -101,10 +85,14 @@ export function TeacherRoadmapDetail({
         </div>
 
         <div className="space-y-6 p-5 sm:p-6">
-          <div className="grid grid-cols-2 gap-3">
-            <Metric label="Владение" value={node.mastery} />
-            <Metric label="Уверенность системы" value={node.confidence} />
-          </div>
+          <button
+            className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#fff3df] px-4 text-sm font-bold text-[#9a5a08] transition hover:-translate-y-0.5 hover:bg-[#ffebcb]"
+            onClick={onReviewNode}
+            type="button"
+          >
+            <CalendarClock className="size-5" />
+            Отправить всё задание на повторение
+          </button>
 
           <section>
             <div className="flex items-center justify-between gap-3">

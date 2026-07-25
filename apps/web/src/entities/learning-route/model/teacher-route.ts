@@ -252,6 +252,7 @@ export type TeacherSkillActionInput = {
   comment?: string;
   scheduledFor?: string;
   enabled?: boolean;
+  sourceExamNumber?: number;
 };
 
 export type TeacherModuleActionInput = {
@@ -388,6 +389,17 @@ export type TeacherRoadmap = {
     currentExamNumber: number;
   };
   nodes: TeacherRoadmapNode[];
+  reviewNodes: Array<{
+    moduleKey: string;
+    sourceExamNumber: number;
+    title: string;
+    subtopics: Array<{
+      code: string;
+      name: string;
+      skills: Array<{ code: string; name: string }>;
+    }>;
+    skillCount: number;
+  }>;
   customNodes: Array<{
     moduleKey: string;
     title: string;

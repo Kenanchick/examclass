@@ -35,7 +35,8 @@ const START_X = 155;
 const START_Y = 120;
 const COLUMN_GAP = 620;
 const ROW_GAP = 325;
-const CUSTOM_START_Y = 1810;
+const REVIEW_START_Y = 1810;
+const DEFAULT_CUSTOM_START_Y = 1810;
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 1.45;
 
@@ -115,9 +116,14 @@ const nodeCenter = (examNumber: number) => {
   };
 };
 
-const customNodePosition = (index: number) => ({
+const reviewNodePosition = (index: number) => ({
   x: START_X + (index % 4) * COLUMN_GAP,
-  y: CUSTOM_START_Y + Math.floor(index / 4) * ROW_GAP,
+  y: REVIEW_START_Y + Math.floor(index / 4) * ROW_GAP,
+});
+
+const customNodePosition = (index: number, customStartY: number) => ({
+  x: START_X + (index % 4) * COLUMN_GAP,
+  y: customStartY + Math.floor(index / 4) * ROW_GAP,
 });
 
 const connectionPath = (from: number, to: number) => {
@@ -132,6 +138,15 @@ const connectionPath = (from: number, to: number) => {
 
   const middle = (start.y + end.y) / 2;
   return `M ${start.x} ${start.y} C ${start.x} ${middle}, ${end.x} ${middle}, ${end.x} ${end.y}`;
+};
+
+const reviewConnectionPath = (from: number, reviewIndex: number) => {
+  const start = nodeCenter(from);
+  const review = reviewNodePosition(reviewIndex);
+  const end = { x: review.x + CARD_WIDTH / 2, y: review.y };
+  const bendY = Math.max(start.y + 150, end.y - 130);
+
+  return `M ${start.x} ${start.y} C ${start.x} ${bendY}, ${end.x} ${bendY}, ${end.x} ${end.y}`;
 };
 
 function ProgressRing({ value, color }: { value: number; color: string }) {
@@ -232,6 +247,62 @@ function RoadmapCard({
   );
 }
 
+function ReviewRoadmapCard({
+  review,
+  index,
+  onOpen,
+}: {
+  review: TeacherRoadmap["reviewNodes"][number];
+  index: number;
+  onOpen: () => void;
+}) {
+  const position = reviewNodePosition(index);
+
+  return (
+    <button
+      aria-label={`Повторение задания ${review.sourceExamNumber}: ${review.title}`}
+      className="roadmap-node absolute cursor-pointer overflow-hidden rounded-[1.75rem] border border-[#edae42] bg-[#fff8ea] p-6 text-left shadow-[0_16px_40px_rgba(184,105,0,0.14)] transition-[box-shadow,transform] duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_50px_rgba(184,105,0,0.22)] focus-visible:ring-4 focus-visible:ring-[#ffd99a]"
+      onClick={onOpen}
+      style={{
+        height: CARD_HEIGHT,
+        left: position.x,
+        top: position.y,
+        width: CARD_WIDTH,
+      }}
+      type="button"
+    >
+      <div className="flex items-start gap-4">
+        <span className="grid size-16 shrink-0 place-items-center rounded-2xl bg-[#ffe2a5] text-xl font-extrabold text-[#a85f00]">
+          {review.sourceExamNumber}
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#a85f00]">
+            Повторение
+          </p>
+          <h3 className="mt-1 line-clamp-2 text-[25px] font-bold leading-[1.12] tracking-[-0.045em] text-ink">
+            {review.title}
+          </h3>
+        </div>
+      </div>
+      <div className="mt-5 flex flex-wrap gap-2">
+        {review.subtopics.slice(0, 3).map((subtopic) => (
+          <span
+            className="max-w-full truncate rounded-full border border-[#f0c56f] bg-white/70 px-3 py-1.5 text-xs font-bold text-[#8d5709]"
+            key={subtopic.code}
+          >
+            {subtopic.name}
+          </span>
+        ))}
+        {review.subtopics.length > 3 && (
+          <span className="rounded-full border border-[#f0c56f] bg-white/70 px-3 py-1.5 text-xs font-bold text-[#8d5709]">
+            +{review.subtopics.length - 3}
+          </span>
+        )}
+      </div>
+    </button>
+  );
+}
+
 type TeacherRoadmapBoardProps = {
   roadmap: TeacherRoadmap;
   mode: "PERSONAL" | "FULL";
@@ -276,11 +347,20 @@ export function TeacherRoadmapBoard({
         : roadmap.customNodes.filter((module) => !module.isHidden),
     [editMode, roadmap.customNodes],
   );
-  const canvasHeight =
-    BOARD_HEIGHT +
-    (visibleCustomNodes.length > 0
-      ? Math.ceil(visibleCustomNodes.length / 4) * ROW_GAP
-      : 0);
+  const reviewRows = Math.ceil(roadmap.reviewNodes.length / 4);
+  const customStartY =
+    reviewRows > 0
+      ? REVIEW_START_Y + reviewRows * ROW_GAP + 70
+      : DEFAULT_CUSTOM_START_Y;
+  const reviewBottom =
+    reviewRows > 0 ? REVIEW_START_Y + (reviewRows - 1) * ROW_GAP + CARD_HEIGHT : 0;
+  const customBottom =
+    visibleCustomNodes.length > 0
+      ? customStartY +
+        (Math.ceil(visibleCustomNodes.length / 4) - 1) * ROW_GAP +
+        CARD_HEIGHT
+      : 0;
+  const canvasHeight = Math.max(BOARD_HEIGHT, reviewBottom, customBottom) + 80;
 
   const fitRoute = useCallback(() => {
     const element = viewportRef.current;
@@ -537,6 +617,16 @@ export function TeacherRoadmapBoard({
               >
                 <path d="M0,0 L7,3.5 L0,7 Z" fill="#e19a2d" />
               </marker>
+              <marker
+                id="roadmap-arrow-review"
+                markerHeight="9"
+                markerWidth="9"
+                orient="auto"
+                refX="8"
+                refY="4.5"
+              >
+                <path d="M0,0 L9,4.5 L0,9 Z" fill="#d98412" />
+              </marker>
             </defs>
             {roadmap.nodes.slice(0, -1).map((node) => (
               <path
@@ -550,10 +640,22 @@ export function TeacherRoadmapBoard({
                 strokeWidth="7"
               />
             ))}
+            {roadmap.reviewNodes.map((review, index) => (
+              <path
+                className="roadmap-main-line"
+                d={reviewConnectionPath(review.sourceExamNumber, index)}
+                fill="none"
+                key={`review-${review.moduleKey}`}
+                markerEnd="url(#roadmap-arrow-review)"
+                stroke="#d98412"
+                strokeLinecap="round"
+                strokeWidth="5"
+              />
+            ))}
             {visibleCustomNodes.length > 0 && (
               <path
                 className="roadmap-secondary-line"
-                d={`M ${nodeCenter(19).x} ${nodeCenter(19).y} C ${nodeCenter(19).x} ${CUSTOM_START_Y - 80}, ${customNodePosition(0).x + CARD_WIDTH / 2} ${CUSTOM_START_Y - 80}, ${customNodePosition(0).x + CARD_WIDTH / 2} ${CUSTOM_START_Y}`}
+                d={`M ${nodeCenter(19).x} ${nodeCenter(19).y} C ${nodeCenter(19).x} ${customStartY - 80}, ${customNodePosition(0, customStartY).x + CARD_WIDTH / 2} ${customStartY - 80}, ${customNodePosition(0, customStartY).x + CARD_WIDTH / 2} ${customStartY}`}
                 fill="none"
                 markerEnd="url(#roadmap-arrow-custom)"
                 stroke="#e19a2d"
@@ -580,10 +682,40 @@ export function TeacherRoadmapBoard({
             </div>
           ))}
 
+          {roadmap.reviewNodes.length > 0 && (
+            <div
+              className="pointer-events-none absolute flex items-center gap-3"
+              style={{ left: START_X, top: REVIEW_START_Y - 64 }}
+            >
+              <span className="grid size-9 place-items-center rounded-xl bg-[#ffe2a5] font-extrabold text-[#a85f00]">
+                ↻
+              </span>
+              <span className="text-sm font-bold uppercase tracking-[0.12em] text-[#a85f00]">
+                Повторение
+              </span>
+            </div>
+          )}
+          {roadmap.reviewNodes.map((review, index) => (
+            <div
+              className="pointer-events-auto"
+              key={review.moduleKey}
+              onPointerDown={(event) => event.stopPropagation()}
+            >
+              <ReviewRoadmapCard
+                index={index}
+                onOpen={() => {
+                  onNodeOpen(review.sourceExamNumber);
+                  centerNode(review.sourceExamNumber);
+                }}
+                review={review}
+              />
+            </div>
+          ))}
+
           {visibleCustomNodes.length > 0 && (
             <div
               className="pointer-events-none absolute flex items-center gap-3"
-              style={{ left: START_X, top: CUSTOM_START_Y - 64 }}
+              style={{ left: START_X, top: customStartY - 64 }}
             >
               <span className="grid size-9 place-items-center rounded-xl bg-[#fff2cf] font-extrabold text-[#ad6500]">
                 +
@@ -594,7 +726,7 @@ export function TeacherRoadmapBoard({
             </div>
           )}
           {visibleCustomNodes.map((module, index) => {
-            const position = customNodePosition(index);
+            const position = customNodePosition(index, customStartY);
             return (
               <button
                 className="roadmap-node pointer-events-auto absolute cursor-pointer overflow-hidden rounded-[1.75rem] border border-[#f0bd5f] bg-[#fffaf0] p-6 text-left shadow-[0_16px_40px_rgba(184,105,0,0.12)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_50px_rgba(184,105,0,0.2)]"

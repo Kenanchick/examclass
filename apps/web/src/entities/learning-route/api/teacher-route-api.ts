@@ -84,6 +84,19 @@ export async function applyTeacherSubtopicStatus({
   return response.data;
 }
 
+export async function scheduleTeacherNodeReview({
+  studentId,
+  examNumber,
+}: {
+  studentId: string;
+  examNumber: number;
+}) {
+  const response = await apiClient.post(
+    `${routePath(studentId)}/nodes/${examNumber}/review`,
+  );
+  return response.data;
+}
+
 export async function applyTeacherModuleAction({
   studentId,
   moduleKey,

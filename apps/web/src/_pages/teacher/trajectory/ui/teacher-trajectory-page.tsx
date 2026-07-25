@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import {
   useCreateTeacherRouteModuleMutation,
   useTeacherModuleActionMutation,
+  useTeacherNodeReviewMutation,
   useTeacherRoadmapQuery,
   useTeacherSkillActionMutation,
   useTeacherSkillDetailQuery,
@@ -13,6 +14,7 @@ import {
 } from "@/entities/learning-route/api/use-teacher-route-query";
 import type {
   TeacherModuleActionInput,
+  TeacherSkillActionInput,
   TeacherSubtopicStatusInput,
 } from "@/entities/learning-route/model/teacher-route";
 import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
@@ -89,6 +91,7 @@ export function TeacherTrajectoryPage({
   );
   const skillMutation = useTeacherSkillActionMutation(studentId);
   const subtopicMutation = useTeacherSubtopicStatusMutation(studentId);
+  const nodeReviewMutation = useTeacherNodeReviewMutation(studentId);
   const moduleMutation = useTeacherModuleActionMutation(studentId);
   const customModuleMutation = useCreateTeacherRouteModuleMutation(studentId);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
@@ -119,8 +122,30 @@ export function TeacherTrajectoryPage({
 
   const openSkillAction = (request: SkillActionRequest) => {
     if (!selectedSkillCode) return;
-    const { title, ...data } = request;
+    const { title, immediate, ...data } = request;
     setActionError(null);
+    if (immediate) {
+      const skillData: TeacherSkillActionInput = {
+        ...data,
+        reason:
+          data.action === "SCHEDULE_REVIEW"
+            ? "Добавлено преподавателем в повторение"
+            : "Отмечено преподавателем как освоенное",
+        ...(data.action === "SCHEDULE_REVIEW" && selectedExamNumber
+          ? { sourceExamNumber: selectedExamNumber }
+          : {}),
+      };
+      skillMutation.mutate(
+        { studentId, skillCode: selectedSkillCode, data: skillData },
+        {
+          onError: (error) =>
+            setActionError(
+              getApiErrorMessage(error, "Не удалось изменить навык."),
+            ),
+        },
+      );
+      return;
+    }
     setPendingAction({
       scope: "skill",
       skillCode: selectedSkillCode,
@@ -302,6 +327,21 @@ export function TeacherTrajectoryPage({
                   : `Вернуть «${name}» в изучение`,
               data: { status },
             });
+          }}
+          onReviewNode={() => {
+            setActionError(null);
+            nodeReviewMutation.mutate(
+              { studentId, examNumber: selectedNode.examNumber },
+              {
+                onError: (error) =>
+                  setActionError(
+                    getApiErrorMessage(
+                      error,
+                      "Не удалось отправить задание на повторение.",
+                    ),
+                  ),
+              },
+            );
           }}
           onSkillOpen={selectSkill}
         />

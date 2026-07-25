@@ -9,6 +9,7 @@ import {
   getTeacherRoadmap,
   getTeacherRouteHistory,
   getTeacherSkillDetail,
+  scheduleTeacherNodeReview,
   updateTeacherWeeklyLoad,
 } from "./teacher-route-api";
 
@@ -84,6 +85,14 @@ export function useTeacherSubtopicStatusMutation(studentId: string) {
   const invalidate = useInvalidateTeacherRoute(studentId);
   return useMutation({
     mutationFn: applyTeacherSubtopicStatus,
+    onSuccess: invalidate,
+  });
+}
+
+export function useTeacherNodeReviewMutation(studentId: string) {
+  const invalidate = useInvalidateTeacherRoute(studentId);
+  return useMutation({
+    mutationFn: scheduleTeacherNodeReview,
     onSuccess: invalidate,
   });
 }

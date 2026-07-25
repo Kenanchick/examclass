@@ -9,6 +9,7 @@ export type SkillActionRequest = {
   status?: string;
   comment?: string;
   enabled?: boolean;
+  immediate?: boolean;
 };
 
 type TeacherSkillDetailProps = {
@@ -19,31 +20,6 @@ type TeacherSkillDetailProps = {
   onClose: () => void;
   onRetry: () => void;
 };
-
-function Metric({
-  label,
-  value,
-}: {
-  label: string;
-  value: number | null | undefined;
-}) {
-  const percent = Math.round((value ?? 0) * 100);
-
-  return (
-    <div className="rounded-2xl bg-panel/65 p-4">
-      <div className="flex items-center justify-between gap-3 text-sm font-semibold text-muted">
-        <span>{label}</span>
-        <span className="font-bold text-ink">{percent}%</span>
-      </div>
-      <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-white">
-        <span
-          className="block h-full rounded-full bg-brand transition-[width] duration-500"
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-    </div>
-  );
-}
 
 export function TeacherSkillDetailPanel({
   detail,
@@ -104,24 +80,21 @@ export function TeacherSkillDetailPanel({
         </button>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Metric label="Владение" value={detail.systemState?.mastery} />
-        <Metric label="Уверенность" value={detail.systemState?.confidence} />
-      </div>
-
       <div className="mt-7 grid gap-3 sm:grid-cols-2">
         <button
           className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#eaf6ef] px-4 text-sm font-bold text-[#287651] transition hover:-translate-y-0.5 hover:bg-[#dff1e7]"
           onClick={() =>
             onAction({
-              action: "MARK_REINFORCED",
-              title: "Отметить навык закреплённым",
+              action: "CHANGE_SKILL_STATUS",
+              title: "Отметить навык освоенным",
+              status: "MASTERED",
+              immediate: true,
             })
           }
           type="button"
         >
           <CheckCircle2 className="size-5" />
-          Закреплено
+          Освоено
         </button>
         <button
           className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#fff3df] px-4 text-sm font-bold text-[#9a5a08] transition hover:-translate-y-0.5 hover:bg-[#ffebcb]"
@@ -129,6 +102,7 @@ export function TeacherSkillDetailPanel({
             onAction({
               action: "SCHEDULE_REVIEW",
               title: "Поставить навык на повторение",
+              immediate: true,
             })
           }
           type="button"
