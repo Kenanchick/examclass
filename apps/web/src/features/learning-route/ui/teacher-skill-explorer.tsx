@@ -127,7 +127,7 @@ export function TeacherSkillExplorer({
                       {skill.skill.name}
                     </p>
                     <p className="mt-1 truncate text-xs text-muted">
-                      {skill.skill.parent?.name ?? skill.skill.code}
+                      {skill.skill.parent?.name ?? "Навык без раздела"}
                     </p>
                   </div>
                   <span className="shrink-0 rounded-lg bg-brand/8 px-2 py-1 text-xs font-bold text-brand">

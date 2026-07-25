@@ -145,7 +145,7 @@ export function TeacherSkillDetailPanel({
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.13em] text-brand">
-            {detail.code}
+            Проверяемый навык
           </p>
           <h3 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-ink">
             {detail.name}

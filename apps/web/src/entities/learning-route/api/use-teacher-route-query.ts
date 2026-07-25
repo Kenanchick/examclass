@@ -5,6 +5,7 @@ import {
   createTeacherRouteModule,
   getTeacherKnowledgeProfile,
   getTeacherLearningRoute,
+  getTeacherRoadmap,
   getTeacherRouteHistory,
   getTeacherSkillDetail,
   updateTeacherWeeklyLoad,
@@ -19,6 +20,14 @@ export function useTeacherLearningRouteQuery(
   return useQuery({
     queryKey: [...teacherRouteQueryKey, studentId, "route"],
     queryFn: () => getTeacherLearningRoute(studentId),
+    enabled: enabled && Boolean(studentId),
+  });
+}
+
+export function useTeacherRoadmapQuery(studentId: string, enabled = true) {
+  return useQuery({
+    queryKey: [...teacherRouteQueryKey, studentId, "map"],
+    queryFn: () => getTeacherRoadmap(studentId),
     enabled: enabled && Boolean(studentId),
   });
 }

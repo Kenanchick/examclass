@@ -270,3 +270,122 @@ export type CreateTeacherRouteModuleInput = {
   reason: string;
   comment?: string;
 };
+
+export type TeacherRoadmapStatus =
+  | "MASTERED"
+  | "LEARNING"
+  | "CURRENT_PRIORITY"
+  | "AVAILABLE"
+  | "BLOCKED"
+  | "NEEDS_REVIEW"
+  | "INSUFFICIENT_DATA"
+  | "TEACHER_ASSIGNED";
+
+export type TeacherRoadmapSkill = {
+  code: string;
+  name: string;
+  description: string | null;
+  mastery: number;
+  confidence: number;
+  status: string;
+  evidenceCount: number;
+  lastVerifiedAt: string | null;
+  isFoundational: boolean;
+};
+
+export type TeacherRoadmapNode = {
+  examNumber: number;
+  title: string;
+  examPart: string;
+  mastery: number;
+  confidence: number;
+  status: TeacherRoadmapStatus;
+  isCurrent: boolean;
+  isTeacherAssigned: boolean;
+  needsReview: boolean;
+  skillCount: number;
+  subtopics: Array<{
+    name: string;
+    topic: string | null;
+    skills: TeacherRoadmapSkill[];
+  }>;
+  reasons: string[];
+  prerequisites: Array<{
+    name: string;
+    type: "REQUIRED" | "RECOMMENDED";
+    rationale: string | null;
+    blocking: boolean;
+    examNumbers: number[];
+  }>;
+  unlocksExamNumbers: number[];
+  completionCriteria: {
+    mastery: number;
+    confidence: number;
+    independentAttempts: number;
+    description: string;
+  };
+  attempts: Array<{
+    id: string;
+    source: string;
+    score: number;
+    weight: number;
+    activeSeconds: number | null;
+    teacherConfirmed: boolean;
+    reason: string;
+    occurredAt: string;
+    assessmentItem: {
+      publicId: string;
+      attempt: {
+        outcome: string;
+        awardedScore: number | null;
+        confidence: number | null;
+        reviewedAt: string | null;
+      } | null;
+    } | null;
+  }>;
+  plannedReviews: Array<{
+    type: string;
+    date: string;
+    skillName: string;
+  }>;
+  routeModules: Array<{
+    moduleKey: string;
+    title: string;
+    type: TeacherRouteModuleType;
+    status: "AVAILABLE" | "BLOCKED" | "COMPLETED";
+    position: number;
+    estimatedMinutes: number;
+    isPinned: boolean;
+    isHidden: boolean;
+    autoUpdateEnabled: boolean;
+    teacherComment: string | null;
+  }>;
+};
+
+export type TeacherRoadmap = {
+  student: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+  };
+  goal: {
+    targetScore: number;
+    examDate: string;
+    weeklyMinutes: number;
+  };
+  knowledgeMap: {
+    version: string;
+    title: string;
+  };
+  route: {
+    publicId: string;
+    generatedAt: string;
+    currentExamNumber: number;
+  };
+  nodes: TeacherRoadmapNode[];
+  connections: Array<{
+    from: number;
+    to: number;
+    kind: "KNOWLEDGE_DEPENDENCY";
+  }>;
+};

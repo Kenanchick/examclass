@@ -227,8 +227,8 @@ export function TeacherRouteModuleList({
                   </p>
                   {module.blockedBySkillCodes.length > 0 && (
                     <p className="mt-2 text-sm font-semibold text-[#935506]">
-                      Сначала закрыть базу:{" "}
-                      {module.blockedBySkillCodes.join(", ")}
+                      Сначала нужно закрыть обязательную базу ·{" "}
+                      {module.blockedBySkillCodes.length}
                     </p>
                   )}
                 </div>

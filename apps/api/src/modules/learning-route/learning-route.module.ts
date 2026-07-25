@@ -7,6 +7,7 @@ import { LearningRouteDataService } from './learning-route-data.service';
 import { LearningRouteService } from './learning-route.service';
 import { LearningRouteStoreService } from './learning-route-store.service';
 import { TeacherLearningRouteController } from './teacher-learning-route.controller';
+import { TeacherRoadmapService } from './teacher-roadmap.service';
 import { TeacherRouteModuleService } from './teacher-route-module.service';
 import { TeacherRouteSkillService } from './teacher-route-skill.service';
 
@@ -19,6 +20,7 @@ import { TeacherRouteSkillService } from './teacher-route-skill.service';
     LearningRouteService,
     LearningRouteStoreService,
     TeacherRouteModuleService,
+    TeacherRoadmapService,
     TeacherRouteSkillService,
   ],
   exports: [LearningRouteService],

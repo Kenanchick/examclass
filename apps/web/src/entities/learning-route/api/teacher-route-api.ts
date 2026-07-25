@@ -4,6 +4,7 @@ import type {
   TeacherKnowledgeProfile,
   TeacherLearningRoute,
   TeacherModuleActionInput,
+  TeacherRoadmap,
   TeacherRouteHistoryItem,
   TeacherSkillActionInput,
   TeacherSkillDetail,
@@ -15,6 +16,13 @@ const routePath = (studentId: string) =>
 export async function getTeacherLearningRoute(studentId: string) {
   const response = await apiClient.get<TeacherLearningRoute>(
     routePath(studentId),
+  );
+  return response.data;
+}
+
+export async function getTeacherRoadmap(studentId: string) {
+  const response = await apiClient.get<TeacherRoadmap>(
+    `${routePath(studentId)}/map`,
   );
   return response.data;
 }

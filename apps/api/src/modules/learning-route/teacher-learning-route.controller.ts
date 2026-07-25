@@ -14,6 +14,7 @@ import { TeacherModuleActionDto } from './dto/teacher-module-action.dto';
 import { TeacherSkillActionDto } from './dto/teacher-skill-action.dto';
 import { UpdateLearningLoadDto } from './dto/update-learning-load.dto';
 import { LearningRouteService } from './learning-route.service';
+import { TeacherRoadmapService } from './teacher-roadmap.service';
 import { TeacherRouteModuleService } from './teacher-route-module.service';
 import { TeacherRouteSkillService } from './teacher-route-skill.service';
 
@@ -22,9 +23,18 @@ import { TeacherRouteSkillService } from './teacher-route-skill.service';
 export class TeacherLearningRouteController {
   constructor(
     private readonly routes: LearningRouteService,
+    private readonly roadmap: TeacherRoadmapService,
     private readonly modules: TeacherRouteModuleService,
     private readonly skills: TeacherRouteSkillService,
   ) {}
+
+  @Get('students/:studentId/map')
+  getStudentMap(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string,
+  ) {
+    return this.roadmap.getMap(userId, studentId);
+  }
 
   @Get('students/:studentId')
   getStudentRoute(
