@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { formatTaskCount } from "@/entities/topic/lib/format-task-count";
 import type { TopicWithChildren } from "@/entities/topic/model/topic";
+import styles from "./teacher-homework-topic-picker.module.css";
 
 export type TeacherHomeworkTopicPickerProps = {
   subjectName: string;
@@ -103,22 +104,30 @@ function TopicRow({ topics, onSelectTopic }: TopicRowProps) {
       ))}
 
       {expandedTopic && expandedTopic.children.length > 0 && (
-        <div className="rounded-2xl border border-line bg-page/75 p-3 md:col-span-2">
-          <p className="px-2 pb-2 text-xs font-bold uppercase tracking-[0.1em] text-muted">
-            Подтемы «{expandedTopic.name}»
-          </p>
-          <div className="grid gap-2 md:grid-cols-2">
-            {expandedTopic.children.map((child) => (
-              <button
-                className="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl bg-white px-3 py-2.5 text-left text-sm font-semibold leading-5 text-ink transition hover:bg-brand/5 hover:text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-                key={child.id}
-                onClick={() => onSelectTopic(child.id)}
-                type="button"
-              >
-                <span className="min-w-0 flex-1">{child.name}</span>
-                <TopicCount count={child.taskCount} />
-              </button>
-            ))}
+        <div
+          className={`${styles.subtopics} md:col-span-2`}
+          key={expandedTopic.id}
+        >
+          <div className={styles.content}>
+            <div className="rounded-2xl border border-line bg-page/75 p-3">
+              <p className="px-2 pb-2 text-xs font-bold uppercase tracking-[0.1em] text-muted">
+                Подтемы «{expandedTopic.name}»
+              </p>
+              <div className="grid gap-2 md:grid-cols-2">
+                {expandedTopic.children.map((child, index) => (
+                  <button
+                    className={`${styles.subtopic} flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-xl bg-white px-3 py-2.5 text-left text-sm font-semibold leading-5 text-ink transition-colors hover:bg-brand/5 hover:text-brand focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand`}
+                    key={child.id}
+                    onClick={() => onSelectTopic(child.id)}
+                    style={{ animationDelay: `${70 + index * 35}ms` }}
+                    type="button"
+                  >
+                    <span className="min-w-0 flex-1">{child.name}</span>
+                    <TopicCount count={child.taskCount} />
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
