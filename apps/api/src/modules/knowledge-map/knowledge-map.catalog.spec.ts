@@ -10,9 +10,9 @@ describe('profileMathKnowledgeMap', () => {
   it('содержит полную четырёхуровневую карту и проходит проверку целостности', () => {
     expect(validateKnowledgeMapCatalog(profileMathKnowledgeMap)).toEqual({
       sections: 9,
-      topics: 18,
-      subtopics: 34,
-      skills: 150,
+      topics: 19,
+      subtopics: 57,
+      skills: 381,
       requiredDependencies: 281,
       recommendedDependencies: 17,
       materials: 18,
@@ -20,6 +20,23 @@ describe('profileMathKnowledgeMap', () => {
       coverageGaps: 9,
       expertReviewItems: 6,
     });
+  });
+
+  it('содержит полную карту задания №1 по планиметрии', () => {
+    const planimetryTopic = profileMathKnowledgeMap.sections
+      .flatMap((section) => section.topics)
+      .find((topic) => topic.code === 'topic.ege01-planimetry');
+
+    expect(planimetryTopic?.subtopics).toHaveLength(23);
+    expect(
+      planimetryTopic?.subtopics.reduce(
+        (total, subtopic) => total + subtopic.skills.length,
+        0,
+      ),
+    ).toBe(231);
+    expect(
+      skills.filter((skill) => skill.examNumbers.includes(1)),
+    ).toHaveLength(231);
   });
 
   it('покрывает все номера профильного ЕГЭ', () => {

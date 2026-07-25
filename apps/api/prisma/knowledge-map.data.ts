@@ -3,6 +3,7 @@ import type {
   SkillDefaults,
   SkillSeed,
 } from './knowledge-map.catalog';
+import { ege01PlanimetryTopic } from './knowledge-map.planimetry';
 
 const defaults = (
   value: Partial<SkillDefaults> &
@@ -55,7 +56,7 @@ const sections: KnowledgeMapSeed['sections'] = [
               difficulty: 1,
               importance: 5,
               estimatedMinutes: 45,
-              examNumbers: [1, 2, 3, 4, 5, 6, 7, 9, 10, 16, 19],
+              examNumbers: [2, 3, 4, 5, 6, 7, 9, 10, 16, 19],
               taskTypes: ['COMPUTATION'],
               verificationMethods: [
                 'SHORT_ANSWER',
@@ -115,7 +116,7 @@ const sections: KnowledgeMapSeed['sections'] = [
               difficulty: 1,
               importance: 5,
               estimatedMinutes: 60,
-              examNumbers: [1, 3, 9, 10, 16],
+              examNumbers: [3, 9, 10, 16],
               taskTypes: ['COMPUTATION', 'APPLIED_MODEL'],
               verificationMethods: [
                 'SHORT_ANSWER',
@@ -1662,6 +1663,7 @@ const sections: KnowledgeMapSeed['sections'] = [
     description:
       'Геометрические факты, вычисления и доказательства для задач №1 и №17.',
     topics: [
+      ege01PlanimetryTopic,
       {
         code: 'topic.triangles',
         name: 'Треугольники',
@@ -1677,7 +1679,7 @@ const sections: KnowledgeMapSeed['sections'] = [
               difficulty: 2,
               importance: 5,
               estimatedMinutes: 75,
-              examNumbers: [1, 2, 3, 14, 17],
+              examNumbers: [2, 3, 14, 17],
               taskTypes: ['PLANE_GEOMETRY', 'STEREOMETRY'],
               verificationMethods: [
                 'SHORT_ANSWER',
@@ -1751,7 +1753,7 @@ const sections: KnowledgeMapSeed['sections'] = [
               difficulty: 3,
               importance: 5,
               estimatedMinutes: 105,
-              examNumbers: [1, 3, 14, 17],
+              examNumbers: [3, 14, 17],
               taskTypes: ['PLANE_GEOMETRY', 'STEREOMETRY'],
               verificationMethods: [
                 'MULTI_STEP_SOLUTION',
@@ -1801,7 +1803,7 @@ const sections: KnowledgeMapSeed['sections'] = [
               difficulty: 3,
               importance: 4,
               estimatedMinutes: 90,
-              examNumbers: [1, 17],
+              examNumbers: [17],
               taskTypes: ['PLANE_GEOMETRY'],
               verificationMethods: ['SHORT_ANSWER', 'PROOF', 'CONSTRUCTION'],
               sourceCoverage: 'DIRECT',
@@ -1869,7 +1871,7 @@ const sections: KnowledgeMapSeed['sections'] = [
               difficulty: 3,
               importance: 4,
               estimatedMinutes: 90,
-              examNumbers: [1, 3, 17],
+              examNumbers: [3, 17],
               taskTypes: ['PLANE_GEOMETRY'],
               verificationMethods: [
                 'SHORT_ANSWER',
@@ -1932,7 +1934,7 @@ const sections: KnowledgeMapSeed['sections'] = [
               difficulty: 3,
               importance: 3,
               estimatedMinutes: 75,
-              examNumbers: [1, 3, 17],
+              examNumbers: [3, 17],
               taskTypes: ['PLANE_GEOMETRY'],
               verificationMethods: [
                 'SHORT_ANSWER',
@@ -1979,7 +1981,7 @@ const sections: KnowledgeMapSeed['sections'] = [
               difficulty: 3,
               importance: 5,
               estimatedMinutes: 90,
-              examNumbers: [1, 3, 17],
+              examNumbers: [3, 17],
               taskTypes: ['PLANE_GEOMETRY'],
               verificationMethods: [
                 'SHORT_ANSWER',
@@ -2041,7 +2043,7 @@ const sections: KnowledgeMapSeed['sections'] = [
               difficulty: 4,
               importance: 4,
               estimatedMinutes: 120,
-              examNumbers: [1, 17],
+              examNumbers: [17],
               taskTypes: ['PLANE_GEOMETRY'],
               verificationMethods: [
                 'MULTI_STEP_SOLUTION',

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, CheckCircle2, RotateCcw, X } from "lucide-react";
+import { CheckCircle2, RotateCcw, X } from "lucide-react";
 import type { TeacherSkillDetail } from "@/entities/learning-route/model/teacher-route";
 
 export type SkillActionRequest = {
@@ -63,7 +63,7 @@ export function TeacherSkillDetailPanel({
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-xs font-bold uppercase tracking-[0.13em] text-brand">
-            Навык
+            Подтема
           </p>
           <h3 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-ink sm:text-3xl">
             {detail.name}
@@ -84,14 +84,14 @@ export function TeacherSkillDetailPanel({
         </button>
       </div>
 
-      <div className="mt-7 grid gap-3 sm:grid-cols-2">
+      <div className="mt-7">
         {isPassed ? (
           <button
-            className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#eaf6ef] px-4 text-sm font-bold text-[#287651] transition hover:-translate-y-0.5 hover:bg-[#d8efe2]"
+            className="inline-flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#eaf6ef] px-4 text-sm font-bold text-[#287651] transition hover:-translate-y-0.5 hover:bg-[#d8efe2]"
             onClick={() =>
               onAction({
                 action: "CHANGE_SKILL_STATUS",
-                title: "Вернуть навык в состояние «Не пройдено»",
+                title: "Вернуть подтему в состояние «Не пройдено»",
                 status: "UNSTUDIED",
                 immediate: true,
               })
@@ -103,11 +103,11 @@ export function TeacherSkillDetailPanel({
           </button>
         ) : (
           <button
-            className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-brand/90"
+            className="inline-flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-brand/90"
             onClick={() =>
               onAction({
                 action: "CHANGE_SKILL_STATUS",
-                title: "Отметить навык пройденным",
+                title: "Отметить подтему пройденной",
                 status: "MASTERED",
                 immediate: true,
               })
@@ -115,23 +115,7 @@ export function TeacherSkillDetailPanel({
             type="button"
           >
             <CheckCircle2 className="size-5" />
-            Тема пройдена
-          </button>
-        )}
-        {isPassed && (
-          <button
-            className="inline-flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#e58910] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#c96f08]"
-            onClick={() =>
-              onAction({
-                action: "SCHEDULE_REVIEW",
-                title: "Поставить навык на повторение",
-                immediate: true,
-              })
-            }
-            type="button"
-          >
-            <CalendarClock className="size-5" />
-            На повторение
+            Подтема пройдена
           </button>
         )}
       </div>

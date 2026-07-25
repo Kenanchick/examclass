@@ -12,6 +12,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import {
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -24,21 +25,22 @@ import {
 } from "react";
 import type { TeacherRoadmapNode } from "@/entities/learning-route/model/teacher-route";
 
-const METRO_WIDTH = 4000;
-const METRO_HEIGHT = 3500;
+const METRO_WIDTH = 18000;
+const METRO_HEIGHT = 18000;
 const METRO_CENTER = { x: METRO_WIDTH / 2, y: METRO_HEIGHT / 2 };
 const CORE_WIDTH = 520;
 const CORE_HEIGHT = 270;
-const SUBTOPIC_WIDTH = 380;
-const SUBTOPIC_HEIGHT = 180;
-const SKILL_WIDTH = 280;
-const SKILL_HEIGHT = 96;
-const SUBTOPIC_RADIUS_X = 650;
-const SUBTOPIC_RADIUS_Y = 500;
-const FIRST_SKILL_DISTANCE = 320;
-const SKILL_DISTANCE_STEP = 145;
-const SKILL_LABEL_OFFSET = 150;
-const MIN_SCALE = 0.2;
+const SUBTOPIC_WIDTH = 440;
+const SUBTOPIC_HEIGHT = 210;
+const SKILL_WIDTH = 400;
+const SKILL_HEIGHT = 148;
+const SUBTOPIC_RADIUS_X = 3000;
+const SUBTOPIC_RADIUS_Y = 3000;
+const FIRST_SKILL_DISTANCE = 620;
+const SKILL_DISTANCE_STEP = 235;
+const SKILL_LABEL_OFFSET = 230;
+const INITIAL_SCALE = 0.16;
+const MIN_SCALE = 0.08;
 const MAX_SCALE = 1.25;
 
 const branchPalette = [
@@ -137,7 +139,7 @@ type TeacherTopicMetroMapProps = {
   }) => void;
 };
 
-export function TeacherTopicMetroMap({
+function TeacherTopicMetroMapComponent({
   node,
   onClose,
   onReviewNode,
@@ -153,7 +155,7 @@ export function TeacherTopicMetroMap({
   const viewportStateRef = useRef<MetroViewport>({
     x: 0,
     y: 0,
-    scale: 0.42,
+    scale: INITIAL_SCALE,
   });
   const dragRef = useRef<{
     pointerId: number;
@@ -253,7 +255,7 @@ export function TeacherTopicMetroMap({
       const viewport = viewportRef.current;
       if (!viewport) return;
       const bounds = viewport.getBoundingClientRect();
-      const scale = 0.42;
+      const scale = INITIAL_SCALE;
       applyViewport({
         scale,
         x: bounds.width / 2 - METRO_CENTER.x * scale,
@@ -604,7 +606,7 @@ export function TeacherTopicMetroMap({
                     )}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2 text-[25px] font-bold leading-[1.08] tracking-[-0.035em] text-ink">
+                    <p className="text-[23px] font-bold leading-[1.08] tracking-[-0.035em] text-ink">
                       {branch.subtopic.name}
                     </p>
                     <p className="mt-1 text-base font-semibold text-muted">
@@ -642,7 +644,7 @@ export function TeacherTopicMetroMap({
                 </button>
               </article>
 
-              {branch.skills.map((skillLayout, skillIndex) => (
+              {branch.skills.map((skillLayout) => (
                 <button
                   className={`topic-metro-skill absolute z-20 flex cursor-pointer items-center gap-3 rounded-[1.35rem] border px-4 text-left transition hover:-translate-y-1 ${
                     skillLayout.isPassed
@@ -653,7 +655,6 @@ export function TeacherTopicMetroMap({
                   onClick={() => onSkillOpen(skillLayout.skill.code)}
                   onPointerDown={(event) => event.stopPropagation()}
                   style={{
-                    animationDelay: `${180 + branchIndex * 55 + skillIndex * 25}ms`,
                     borderColor: skillLayout.isPassed
                       ? branch.color.color
                       : undefined,
@@ -682,7 +683,7 @@ export function TeacherTopicMetroMap({
                     )}
                   </span>
                   <span className="min-w-0">
-                    <span className="line-clamp-2 text-[19px] font-bold leading-[1.08] tracking-[-0.025em] text-ink">
+                    <span className="block text-[17px] font-bold leading-[1.12] tracking-[-0.025em] text-ink">
                       {skillLayout.skill.name}
                     </span>
                     <span
@@ -725,7 +726,7 @@ export function TeacherTopicMetroMap({
             className="min-w-12 text-center text-xs font-bold text-muted"
             ref={scaleLabelRef}
           >
-            42%
+            {Math.round(INITIAL_SCALE * 100)}%
           </span>
           <button
             aria-label="Увеличить метро-карту"
@@ -747,3 +748,8 @@ export function TeacherTopicMetroMap({
     </section>
   );
 }
+
+export const TeacherTopicMetroMap = memo(
+  TeacherTopicMetroMapComponent,
+  (previous, next) => previous.node === next.node,
+);

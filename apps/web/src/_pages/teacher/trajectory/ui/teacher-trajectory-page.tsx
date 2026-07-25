@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Map, X } from "lucide-react";
+import { ArrowLeft, Map } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -393,14 +393,6 @@ export function TeacherTrajectoryPage({
             type="button"
           />
           <aside className="fixed inset-x-3 bottom-3 z-[75] max-h-[84vh] overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-[0_28px_80px_rgba(12,37,61,0.28)] sm:inset-y-4 sm:left-auto sm:right-4 sm:max-h-none sm:w-[520px]">
-            <button
-              aria-label="Вернуться к заданию"
-              className="absolute right-4 top-4 z-10 grid size-10 cursor-pointer place-items-center rounded-xl bg-white text-muted shadow-sm transition hover:bg-panel hover:text-ink"
-              onClick={() => selectSkill(null)}
-              type="button"
-            >
-              <X className="size-5" />
-            </button>
             <TeacherSkillDetailPanel
               detail={skillDetailQuery.data}
               isError={skillDetailQuery.isError}

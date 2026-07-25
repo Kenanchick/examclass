@@ -292,10 +292,13 @@ body {
 }
 
 .topic-metro-core,
-.topic-metro-station,
-.topic-metro-skill {
+.topic-metro-station {
   animation: topic-metro-node-enter 520ms cubic-bezier(0.22, 1, 0.36, 1)
     backwards;
+}
+
+.topic-metro-skill {
+  contain: layout paint;
 }
 
 .topic-metro-station--mastered {
