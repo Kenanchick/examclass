@@ -23,7 +23,8 @@ type RequestStateProps = {
 const stateContent = {
   loading: {
     title: "Собираем материалы…",
-    description: "Проверяем данные и готовим страницу. Это займёт всего пару секунд.",
+    description:
+      "Проверяем данные и готовим страницу. Это займёт всего пару секунд.",
     Icon: LoaderCircle,
   },
   error: {
@@ -34,12 +35,14 @@ const stateContent = {
   },
   "not-found": {
     title: "Ничего не нашлось",
-    description: "Проверьте запрос или вернитесь к банку задач и выберите нужную тему.",
+    description:
+      "Проверьте запрос или вернитесь к банку задач и выберите нужную тему.",
     Icon: SearchX,
   },
   empty: {
     title: "Здесь пока ничего нет",
-    description: "Как только появятся новые материалы, они будут показаны на этой странице.",
+    description:
+      "Как только появятся новые материалы, они будут показаны на этой странице.",
     Icon: SearchX,
   },
 } as const;
@@ -56,11 +59,16 @@ export function RequestState({
   const content = stateContent[variant];
   const Icon = content.Icon;
   const isLoading = variant === "loading";
+  const isPlainState = variant === "empty" || variant === "not-found";
 
   return (
     <section
       aria-busy={isLoading}
-      className="overflow-hidden rounded-3xl border border-[#c6ddf5] bg-[#f4f9ff] p-6 sm:p-8"
+      className={
+        isPlainState
+          ? "overflow-hidden p-4 sm:p-8"
+          : "overflow-hidden rounded-3xl border border-[#c6ddf5] bg-[#f4f9ff] p-6 sm:p-8"
+      }
     >
       <div className="flex flex-col items-center gap-7 sm:flex-row sm:items-center sm:gap-9">
         <Image
@@ -73,7 +81,13 @@ export function RequestState({
         />
 
         <div className="max-w-2xl text-center sm:text-left">
-          <span className="inline-flex size-11 items-center justify-center rounded-2xl bg-white text-brand shadow-[0_4px_0_#c1d9f1]">
+          <span
+            className={`inline-flex size-11 items-center justify-center text-brand ${
+              isPlainState
+                ? "bg-transparent"
+                : "rounded-2xl bg-white shadow-[0_4px_0_#c1d9f1]"
+            }`}
+          >
             <Icon
               className={`size-5 ${isLoading ? "animate-spin" : ""}`}
               strokeWidth={2.2}

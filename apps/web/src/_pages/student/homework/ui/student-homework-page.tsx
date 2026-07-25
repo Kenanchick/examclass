@@ -70,7 +70,7 @@ export function StudentHomeworkPage() {
     <StudentLayout>
       <main className="min-w-0 p-4 sm:p-7 lg:p-8">
         <div className="mx-auto max-w-[1320px]">
-          <header className="relative flex min-h-56 items-center overflow-hidden border-b border-[#bdd7ef] bg-[#eef6ff] px-6 sm:px-10">
+          <header className="relative flex min-h-56 items-center overflow-hidden rounded-3xl border border-[#bdd7ef] bg-[#eef6ff] px-6 sm:px-10">
             <div className="absolute -right-16 -top-28 size-80 rounded-full border-[42px] border-white/65" />
             <Image
               alt="Медвежонок с домашним заданием"
