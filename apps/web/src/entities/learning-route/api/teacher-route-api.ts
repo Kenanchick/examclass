@@ -97,6 +97,19 @@ export async function scheduleTeacherNodeReview({
   return response.data;
 }
 
+export async function deleteTeacherNodeReview({
+  studentId,
+  examNumber,
+}: {
+  studentId: string;
+  examNumber: number;
+}) {
+  const response = await apiClient.delete(
+    `${routePath(studentId)}/nodes/${examNumber}/review`,
+  );
+  return response.data;
+}
+
 export async function applyTeacherModuleAction({
   studentId,
   moduleKey,

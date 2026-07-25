@@ -420,6 +420,6 @@ export type TeacherRoadmap = {
 };
 
 export type TeacherSubtopicStatusInput = {
-  status: "MASTERED" | "LEARNING" | "NEEDS_REINFORCEMENT";
+  status: "MASTERED" | "UNSTUDIED";
   reason: string;
 };

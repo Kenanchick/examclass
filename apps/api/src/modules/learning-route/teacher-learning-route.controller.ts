@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -106,6 +107,15 @@ export class TeacherLearningRouteController {
       studentId,
       Number(examNumber),
     );
+  }
+
+  @Delete('students/:studentId/nodes/:examNumber/review')
+  removeNodeReview(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string,
+    @Param('examNumber') examNumber: string,
+  ) {
+    return this.skills.removeNodeReview(userId, studentId, Number(examNumber));
   }
 
   @Post('students/:studentId/modules/:moduleKey/actions')

@@ -4,6 +4,7 @@ import {
   applyTeacherSkillAction,
   applyTeacherSubtopicStatus,
   createTeacherRouteModule,
+  deleteTeacherNodeReview,
   getTeacherKnowledgeProfile,
   getTeacherLearningRoute,
   getTeacherRoadmap,
@@ -93,6 +94,14 @@ export function useTeacherNodeReviewMutation(studentId: string) {
   const invalidate = useInvalidateTeacherRoute(studentId);
   return useMutation({
     mutationFn: scheduleTeacherNodeReview,
+    onSuccess: invalidate,
+  });
+}
+
+export function useDeleteTeacherNodeReviewMutation(studentId: string) {
+  const invalidate = useInvalidateTeacherRoute(studentId);
+  return useMutation({
+    mutationFn: deleteTeacherNodeReview,
     onSuccess: invalidate,
   });
 }

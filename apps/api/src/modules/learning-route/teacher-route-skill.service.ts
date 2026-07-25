@@ -141,9 +141,12 @@ export class TeacherRouteSkillService {
     await this.access.assertTeacherStudent(teacherId, studentId);
     const allowedStatuses = new Set<StudentSkillStatus>([
       StudentSkillStatus.MASTERED,
+      StudentSkillStatus.UNSTUDIED,
     ]);
     if (!allowedStatuses.has(dto.status)) {
-      throw new BadRequestException('Подтему можно отметить только пройденной');
+      throw new BadRequestException(
+        'Для подтемы можно выбрать только «Пройдено» или «Не пройдено»',
+      );
     }
 
     const goal = await this.prisma.studentLearningGoal.findFirst({
@@ -347,6 +350,98 @@ export class TeacherRouteSkillService {
     );
 
     return { updatedSkills: skills.length, route: rebuiltRoute };
+  }
+
+  async removeNodeReview(
+    teacherId: string,
+    studentId: string,
+    examNumber: number,
+  ) {
+    await this.access.assertTeacherStudent(teacherId, studentId);
+    if (!Number.isInteger(examNumber) || examNumber < 1 || examNumber > 19) {
+      throw new BadRequestException('Укажите номер задания ЕГЭ от 1 до 19');
+    }
+
+    const route = await this.prisma.learningRoute.findFirst({
+      where: { studentId, status: LearningRouteStatus.ACTIVE },
+      orderBy: { generatedAt: 'desc' },
+      select: {
+        id: true,
+        modules: {
+          where: { moduleKey: `REVIEW:TASK:${examNumber}` },
+          select: {
+            id: true,
+            skills: { select: { skillId: true } },
+          },
+        },
+      },
+    });
+    const reviewModule = route?.modules[0];
+    if (!route || !reviewModule) {
+      return { removed: false };
+    }
+
+    const skillIds = reviewModule.skills.map((skill) => skill.skillId);
+    const reason = `Отменено повторение по заданию ЕГЭ №${examNumber}`;
+
+    await this.prisma.$transaction(async (transaction) => {
+      await transaction.learningRouteModule.delete({
+        where: { id: reviewModule.id },
+      });
+
+      const stillScheduled =
+        await transaction.learningRouteModuleSkill.findMany({
+          where: {
+            skillId: { in: skillIds },
+            module: {
+              routeId: route.id,
+              type: LearningRouteModuleType.REVIEW,
+            },
+          },
+          distinct: ['skillId'],
+          select: { skillId: true },
+        });
+      const stillScheduledIds = new Set(
+        stillScheduled.map((skill) => skill.skillId),
+      );
+      const controls = await transaction.teacherSkillControl.findMany({
+        where: {
+          studentId,
+          skillId: {
+            in: skillIds.filter((skillId) => !stillScheduledIds.has(skillId)),
+          },
+        },
+      });
+
+      for (const control of controls) {
+        const after = await transaction.teacherSkillControl.update({
+          where: {
+            studentId_skillId: {
+              studentId,
+              skillId: control.skillId,
+            },
+          },
+          data: { reviewScheduledAt: null, lastAuthorId: teacherId },
+        });
+        await transaction.teacherRouteChange.create({
+          data: createTeacherRouteChange({
+            studentId,
+            authorId: teacherId,
+            routeId: route.id,
+            skillId: control.skillId,
+            action: TeacherRouteActionType.SCHEDULE_REVIEW,
+            reason,
+            before: control,
+            after,
+          }),
+        });
+      }
+    });
+
+    return {
+      removed: true,
+      route: await this.routes.rebuildTeacherStudentRoute(teacherId, studentId),
+    };
   }
 
   async getDetail(teacherId: string, studentId: string, skillCode: string) {
