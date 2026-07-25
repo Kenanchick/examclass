@@ -263,13 +263,9 @@ export type TeacherModuleActionInput = {
   enabled?: boolean;
 };
 
-export type CreateTeacherRouteModuleInput = {
-  title: string;
-  description?: string;
-  estimatedMinutes: number;
-  skillCodes?: string[];
+export type TeacherRoadmapOrderInput = {
+  examNumbers: number[];
   reason: string;
-  comment?: string;
 };
 
 export type TeacherRoadmapStatus =
@@ -388,6 +384,7 @@ export type TeacherRoadmap = {
     publicId: string;
     generatedAt: string;
     currentExamNumber: number;
+    examOrder: number[];
   };
   nodes: TeacherRoadmapNode[];
   reviewNodes: Array<{
@@ -415,7 +412,7 @@ export type TeacherRoadmap = {
   connections: Array<{
     from: number;
     to: number;
-    kind: "KNOWLEDGE_DEPENDENCY";
+    kind: "KNOWLEDGE_DEPENDENCY" | "TEACHER_SEQUENCE";
   }>;
 };
 

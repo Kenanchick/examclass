@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { TeacherRoadmap } from "../model/teacher-route";
 import {
   applyTeacherModuleAction,
   applyTeacherSkillAction,
   applyTeacherSubtopicStatus,
-  createTeacherRouteModule,
   deleteTeacherNodeReview,
   getTeacherKnowledgeProfile,
   getTeacherLearningRoute,
@@ -11,6 +11,7 @@ import {
   getTeacherRouteHistory,
   getTeacherSkillDetail,
   scheduleTeacherNodeReview,
+  updateTeacherRoadmapOrder,
   updateTeacherWeeklyLoad,
 } from "./teacher-route-api";
 
@@ -32,6 +33,47 @@ export function useTeacherRoadmapQuery(studentId: string, enabled = true) {
     queryKey: [...teacherRouteQueryKey, studentId, "map"],
     queryFn: () => getTeacherRoadmap(studentId),
     enabled: enabled && Boolean(studentId),
+  });
+}
+
+export function useTeacherRoadmapOrderMutation(studentId: string) {
+  const queryClient = useQueryClient();
+  const mapQueryKey = [...teacherRouteQueryKey, studentId, "map"] as const;
+  return useMutation({
+    mutationFn: updateTeacherRoadmapOrder,
+    onMutate: async ({ data }) => {
+      await queryClient.cancelQueries({ queryKey: mapQueryKey });
+      const previous = queryClient.getQueryData<TeacherRoadmap>(mapQueryKey);
+      const orderIndex = new Map(
+        data.examNumbers.map((examNumber, index) => [examNumber, index]),
+      );
+
+      queryClient.setQueryData<TeacherRoadmap>(mapQueryKey, (current) =>
+        current
+          ? {
+              ...current,
+              route: { ...current.route, examOrder: data.examNumbers },
+              nodes: [...current.nodes].sort(
+                (left, right) =>
+                  (orderIndex.get(left.examNumber) ?? left.examNumber) -
+                  (orderIndex.get(right.examNumber) ?? right.examNumber),
+              ),
+              connections: data.examNumbers.slice(0, -1).map((from, index) => ({
+                from,
+                to: data.examNumbers[index + 1]!,
+                kind: "TEACHER_SEQUENCE" as const,
+              })),
+            }
+          : current,
+      );
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(mapQueryKey, context.previous);
+      }
+    },
   });
 }
 
@@ -110,14 +152,6 @@ export function useTeacherModuleActionMutation(studentId: string) {
   const invalidate = useInvalidateTeacherRoute(studentId);
   return useMutation({
     mutationFn: applyTeacherModuleAction,
-    onSuccess: invalidate,
-  });
-}
-
-export function useCreateTeacherRouteModuleMutation(studentId: string) {
-  const invalidate = useInvalidateTeacherRoute(studentId);
-  return useMutation({
-    mutationFn: createTeacherRouteModule,
     onSuccess: invalidate,
   });
 }

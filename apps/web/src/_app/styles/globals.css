@@ -161,6 +161,16 @@ body {
   }
 }
 
+@keyframes roadmap-train-ride {
+  from {
+    offset-distance: 0%;
+  }
+
+  to {
+    offset-distance: 100%;
+  }
+}
+
 @keyframes roadmap-node-arrive {
   from {
     opacity: 0;
@@ -325,11 +335,23 @@ body {
   transition: stroke-width 220ms ease;
 }
 
+.roadmap-route-glow {
+  pointer-events: none;
+  opacity: 0.2;
+}
+
 .roadmap-link-dots {
   pointer-events: none;
   opacity: 0.9;
   stroke-dasharray: 1 58;
   animation: roadmap-link-flow 1.8s linear infinite;
+}
+
+.roadmap-train {
+  offset-anchor: 50% 50%;
+  offset-distance: 0%;
+  offset-rotate: auto;
+  animation: roadmap-train-ride 30s linear infinite;
 }
 
 .roadmap-link-hit {
@@ -356,7 +378,9 @@ body {
 }
 
 .roadmap-viewport--dragging .roadmap-link-dots,
-.roadmap-viewport--paused .roadmap-link-dots {
+.roadmap-viewport--paused .roadmap-link-dots,
+.roadmap-viewport--dragging .roadmap-train,
+.roadmap-viewport--paused .roadmap-train {
   animation-play-state: paused;
 }
 
@@ -491,6 +515,7 @@ body {
   .topic-metro-flow,
   .roadmap-main-line,
   .roadmap-link-dots,
+  .roadmap-train,
   .roadmap-node,
   .roadmap-node--current,
   .roadmap-node--perfect,

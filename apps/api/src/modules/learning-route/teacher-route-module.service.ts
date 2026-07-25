@@ -3,17 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
 import {
   LearningGoalStatus,
-  LearningRouteModuleStatus,
-  LearningRouteModuleType,
   LearningRouteStatus,
   Prisma,
   TeacherRouteActionType,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
-import { CreateTeacherRouteModuleDto } from './dto/create-teacher-route-module.dto';
 import { TeacherModuleActionDto } from './dto/teacher-module-action.dto';
 import { UpdateLearningLoadDto } from './dto/update-learning-load.dto';
 import { LearningRouteAccessService } from './learning-route-access.service';
@@ -136,103 +132,6 @@ export class TeacherRouteModuleService {
 
     return {
       module: after,
-      route: await this.store.getById(route.id, studentId),
-    };
-  }
-
-  async addCustomModule(
-    teacherId: string,
-    studentId: string,
-    dto: CreateTeacherRouteModuleDto,
-  ) {
-    await this.access.assertTeacherStudent(teacherId, studentId);
-    const route = await this.getActiveRoute(studentId);
-    const skillCodes = dto.skillCodes ?? [];
-    const skills = await this.prisma.knowledgeNode.findMany({
-      where: {
-        knowledgeMapId: route.knowledgeMapId,
-        code: { in: skillCodes },
-      },
-      select: { id: true, code: true },
-    });
-    if (skills.length !== skillCodes.length) {
-      throw new BadRequestException(
-        'Один или несколько навыков не найдены в текущей карте',
-      );
-    }
-
-    const moduleKey = `CUSTOM:${randomUUID().replaceAll('-', '').toUpperCase()}`;
-    const position =
-      Math.max(0, ...route.modules.map((module) => module.position)) + 1;
-    const module = await this.prisma.$transaction(async (transaction) => {
-      const created = await transaction.learningRouteModule.create({
-        data: {
-          routeId: route.id,
-          moduleKey,
-          title: dto.title,
-          type: LearningRouteModuleType.TEACHER_ASSIGNED,
-          status: LearningRouteModuleStatus.AVAILABLE,
-          position,
-          priority: 1,
-          estimatedMinutes: dto.estimatedMinutes,
-          blockedBySkillCodes: [],
-          recommendedBeforeCodes: [],
-          teacherAssignmentIds: [],
-          factorBreakdown: {},
-          completionCriteria: {
-            description:
-              'Критерий завершения определяет преподаватель после практики или контроля',
-          },
-          reasons: [dto.reason],
-          isPinned: true,
-          isCustom: true,
-          positionLocked: true,
-          teacherComment: dto.comment ?? dto.description ?? null,
-          skills: {
-            create: skills.map((skill, index) => ({
-              skillId: skill.id,
-              position: index + 1,
-              priority: 1,
-              plannedMinutes: Math.max(
-                15,
-                Math.round(dto.estimatedMinutes / Math.max(1, skills.length)),
-              ),
-              targetConfidence: 0.55,
-              reason: dto.reason,
-            })),
-          },
-        },
-      });
-
-      await transaction.learningRoute.update({
-        where: { id: route.id },
-        data: {
-          totalPlannedMinutes: { increment: dto.estimatedMinutes },
-        },
-      });
-      await transaction.teacherRouteChange.create({
-        data: createTeacherRouteChange({
-          studentId,
-          authorId: teacherId,
-          routeId: route.id,
-          moduleId: created.id,
-          moduleKey,
-          action: TeacherRouteActionType.ADD_CUSTOM_MODULE,
-          reason: dto.reason,
-          after: {
-            title: dto.title,
-            description: dto.description,
-            estimatedMinutes: dto.estimatedMinutes,
-            skillCodes,
-          },
-        }),
-      });
-
-      return created;
-    });
-
-    return {
-      module,
       route: await this.store.getById(route.id, studentId),
     };
   }

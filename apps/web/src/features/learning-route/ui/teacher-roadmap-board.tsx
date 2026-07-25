@@ -1,13 +1,21 @@
 "use client";
 
 import {
+  ArrowDown,
+  ArrowUp,
+  Check,
   Crosshair,
   Edit3,
+  GripVertical,
   Maximize2,
   Minus,
   Move,
   Plus,
+  RotateCcw,
+  Save,
+  TrainFront,
   Trash2,
+  X,
 } from "lucide-react";
 import {
   useCallback,
@@ -17,7 +25,9 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type DragEvent,
   type PointerEvent as ReactPointerEvent,
+  type ReactNode,
   type WheelEvent,
 } from "react";
 import type {
@@ -49,6 +59,11 @@ const MAIN_ROUTE_BOTTOM = START_Y + 4 * ROW_GAP + CARD_HEIGHT;
 type Viewport = { x: number; y: number; scale: number };
 type BoardPoint = { x: number; y: number };
 type BoardBox = { x: number; y: number; width: number; height: number };
+type RouteNodeLayout = BoardPoint & {
+  index: number;
+  row: number;
+  column: number;
+};
 type ReviewNode = TeacherRoadmap["reviewNodes"][number];
 type ReviewSide = "left" | "top" | "right" | "bottom";
 type HighlightedLink =
@@ -103,37 +118,43 @@ const statusPresentation: Record<
   },
 };
 
-const nodeGridPosition = (examNumber: number) => {
-  const index = examNumber - 1;
+const nodeLayoutAt = (index: number): RouteNodeLayout => {
   const row = Math.floor(index / 4);
   const offset = index % 4;
-  return { row, column: row % 2 === 0 ? offset : 3 - offset };
-};
-
-const nodePosition = (examNumber: number) => {
-  const { row, column } = nodeGridPosition(examNumber);
+  const column = row % 2 === 0 ? offset : 3 - offset;
   return {
+    index,
+    row,
+    column,
     x: START_X + column * COLUMN_GAP,
     y: START_Y + row * ROW_GAP,
   };
 };
 
-const nodeBox = (examNumber: number): BoardBox => ({
-  ...nodePosition(examNumber),
+const nodeBox = (layout: RouteNodeLayout): BoardBox => ({
+  x: layout.x,
+  y: layout.y,
   width: CARD_WIDTH,
   height: CARD_HEIGHT,
 });
 
-const nodeCenter = (examNumber: number) => {
-  const position = nodePosition(examNumber);
+const nodeCenter = (layout: RouteNodeLayout) => {
   return {
-    x: position.x + CARD_WIDTH / 2,
-    y: position.y + CARD_HEIGHT / 2,
+    x: layout.x + CARD_WIDTH / 2,
+    y: layout.y + CARD_HEIGHT / 2,
   };
 };
 
-const reviewSide = (review: ReviewNode): ReviewSide => {
-  const { row, column } = nodeGridPosition(review.sourceExamNumber);
+const getNodeLayout = (
+  layouts: Map<number, RouteNodeLayout>,
+  examNumber: number,
+) => layouts.get(examNumber) ?? nodeLayoutAt(examNumber - 1);
+
+const reviewSide = (
+  review: ReviewNode,
+  layouts: Map<number, RouteNodeLayout>,
+): ReviewSide => {
+  const { row, column } = getNodeLayout(layouts, review.sourceExamNumber);
 
   if (column === 0) return "left";
   if (column === 3) return "right";
@@ -141,18 +162,21 @@ const reviewSide = (review: ReviewNode): ReviewSide => {
   return "bottom";
 };
 
-const buildReviewPositions = (reviews: ReviewNode[]) => {
+const buildReviewPositions = (
+  reviews: ReviewNode[],
+  layouts: Map<number, RouteNodeLayout>,
+) => {
   const positions: BoardPoint[] = new Array(reviews.length);
   const indexedReviews = reviews.map((review, index) => ({
     index,
     review,
-    side: reviewSide(review),
-    source: nodePosition(review.sourceExamNumber),
+    side: reviewSide(review, layouts),
+    source: getNodeLayout(layouts, review.sourceExamNumber),
   }));
   const sideReviews = (side: ReviewSide) =>
     indexedReviews
       .filter((item) => item.side === side)
-      .sort((a, b) => a.review.sourceExamNumber - b.review.sourceExamNumber);
+      .sort((a, b) => a.source.index - b.source.index);
 
   const placeVerticalEdge = (side: "left" | "right", x: number) => {
     let nextY = START_Y - 10;
@@ -270,7 +294,7 @@ const pathBetween = (from: BoardBox, to: BoardBox) => {
   return `M ${start.x} ${start.y} C ${start.x} ${start.y + direction * handle}, ${end.x} ${end.y - direction * handle}, ${end.x} ${end.y}`;
 };
 
-const connectionPath = (from: number, to: number) => {
+const connectionPath = (from: RouteNodeLayout, to: RouteNodeLayout) => {
   const fromBox = nodeBox(from);
   const toBox = nodeBox(to);
   const start = anchorAtEdge(fromBox, boxCenter(toBox));
@@ -287,10 +311,11 @@ const reviewConnectionPath = (
   review: ReviewNode,
   position: BoardPoint,
   index: number,
+  sourceLayout: RouteNodeLayout,
 ) => {
-  const source = nodeBox(review.sourceExamNumber);
+  const source = nodeBox(sourceLayout);
   const target = reviewBox(position);
-  const { column, row } = nodeGridPosition(review.sourceExamNumber);
+  const { column, row } = sourceLayout;
 
   if (column === 0 || column === 3 || row === 0 || row === 4) {
     return pathBetween(source, target);
@@ -459,18 +484,23 @@ function ProgressRing({ value, color }: { value: number; color: string }) {
 function RoadmapCard({
   node,
   connectionHighlighted,
+  editMode,
   onOpen,
   onReviewHighlightChange,
+  position,
+  routeStep,
   selected,
 }: {
   node: TeacherRoadmapNode;
   connectionHighlighted: boolean;
+  editMode: boolean;
   onOpen: () => void;
   onReviewHighlightChange?: (active: boolean) => void;
+  position: BoardPoint;
+  routeStep: number;
   selected: boolean;
 }) {
   const presentation = statusPresentation[node.status];
-  const position = nodePosition(node.examNumber);
   const isPerfect = node.mastery >= 0.995;
 
   return (
@@ -498,6 +528,11 @@ function RoadmapCard({
       }
       type="button"
     >
+      {editMode && (
+        <span className="absolute right-5 top-4 rounded-full bg-[#0b4977] px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.08em] text-white shadow-sm">
+          Шаг {routeStep}
+        </span>
+      )}
       {isPerfect && (
         <span
           aria-hidden
@@ -642,27 +677,204 @@ function ReviewRoadmapCard({
   );
 }
 
+function RoadmapOrderEditor({
+  error,
+  examNumbers,
+  isDirty,
+  isSaving,
+  nodesByExamNumber,
+  onCancel,
+  onMove,
+  onReset,
+  onSave,
+  onSort,
+}: {
+  error: string | null;
+  examNumbers: number[];
+  isDirty: boolean;
+  isSaving: boolean;
+  nodesByExamNumber: Map<number, TeacherRoadmapNode>;
+  onCancel: () => void;
+  onMove: (examNumber: number, direction: -1 | 1) => void;
+  onReset: () => void;
+  onSave: () => void;
+  onSort: (draggedExamNumber: number, targetExamNumber: number) => void;
+}) {
+  const [draggedExamNumber, setDraggedExamNumber] = useState<number | null>(
+    null,
+  );
+
+  const dropBefore = (
+    event: DragEvent<HTMLDivElement>,
+    targetExamNumber: number,
+  ) => {
+    event.preventDefault();
+    if (draggedExamNumber === null || draggedExamNumber === targetExamNumber) {
+      return;
+    }
+    onSort(draggedExamNumber, targetExamNumber);
+    setDraggedExamNumber(null);
+  };
+
+  return (
+    <aside
+      className="absolute bottom-5 right-5 top-20 z-40 flex w-[390px] max-w-[calc(100%-2.5rem)] flex-col overflow-hidden overscroll-contain rounded-[1.75rem] border border-[#bad2e6] bg-white/96 shadow-[0_26px_75px_rgba(9,47,78,0.22)] backdrop-blur-xl"
+      onPointerDown={(event) => event.stopPropagation()}
+      onWheel={(event) => event.stopPropagation()}
+    >
+      <div className="border-b border-line px-5 py-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-brand">
+              Порядок ученика
+            </p>
+            <h2 className="mt-1 text-xl font-bold tracking-[-0.04em] text-ink">
+              Перетащите задания
+            </h2>
+            <p className="mt-1 text-sm leading-5 text-muted">
+              Верхнее задание ученик проходит раньше.
+            </p>
+          </div>
+          <button
+            aria-label="Закрыть редактор порядка"
+            className="grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl border border-line bg-white text-muted transition hover:text-ink"
+            onClick={onCancel}
+            type="button"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-3">
+        {examNumbers.map((examNumber, index) => {
+          const node = nodesByExamNumber.get(examNumber);
+          return (
+            <div
+              className={`group flex items-center gap-2 rounded-2xl border bg-white p-2.5 transition ${
+                draggedExamNumber === examNumber
+                  ? "border-brand opacity-55 shadow-sm"
+                  : "border-line hover:border-[#a8c7df] hover:shadow-sm"
+              }`}
+              draggable={!isSaving}
+              key={examNumber}
+              onDragEnd={() => setDraggedExamNumber(null)}
+              onDragOver={(event) => event.preventDefault()}
+              onDragStart={(event) => {
+                setDraggedExamNumber(examNumber);
+                event.dataTransfer.effectAllowed = "move";
+              }}
+              onDrop={(event) => dropBefore(event, examNumber)}
+            >
+              <GripVertical className="size-5 shrink-0 cursor-grab text-[#9ba9b5] group-active:cursor-grabbing" />
+              <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-[#eaf4fc] text-xs font-extrabold text-brand">
+                {index + 1}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-bold text-ink">
+                  <span className="mr-1.5 text-brand">№{examNumber}</span>
+                  {node?.title ?? `Задание ${examNumber}`}
+                </p>
+                <p className="mt-0.5 text-xs font-semibold text-muted">
+                  Освоено {Math.round((node?.mastery ?? 0) * 100)}%
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  aria-label={`Переместить задание ${examNumber} раньше`}
+                  className="grid size-8 cursor-pointer place-items-center rounded-lg text-muted transition hover:bg-[#edf5fb] hover:text-brand disabled:cursor-default disabled:opacity-25"
+                  disabled={index === 0 || isSaving}
+                  onClick={() => onMove(examNumber, -1)}
+                  type="button"
+                >
+                  <ArrowUp className="size-4" />
+                </button>
+                <button
+                  aria-label={`Переместить задание ${examNumber} позже`}
+                  className="grid size-8 cursor-pointer place-items-center rounded-lg text-muted transition hover:bg-[#edf5fb] hover:text-brand disabled:cursor-default disabled:opacity-25"
+                  disabled={index === examNumbers.length - 1 || isSaving}
+                  onClick={() => onMove(examNumber, 1)}
+                  type="button"
+                >
+                  <ArrowDown className="size-4" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="border-t border-line bg-[#f8fbfd] p-3">
+        {error && (
+          <p className="mb-2 rounded-xl bg-[#fff0ed] px-3 py-2 text-xs font-bold text-[#a74a34]">
+            {error}
+          </p>
+        )}
+        <div className="mb-2 flex items-center justify-between">
+          <button
+            className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-xl px-3 text-xs font-bold text-muted transition hover:bg-white hover:text-brand"
+            disabled={isSaving}
+            onClick={onReset}
+            type="button"
+          >
+            <RotateCcw className="size-3.5" />
+            По номерам
+          </button>
+          {isDirty && (
+            <span className="text-xs font-bold text-[#b36a09]">
+              Есть несохранённые изменения
+            </span>
+          )}
+        </div>
+        <button
+          className="inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-brand px-4 text-sm font-bold text-white shadow-[0_12px_28px_rgba(11,73,119,0.2)] transition hover:bg-[#083d65] disabled:cursor-wait disabled:opacity-60"
+          disabled={!isDirty || isSaving}
+          onClick={onSave}
+          type="button"
+        >
+          {isSaving ? (
+            "Сохраняем порядок…"
+          ) : (
+            <>
+              {isDirty ? (
+                <Save className="size-4" />
+              ) : (
+                <Check className="size-4" />
+              )}
+              {isDirty ? "Сохранить порядок" : "Порядок сохранён"}
+            </>
+          )}
+        </button>
+      </div>
+    </aside>
+  );
+}
+
 type TeacherRoadmapBoardProps = {
   roadmap: TeacherRoadmap;
   editMode: boolean;
+  header?: ReactNode;
+  isOrderSaving?: boolean;
   paused?: boolean;
   selectedExamNumber: number | null;
   onEditModeToggle: () => void;
-  onAddCustom: () => void;
   onCustomOpen: (moduleKey: string) => void;
   onNodeOpen: (examNumber: number) => void;
+  onOrderSave: (examNumbers: number[]) => Promise<void>;
   onReviewRemove: (examNumber: number) => void;
 };
 
 export function TeacherRoadmapBoard({
   roadmap,
   editMode,
+  header,
+  isOrderSaving = false,
   paused = false,
   selectedExamNumber,
   onEditModeToggle,
-  onAddCustom,
   onCustomOpen,
   onNodeOpen,
+  onOrderSave,
   onReviewRemove,
 }: TeacherRoadmapBoardProps) {
   const viewportElementRef = useRef<HTMLDivElement>(null);
@@ -687,6 +899,45 @@ export function TeacherRoadmapBoard({
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [highlightedLink, setHighlightedLink] = useState<HighlightedLink>(null);
+  const [orderSaveError, setOrderSaveError] = useState<string | null>(null);
+  const [draftExamOrder, setDraftExamOrder] = useState<number[]>(
+    () =>
+      roadmap.route.examOrder ?? roadmap.nodes.map((node) => node.examNumber),
+  );
+  const serverExamOrder = useMemo(
+    () =>
+      roadmap.route.examOrder ?? roadmap.nodes.map((node) => node.examNumber),
+    [roadmap.nodes, roadmap.route.examOrder],
+  );
+  const serverExamOrderKey = serverExamOrder.join(",");
+
+  useEffect(() => {
+    if (!editMode) setDraftExamOrder(serverExamOrder);
+  }, [editMode, serverExamOrder, serverExamOrderKey]);
+
+  const nodesByExamNumber = useMemo(
+    () => new Map(roadmap.nodes.map((node) => [node.examNumber, node])),
+    [roadmap.nodes],
+  );
+  const displayedNodes = useMemo(
+    () =>
+      (editMode ? draftExamOrder : serverExamOrder)
+        .map((examNumber) => nodesByExamNumber.get(examNumber))
+        .filter((node): node is TeacherRoadmapNode => Boolean(node)),
+    [draftExamOrder, editMode, nodesByExamNumber, serverExamOrder],
+  );
+  const nodeLayouts = useMemo(
+    () =>
+      new Map(
+        displayedNodes.map((node, index) => [
+          node.examNumber,
+          nodeLayoutAt(index),
+        ]),
+      ),
+    [displayedNodes],
+  );
+  const nodeLayoutsRef = useRef(nodeLayouts);
+  nodeLayoutsRef.current = nodeLayouts;
   const visibleCustomNodes = useMemo(
     () =>
       editMode
@@ -695,8 +946,8 @@ export function TeacherRoadmapBoard({
     [editMode, roadmap.customNodes],
   );
   const reviewPositions = useMemo(
-    () => buildReviewPositions(roadmap.reviewNodes),
-    [roadmap.reviewNodes],
+    () => buildReviewPositions(roadmap.reviewNodes, nodeLayouts),
+    [nodeLayouts, roadmap.reviewNodes],
   );
   const reviewBottom = Math.max(
     0,
@@ -712,17 +963,39 @@ export function TeacherRoadmapBoard({
   const canvasHeight = Math.max(BOARD_HEIGHT, reviewBottom, customBottom) + 120;
   const routePaths = useMemo(
     () =>
-      roadmap.nodes
+      displayedNodes
         .slice(0, -1)
-        .map((node) => connectionPath(node.examNumber, node.examNumber + 1)),
-    [roadmap.nodes],
+        .map((node, index) =>
+          connectionPath(
+            getNodeLayout(nodeLayouts, node.examNumber),
+            getNodeLayout(nodeLayouts, displayedNodes[index + 1]!.examNumber),
+          ),
+        ),
+    [displayedNodes, nodeLayouts],
+  );
+  const trainRoutePath = useMemo(
+    () =>
+      displayedNodes
+        .map((node, index) => {
+          const center = nodeCenter(
+            getNodeLayout(nodeLayouts, node.examNumber),
+          );
+          return `${index === 0 ? "M" : "L"} ${center.x} ${center.y}`;
+        })
+        .join(" "),
+    [displayedNodes, nodeLayouts],
   );
   const reviewPaths = useMemo(
     () =>
       roadmap.reviewNodes.map((review, index) =>
-        reviewConnectionPath(review, reviewPositions[index]!, index),
+        reviewConnectionPath(
+          review,
+          reviewPositions[index]!,
+          index,
+          getNodeLayout(nodeLayouts, review.sourceExamNumber),
+        ),
       ),
-    [reviewPositions, roadmap.reviewNodes],
+    [nodeLayouts, reviewPositions, roadmap.reviewNodes],
   );
   const reviewByExamNumber = useMemo(
     () =>
@@ -732,9 +1005,19 @@ export function TeacherRoadmapBoard({
     [roadmap.reviewNodes],
   );
   const customPath =
-    visibleCustomNodes.length > 0
-      ? pathBetween(nodeBox(19), customNodeBox(0, customStartY))
+    visibleCustomNodes.length > 0 && displayedNodes.length > 0
+      ? pathBetween(
+          nodeBox(
+            getNodeLayout(
+              nodeLayouts,
+              displayedNodes[displayedNodes.length - 1]!.examNumber,
+            ),
+          ),
+          customNodeBox(0, customStartY),
+        )
       : "";
+  const lastExamNumber =
+    displayedNodes[displayedNodes.length - 1]?.examNumber ?? 19;
   const highlightedReviewIndex =
     highlightedLink?.kind === "review"
       ? roadmap.reviewNodes.findIndex(
@@ -819,7 +1102,9 @@ export function TeacherRoadmapBoard({
       const element = viewportElementRef.current;
       if (!element) return;
       const bounds = element.getBoundingClientRect();
-      const center = nodeCenter(examNumber);
+      const center = nodeCenter(
+        getNodeLayout(nodeLayoutsRef.current, examNumber),
+      );
       const current = viewportStateRef.current;
       applyViewport(
         {
@@ -839,7 +1124,9 @@ export function TeacherRoadmapBoard({
       if (!element) return;
       const bounds = element.getBoundingClientRect();
       const scale = bounds.width < 700 ? 0.42 : 0.58;
-      const center = nodeCenter(roadmap.route.currentExamNumber);
+      const center = nodeCenter(
+        getNodeLayout(nodeLayoutsRef.current, roadmap.route.currentExamNumber),
+      );
       applyViewport({
         scale,
         x: bounds.width / 2 - center.x * scale,
@@ -967,9 +1254,62 @@ export function TeacherRoadmapBoard({
     setIsDragging(false);
   };
 
+  const draftExamOrderKey = draftExamOrder.join(",");
+  const isOrderDirty = draftExamOrderKey !== serverExamOrderKey;
+  const moveExam = (examNumber: number, direction: -1 | 1) => {
+    setOrderSaveError(null);
+    setDraftExamOrder((current) => {
+      const fromIndex = current.indexOf(examNumber);
+      const toIndex = fromIndex + direction;
+      if (fromIndex < 0 || toIndex < 0 || toIndex >= current.length) {
+        return current;
+      }
+      const next = [...current];
+      [next[fromIndex], next[toIndex]] = [next[toIndex]!, next[fromIndex]!];
+      return next;
+    });
+  };
+  const sortExamBefore = (
+    draggedExamNumber: number,
+    targetExamNumber: number,
+  ) => {
+    setOrderSaveError(null);
+    setDraftExamOrder((current) => {
+      const fromIndex = current.indexOf(draggedExamNumber);
+      if (fromIndex < 0) return current;
+      const next = current.filter(
+        (examNumber) => examNumber !== draggedExamNumber,
+      );
+      const targetIndex = next.indexOf(targetExamNumber);
+      if (targetIndex < 0) return current;
+      next.splice(targetIndex, 0, draggedExamNumber);
+      return next;
+    });
+  };
+  const cancelOrderEditing = () => {
+    setDraftExamOrder(serverExamOrder);
+    setOrderSaveError(null);
+    onEditModeToggle();
+  };
+  const saveOrder = async () => {
+    if (!isOrderDirty || isOrderSaving) return;
+    setOrderSaveError(null);
+    try {
+      await onOrderSave(draftExamOrder);
+      onEditModeToggle();
+    } catch (error) {
+      setOrderSaveError(
+        error instanceof Error
+          ? error.message
+          : "Не удалось сохранить порядок заданий.",
+      );
+    }
+  };
+
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-line bg-white shadow-[0_22px_55px_rgba(15,43,76,0.07)]">
-      <div className="flex flex-wrap items-center justify-end gap-3 border-b border-line px-4 py-3 sm:px-5">
+    <section className="flex h-dvh min-h-0 flex-col overflow-hidden border-line bg-white">
+      <div className="relative z-50 flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-3 border-b border-line bg-white/95 px-4 py-2.5 shadow-sm backdrop-blur-xl sm:px-5">
+        <div className="min-w-0">{header}</div>
         <div className="flex items-center gap-2">
           <button
             aria-label="Уменьшить масштаб"
@@ -1009,21 +1349,23 @@ export function TeacherRoadmapBoard({
           </button>
           <button
             aria-label="Поместить весь маршрут в экран"
-            className="roadmap-toolbar-button"
+            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-xs font-bold text-muted transition hover:border-[#a8c7df] hover:text-brand"
             onClick={fitRoute}
             title="Весь маршрут"
             type="button"
           >
             <Maximize2 className="size-4" />
+            <span className="hidden xl:inline">Весь маршрут</span>
           </button>
           <button
             aria-label="Вернуться к текущей теме"
-            className="roadmap-toolbar-button"
+            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-xs font-bold text-muted transition hover:border-[#a8c7df] hover:text-brand"
             onClick={() => centerNode(roadmap.route.currentExamNumber)}
             title="Текущая тема"
             type="button"
           >
             <Crosshair className="size-4" />
+            <span className="hidden xl:inline">Текущая задача</span>
           </button>
           <button
             aria-label="Редактировать"
@@ -1032,28 +1374,19 @@ export function TeacherRoadmapBoard({
                 ? "border-brand bg-brand text-white"
                 : "border-line bg-white text-muted hover:text-brand"
             }`}
-            onClick={onEditModeToggle}
+            onClick={editMode ? cancelOrderEditing : onEditModeToggle}
             type="button"
           >
             <Edit3 className="size-4" />
-            <span className="hidden sm:inline">Редактировать</span>
+            <span className="hidden sm:inline">
+              {editMode ? "Закрыть" : "Изменить порядок"}
+            </span>
           </button>
-          {editMode && (
-            <button
-              aria-label="Добавить"
-              className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[#dd8a12] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#c97908]"
-              onClick={onAddCustom}
-              type="button"
-            >
-              <Plus className="size-4" />
-              <span className="hidden sm:inline">Добавить</span>
-            </button>
-          )}
         </div>
       </div>
 
       <div
-        className={`roadmap-viewport relative h-[760px] overflow-hidden bg-[#fbfcfe] touch-none sm:h-[860px] lg:h-[900px] ${
+        className={`roadmap-viewport relative min-h-0 flex-1 overflow-hidden bg-[#fbfcfe] touch-none ${
           isDragging
             ? "roadmap-viewport--dragging cursor-grabbing"
             : "cursor-grab"
@@ -1069,6 +1402,26 @@ export function TeacherRoadmapBoard({
           <Move className="size-4 text-brand" />
           Тяните доску · масштабируйте жестом
         </div>
+
+        {editMode && (
+          <RoadmapOrderEditor
+            error={orderSaveError}
+            examNumbers={draftExamOrder}
+            isDirty={isOrderDirty}
+            isSaving={isOrderSaving}
+            nodesByExamNumber={nodesByExamNumber}
+            onCancel={cancelOrderEditing}
+            onMove={moveExam}
+            onReset={() => {
+              setOrderSaveError(null);
+              setDraftExamOrder(
+                Array.from({ length: 19 }, (_, index) => index + 1),
+              );
+            }}
+            onSave={() => void saveOrder()}
+            onSort={sortExamBefore}
+          />
+        )}
 
         <div
           className="roadmap-canvas absolute left-0 top-0 origin-top-left"
@@ -1099,7 +1452,7 @@ export function TeacherRoadmapBoard({
                 <path
                   className="roadmap-arrow-head"
                   d="M0,0 L24,11 L0,22 Z"
-                  fill="#6f9fc5"
+                  fill="#318dc6"
                 />
               </marker>
               <marker
@@ -1135,11 +1488,20 @@ export function TeacherRoadmapBoard({
                 />
               </marker>
             </defs>
-            {roadmap.nodes.slice(0, -1).map((node, index) => {
-              const to = node.examNumber + 1;
+            <path
+              className="roadmap-route-glow"
+              d={routePaths.join(" ")}
+              fill="none"
+              stroke="#4eb4eb"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="36"
+            />
+            {displayedNodes.slice(0, -1).map((node, index) => {
+              const to = displayedNodes[index + 1]!.examNumber;
               return (
                 <ConnectionPath
-                  color="#b9d9ef"
+                  color="#63b7e8"
                   d={routePaths[index] ?? ""}
                   markerEnd="url(#roadmap-arrow-main)"
                   key={`main-${node.examNumber}`}
@@ -1187,16 +1549,16 @@ export function TeacherRoadmapBoard({
                 markerEnd="url(#roadmap-arrow-custom)"
                 onActiveChange={(active) =>
                   setHighlightedLink(
-                    active ? { kind: "custom", from: 19 } : null,
+                    active ? { kind: "custom", from: lastExamNumber } : null,
                   )
                 }
                 width={10}
               />
             )}
             <FlowingDotsPath
-              color="#376f9b"
+              color="#ffffff"
               d={routePaths.join(" ")}
-              width={8}
+              width={7}
             />
             <FlowingDotsPath
               color="#b85c05"
@@ -1206,8 +1568,28 @@ export function TeacherRoadmapBoard({
             <FlowingDotsPath color="#bd6908" d={customPath} width={7} />
           </svg>
 
-          {roadmap.nodes.map((node) => {
+          {[0, 1, 2].map((trainIndex) => (
+            <div
+              aria-hidden
+              className="roadmap-train pointer-events-none absolute left-0 top-0"
+              key={trainIndex}
+              style={
+                {
+                  animationDelay: `${trainIndex * -10}s`,
+                  offsetPath: `path("${trainRoutePath}")`,
+                } as CSSProperties
+              }
+            >
+              <span className="roadmap-train-light absolute -inset-4 rounded-full bg-[#4cc5ff]/35 blur-md" />
+              <span className="relative grid size-14 place-items-center rounded-2xl border-4 border-white bg-[#0877b7] text-white shadow-[0_10px_26px_rgba(8,119,183,0.4)]">
+                <TrainFront className="size-7" strokeWidth={2.5} />
+              </span>
+            </div>
+          ))}
+
+          {displayedNodes.map((node, index) => {
             const linkedReview = reviewByExamNumber.get(node.examNumber);
+            const layout = getNodeLayout(nodeLayouts, node.examNumber);
 
             return (
               <div
@@ -1221,6 +1603,7 @@ export function TeacherRoadmapBoard({
                     (highlightedLink?.kind === "route" &&
                       highlightedLink.to === node.examNumber)
                   }
+                  editMode={editMode}
                   node={node}
                   onOpen={() => {
                     onNodeOpen(node.examNumber);
@@ -1240,6 +1623,8 @@ export function TeacherRoadmapBoard({
                           )
                       : undefined
                   }
+                  position={layout}
+                  routeStep={index + 1}
                   selected={selectedExamNumber === node.examNumber}
                 />
               </div>

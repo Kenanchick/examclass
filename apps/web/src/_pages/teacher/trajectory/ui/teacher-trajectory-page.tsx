@@ -4,10 +4,10 @@ import { ArrowLeft, Map, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
-  useCreateTeacherRouteModuleMutation,
   useDeleteTeacherNodeReviewMutation,
   useTeacherModuleActionMutation,
   useTeacherNodeReviewMutation,
+  useTeacherRoadmapOrderMutation,
   useTeacherRoadmapQuery,
   useTeacherSkillActionMutation,
   useTeacherSkillDetailQuery,
@@ -19,10 +19,7 @@ import type {
 } from "@/entities/learning-route/model/teacher-route";
 import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
 import { useTeacherRouteWorkspaceStore } from "@/features/learning-route/model/use-teacher-route-workspace-store";
-import {
-  TeacherCustomModuleDetail,
-  TeacherCustomModuleDialog,
-} from "@/features/learning-route/ui/teacher-custom-roadmap";
+import { TeacherCustomModuleDetail } from "@/features/learning-route/ui/teacher-custom-roadmap";
 import { TeacherRoadmapBoard } from "@/features/learning-route/ui/teacher-roadmap-board";
 import { TeacherRouteActionDialog } from "@/features/learning-route/ui/teacher-route-action-dialog";
 import {
@@ -58,6 +55,7 @@ export function TeacherTrajectoryPage({
   const { hasAccessToken, openLogin } = useRequireAuthModal();
   const enabled = hasAccessToken === true;
   const roadmapQuery = useTeacherRoadmapQuery(studentId, enabled);
+  const roadmapOrderMutation = useTeacherRoadmapOrderMutation(studentId);
   const activateStudent = useTeacherRouteWorkspaceStore(
     (state) => state.activateStudent,
   );
@@ -87,12 +85,10 @@ export function TeacherTrajectoryPage({
   const deleteNodeReviewMutation =
     useDeleteTeacherNodeReviewMutation(studentId);
   const moduleMutation = useTeacherModuleActionMutation(studentId);
-  const customModuleMutation = useCreateTeacherRouteModuleMutation(studentId);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null,
   );
   const [actionError, setActionError] = useState<string | null>(null);
-  const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
   const [selectedCustomModuleKey, setSelectedCustomModuleKey] = useState<
     string | null
   >(null);
@@ -244,32 +240,11 @@ export function TeacherTrajectoryPage({
 
   return (
     <StudentLayout>
-      <main className="min-w-0 p-4 sm:p-6 lg:p-7">
-        <div className="mx-auto max-w-[1760px] space-y-5">
-          <Link
-            className="inline-flex items-center gap-2 text-sm font-bold text-muted transition hover:text-brand"
-            href="/students"
-          >
-            <ArrowLeft className="size-4" /> К ученикам
-          </Link>
-
-          <header className="flex flex-wrap items-end gap-x-4 gap-y-1 px-1">
-            <span className="mb-1 grid size-11 place-items-center rounded-2xl bg-[#eaf4ff] text-brand">
-              <Map className="size-5" />
-            </span>
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.14em] text-brand">
-                Персональная карта
-              </p>
-              <h1 className="mt-1 text-3xl font-bold tracking-[-0.05em] text-ink sm:text-4xl">
-                {roadmap.student.name}
-              </h1>
-            </div>
-          </header>
-
+      <main className="fixed inset-0 z-[55] min-w-0 bg-[#f8fbfd]">
+        <div className="h-full">
           <div
             aria-hidden={Boolean(selectedNode)}
-            className={`origin-center transition-[opacity,transform,filter] duration-500 ${
+            className={`h-full origin-center transition-[opacity,transform,filter] duration-500 ${
               selectedNode
                 ? "pointer-events-none -translate-x-10 scale-[0.97] opacity-0 blur-[2px]"
                 : ""
@@ -277,7 +252,29 @@ export function TeacherTrajectoryPage({
           >
             <TeacherRoadmapBoard
               editMode={editMode}
-              onAddCustom={() => setIsCustomDialogOpen(true)}
+              header={
+                <header className="flex min-w-0 items-center gap-3">
+                  <Link
+                    aria-label="К ученикам"
+                    className="grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-white text-muted transition hover:border-[#a8c7df] hover:text-brand"
+                    href="/students"
+                  >
+                    <ArrowLeft className="size-4" />
+                  </Link>
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#eaf4ff] text-brand">
+                    <Map className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-brand">
+                      Персональная карта
+                    </p>
+                    <h1 className="truncate text-lg font-bold tracking-[-0.04em] text-ink sm:text-xl">
+                      {roadmap.student.name}
+                    </h1>
+                  </div>
+                </header>
+              }
+              isOrderSaving={roadmapOrderMutation.isPending}
               onCustomOpen={(moduleKey) => {
                 selectExamNumber(null);
                 selectSkill(null);
@@ -287,6 +284,25 @@ export function TeacherTrajectoryPage({
               onNodeOpen={(examNumber) => {
                 setSelectedCustomModuleKey(null);
                 selectExamNumber(examNumber);
+              }}
+              onOrderSave={async (examNumbers) => {
+                try {
+                  await roadmapOrderMutation.mutateAsync({
+                    studentId,
+                    data: {
+                      examNumbers,
+                      reason:
+                        "Преподаватель изменил порядок прохождения экзаменационных заданий",
+                    },
+                  });
+                } catch (error) {
+                  throw new Error(
+                    getApiErrorMessage(
+                      error,
+                      "Не удалось сохранить порядок заданий.",
+                    ),
+                  );
+                }
               }}
               onReviewRemove={(examNumber) => {
                 setActionError(null);
@@ -372,11 +388,11 @@ export function TeacherTrajectoryPage({
         <>
           <button
             aria-label="Вернуться к обзору задания"
-            className="fixed inset-0 z-[55] cursor-default bg-[#102840]/10"
+            className="fixed inset-0 z-[70] cursor-default bg-[#102840]/10"
             onClick={() => selectSkill(null)}
             type="button"
           />
-          <aside className="fixed inset-x-3 bottom-3 z-[60] max-h-[84vh] overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-[0_28px_80px_rgba(12,37,61,0.28)] sm:inset-y-4 sm:left-auto sm:right-4 sm:max-h-none sm:w-[520px]">
+          <aside className="fixed inset-x-3 bottom-3 z-[75] max-h-[84vh] overflow-hidden rounded-[1.75rem] border border-line bg-white shadow-[0_28px_80px_rgba(12,37,61,0.28)] sm:inset-y-4 sm:left-auto sm:right-4 sm:max-h-none sm:w-[520px]">
             <button
               aria-label="Вернуться к заданию"
               className="absolute right-4 top-4 z-10 grid size-10 cursor-pointer place-items-center rounded-xl bg-white text-muted shadow-sm transition hover:bg-panel hover:text-ink"
@@ -410,22 +426,6 @@ export function TeacherTrajectoryPage({
         }}
         onConfirm={confirmAction}
         title={pendingAction?.title ?? "Изменить маршрут"}
-      />
-
-      <TeacherCustomModuleDialog
-        isOpen={isCustomDialogOpen}
-        isPending={customModuleMutation.isPending}
-        onClose={() => {
-          if (!customModuleMutation.isPending) setIsCustomDialogOpen(false);
-        }}
-        onCreate={(data) =>
-          customModuleMutation.mutate(
-            { studentId, data },
-            {
-              onSuccess: () => setIsCustomDialogOpen(false),
-            },
-          )
-        }
       />
     </StudentLayout>
   );

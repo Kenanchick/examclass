@@ -1,10 +1,10 @@
 import { apiClient } from "@/shared/api/http-client";
 import type {
-  CreateTeacherRouteModuleInput,
   TeacherKnowledgeProfile,
   TeacherLearningRoute,
   TeacherModuleActionInput,
   TeacherRoadmap,
+  TeacherRoadmapOrderInput,
   TeacherRouteHistoryItem,
   TeacherSkillActionInput,
   TeacherSkillDetail,
@@ -24,6 +24,20 @@ export async function getTeacherLearningRoute(studentId: string) {
 export async function getTeacherRoadmap(studentId: string) {
   const response = await apiClient.get<TeacherRoadmap>(
     `${routePath(studentId)}/map`,
+  );
+  return response.data;
+}
+
+export async function updateTeacherRoadmapOrder({
+  studentId,
+  data,
+}: {
+  studentId: string;
+  data: TeacherRoadmapOrderInput;
+}) {
+  const response = await apiClient.patch<{ examOrder: number[] }>(
+    `${routePath(studentId)}/map/order`,
+    data,
   );
   return response.data;
 }
@@ -121,20 +135,6 @@ export async function applyTeacherModuleAction({
 }) {
   const response = await apiClient.post(
     `${routePath(studentId)}/modules/${encodeURIComponent(moduleKey)}/actions`,
-    data,
-  );
-  return response.data;
-}
-
-export async function createTeacherRouteModule({
-  studentId,
-  data,
-}: {
-  studentId: string;
-  data: CreateTeacherRouteModuleInput;
-}) {
-  const response = await apiClient.post(
-    `${routePath(studentId)}/modules`,
     data,
   );
   return response.data;

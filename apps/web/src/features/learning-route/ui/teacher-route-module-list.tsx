@@ -9,14 +9,9 @@ import {
   LockOpen,
   Pin,
   PinOff,
-  Plus,
   Sparkles,
 } from "lucide-react";
-import { useState, type FormEvent } from "react";
-import type {
-  CreateTeacherRouteModuleInput,
-  TeacherRouteModule,
-} from "@/entities/learning-route/model/teacher-route";
+import type { TeacherRouteModule } from "@/entities/learning-route/model/teacher-route";
 
 const typeLabels: Record<TeacherRouteModule["type"], string> = {
   REQUIRED: "Обязательный",
@@ -45,8 +40,6 @@ type TeacherRouteModuleListProps = {
   modules: TeacherRouteModule[];
   selectedSkillCode: string | null;
   showHidden: boolean;
-  isCreating: boolean;
-  onAddCustom: (data: CreateTeacherRouteModuleInput) => void;
   onModuleAction: (module: TeacherRouteModule, action: ModuleAction) => void;
   onSelectSkill: (skillCode: string) => void;
   onToggleHidden: () => void;
@@ -65,41 +58,13 @@ export function TeacherRouteModuleList({
   modules,
   selectedSkillCode,
   showHidden,
-  isCreating,
-  onAddCustom,
   onModuleAction,
   onSelectSkill,
   onToggleHidden,
 }: TeacherRouteModuleListProps) {
-  const [isAdding, setIsAdding] = useState(false);
-  const [title, setTitle] = useState("");
-  const [minutes, setMinutes] = useState("90");
-  const [reason, setReason] = useState("");
   const visibleModules = showHidden
     ? modules
     : modules.filter((module) => !module.isHidden);
-
-  const submitCustom = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const estimatedMinutes = Number(minutes);
-    if (
-      title.trim().length < 3 ||
-      reason.trim().length < 3 ||
-      !Number.isFinite(estimatedMinutes)
-    ) {
-      return;
-    }
-
-    onAddCustom({
-      title: title.trim(),
-      estimatedMinutes,
-      reason: reason.trim(),
-    });
-    setTitle("");
-    setReason("");
-    setMinutes("90");
-    setIsAdding(false);
-  };
 
   return (
     <section className="overflow-hidden rounded-[2rem] border border-line bg-white shadow-[0_16px_40px_rgba(15,43,76,0.05)]">
@@ -127,51 +92,8 @@ export function TeacherRouteModuleList({
               {showHidden ? "Скрыть черновики" : "Показать скрытые"}
             </button>
           )}
-          <button
-            className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl bg-brand px-4 text-sm font-bold text-white transition hover:-translate-y-0.5"
-            onClick={() => setIsAdding((value) => !value)}
-            type="button"
-          >
-            <Plus className="size-4" />
-            Своя тема
-          </button>
         </div>
       </div>
-
-      {isAdding && (
-        <form
-          className="grid gap-3 border-b border-line bg-panel/45 p-5 sm:grid-cols-[minmax(0,1fr)_120px] sm:p-7"
-          onSubmit={submitCustom}
-        >
-          <input
-            className="h-12 rounded-xl border border-line bg-white px-4 text-sm font-medium outline-none focus:border-brand focus:ring-4 focus:ring-brand/10"
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="Название собственной темы"
-            value={title}
-          />
-          <input
-            className="h-12 rounded-xl border border-line bg-white px-4 text-sm font-medium outline-none focus:border-brand focus:ring-4 focus:ring-brand/10"
-            min={15}
-            onChange={(event) => setMinutes(event.target.value)}
-            step={15}
-            type="number"
-            value={minutes}
-          />
-          <textarea
-            className="min-h-20 resize-none rounded-xl border border-line bg-white px-4 py-3 text-sm outline-none focus:border-brand focus:ring-4 focus:ring-brand/10 sm:col-span-2"
-            onChange={(event) => setReason(event.target.value)}
-            placeholder="Почему тема добавляется в маршрут"
-            value={reason}
-          />
-          <button
-            className="min-h-11 cursor-pointer rounded-xl bg-brand px-4 text-sm font-bold text-white disabled:opacity-50 sm:col-start-2"
-            disabled={isCreating}
-            type="submit"
-          >
-            {isCreating ? "Добавляем…" : "Добавить"}
-          </button>
-        </form>
-      )}
 
       <div>
         {visibleModules.map((module, index) => (

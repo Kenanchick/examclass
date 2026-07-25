@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { CurrentUserId } from '../../common/decorators/current-user-id.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { CreateTeacherRouteModuleDto } from './dto/create-teacher-route-module.dto';
 import { TeacherModuleActionDto } from './dto/teacher-module-action.dto';
+import { TeacherRoadmapOrderDto } from './dto/teacher-roadmap-order.dto';
 import { TeacherSkillActionDto } from './dto/teacher-skill-action.dto';
 import { TeacherSubtopicStatusDto } from './dto/teacher-subtopic-status.dto';
 import { UpdateLearningLoadDto } from './dto/update-learning-load.dto';
@@ -36,6 +36,15 @@ export class TeacherLearningRouteController {
     @Param('studentId') studentId: string,
   ) {
     return this.roadmap.getMap(userId, studentId);
+  }
+
+  @Patch('students/:studentId/map/order')
+  updateStudentMapOrder(
+    @CurrentUserId() userId: string,
+    @Param('studentId') studentId: string,
+    @Body() dto: TeacherRoadmapOrderDto,
+  ) {
+    return this.roadmap.updateExamOrder(userId, studentId, dto);
   }
 
   @Get('students/:studentId')
@@ -126,15 +135,6 @@ export class TeacherLearningRouteController {
     @Body() dto: TeacherModuleActionDto,
   ) {
     return this.modules.applyAction(userId, studentId, moduleKey, dto);
-  }
-
-  @Post('students/:studentId/modules')
-  addCustomModule(
-    @CurrentUserId() userId: string,
-    @Param('studentId') studentId: string,
-    @Body() dto: CreateTeacherRouteModuleDto,
-  ) {
-    return this.modules.addCustomModule(userId, studentId, dto);
   }
 
   @Patch('students/:studentId/goal')

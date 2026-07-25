@@ -383,7 +383,7 @@ export function TeacherTopicMetroMap({
   };
 
   return (
-    <section className="topic-metro-overlay fixed inset-0 z-40 flex min-h-0 flex-col overflow-hidden bg-[#f7fafe]">
+    <section className="topic-metro-overlay fixed inset-0 z-[60] flex min-h-0 flex-col overflow-hidden bg-[#f7fafe]">
       <header className="relative z-20 flex shrink-0 flex-wrap items-center gap-4 border-b border-[#dce7f0] bg-white/94 px-4 py-3 shadow-sm backdrop-blur-xl sm:px-6">
         <button
           className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-2xl border border-line bg-white px-4 text-sm font-bold text-ink transition hover:-translate-x-0.5 hover:border-[#9fc2df] hover:text-brand"
@@ -773,21 +773,23 @@ export function TeacherTopicMetroMap({
           </button>
           <button
             aria-label="Показать всю метро-карту"
-            className="roadmap-toolbar-button"
+            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-xs font-bold text-muted transition hover:border-[#a8c7df] hover:text-brand"
             onClick={() => fitMap(true)}
             title="Вся карта"
             type="button"
           >
             <Sparkles className="size-4" />
+            <span className="hidden sm:inline">Вся карта</span>
           </button>
           <button
             aria-label="Вернуться к центральной станции"
-            className="roadmap-toolbar-button"
+            className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border border-line bg-white px-3 text-xs font-bold text-muted transition hover:border-[#a8c7df] hover:text-brand"
             onClick={() => centerMap(true)}
             title="Центральная станция"
             type="button"
           >
             <LocateFixed className="size-4" />
+            <span className="hidden sm:inline">В центр</span>
           </button>
         </div>
       </div>

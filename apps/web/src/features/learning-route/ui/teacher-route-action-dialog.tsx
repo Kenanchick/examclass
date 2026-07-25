@@ -37,7 +37,7 @@ export function TeacherRouteActionDialog({
   return (
     <div
       aria-modal="true"
-      className="fixed inset-0 z-50 grid place-items-center bg-[#0b2239]/35 p-4 backdrop-blur-[3px]"
+      className="fixed inset-0 z-[80] grid place-items-center bg-[#0b2239]/35 p-4 backdrop-blur-[3px]"
       role="dialog"
     >
       <button

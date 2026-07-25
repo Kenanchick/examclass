@@ -1,11 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   KnowledgeNodeKind,
   LearningGoalStatus,
   LearningRouteModuleType,
   LearningRouteStatus,
+  TeacherRouteActionType,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
+import { TeacherRoadmapOrderDto } from './dto/teacher-roadmap-order.dto';
 import {
   EXAM_ROADMAP_CONNECTIONS,
   EXAM_ROADMAP_TITLES,
@@ -14,9 +20,33 @@ import {
 } from './domain/exam-roadmap';
 import { getEffectiveSkillStatus } from './domain/teacher-skill-state';
 import { LearningRouteAccessService } from './learning-route-access.service';
+import { createTeacherRouteChange } from './teacher-route-change';
 
 const unique = <T>(items: T[]) => [...new Set(items)];
 const clamp01 = (value: number) => Math.max(0, Math.min(1, value));
+const EXAM_NUMBERS = Array.from({ length: 19 }, (_, index) => index + 1);
+const ROADMAP_ORDER_CHANGE_KEY = 'ROADMAP:EXAM_ORDER';
+
+const readExamOrder = (value: unknown) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const examNumbers = (value as { examNumbers?: unknown }).examNumbers;
+  if (
+    !Array.isArray(examNumbers) ||
+    examNumbers.length !== EXAM_NUMBERS.length ||
+    !examNumbers.every(
+      (examNumber) =>
+        typeof examNumber === 'number' &&
+        Number.isInteger(examNumber) &&
+        examNumber >= 1 &&
+        examNumber <= 19,
+    ) ||
+    new Set(examNumbers).size !== EXAM_NUMBERS.length
+  ) {
+    return null;
+  }
+
+  return examNumbers as number[];
+};
 
 const jsonStrings = (value: unknown) =>
   Array.isArray(value)
@@ -105,7 +135,7 @@ export class TeacherRoadmapService {
       throw new NotFoundException('Учебная цель ученика не найдена');
     }
 
-    const [nodes, route, evidence] = await Promise.all([
+    const [nodes, route, evidence, latestOrderChange] = await Promise.all([
       this.prisma.knowledgeNode.findMany({
         where: {
           knowledgeMapId: goal.knowledgeMapId,
@@ -266,6 +296,11 @@ export class TeacherRoadmapService {
           },
         },
       }),
+      this.prisma.teacherRouteChange.findFirst({
+        where: { studentId, moduleKey: ROADMAP_ORDER_CHANGE_KEY },
+        orderBy: { createdAt: 'desc' },
+        select: { after: true },
+      }),
     ]);
     if (!route) {
       throw new NotFoundException('Маршрут ученика ещё не сформирован');
@@ -298,6 +333,10 @@ export class TeacherRoadmapService {
       evidenceBySkillId.set(item.skillId, list);
     }
 
+    const examOrder = readExamOrder(latestOrderChange?.after) ?? EXAM_NUMBERS;
+    const orderIndex = new Map(
+      examOrder.map((examNumber, index) => [examNumber, index]),
+    );
     const roadmapNodes = Array.from(
       { length: 19 },
       (_, index) => index + 1,
@@ -598,6 +637,12 @@ export class TeacherRoadmapService {
       })
       .filter((node): node is NonNullable<typeof node> => node !== null);
 
+    roadmapNodes.sort(
+      (left, right) =>
+        (orderIndex.get(left.examNumber) ?? left.examNumber) -
+        (orderIndex.get(right.examNumber) ?? right.examNumber),
+    );
+
     return {
       student: goal.student,
       goal: {
@@ -610,6 +655,7 @@ export class TeacherRoadmapService {
         publicId: route.publicId,
         generatedAt: route.generatedAt,
         currentExamNumber,
+        examOrder,
       },
       nodes: roadmapNodes,
       reviewNodes,
@@ -629,11 +675,66 @@ export class TeacherRoadmapService {
           isHidden: module.isHidden,
           autoUpdateEnabled: module.autoUpdateEnabled,
         })),
-      connections: EXAM_ROADMAP_CONNECTIONS.map(([from, to]) => ({
+      connections: examOrder.slice(0, -1).map((from, index) => ({
         from,
-        to,
-        kind: 'KNOWLEDGE_DEPENDENCY' as const,
+        to: examOrder[index + 1],
+        kind: 'TEACHER_SEQUENCE' as const,
       })),
     };
+  }
+
+  async updateExamOrder(
+    teacherId: string,
+    studentId: string,
+    dto: TeacherRoadmapOrderDto,
+  ) {
+    await this.access.assertTeacherStudent(teacherId, studentId);
+    const examOrder = readExamOrder({ examNumbers: dto.examNumbers });
+    if (!examOrder) {
+      throw new BadRequestException(
+        'Порядок должен содержать все задания от 1 до 19 без повторений',
+      );
+    }
+
+    const [route, latestOrderChange] = await Promise.all([
+      this.prisma.learningRoute.findFirst({
+        where: { studentId, status: LearningRouteStatus.ACTIVE },
+        orderBy: { generatedAt: 'desc' },
+        select: { id: true },
+      }),
+      this.prisma.teacherRouteChange.findFirst({
+        where: { studentId, moduleKey: ROADMAP_ORDER_CHANGE_KEY },
+        orderBy: { createdAt: 'desc' },
+        select: { after: true },
+      }),
+    ]);
+    if (!route) {
+      throw new NotFoundException('Маршрут ученика ещё не сформирован');
+    }
+
+    const previousOrder =
+      readExamOrder(latestOrderChange?.after) ?? EXAM_NUMBERS;
+    if (
+      previousOrder.every(
+        (examNumber, index) => examNumber === examOrder[index],
+      )
+    ) {
+      return { examOrder };
+    }
+
+    await this.prisma.teacherRouteChange.create({
+      data: createTeacherRouteChange({
+        studentId,
+        authorId: teacherId,
+        routeId: route.id,
+        moduleKey: ROADMAP_ORDER_CHANGE_KEY,
+        action: TeacherRouteActionType.MOVE_MODULE,
+        reason: dto.reason,
+        before: { examNumbers: previousOrder },
+        after: { examNumbers: examOrder },
+      }),
+    });
+
+    return { examOrder };
   }
 }
