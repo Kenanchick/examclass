@@ -10,6 +10,7 @@ import { GeometryFigure } from "./geometry-figure";
 import { UnitCircle } from "./unit-circle";
 import { CoordPlane } from "./coord-plane";
 import { NumberLine } from "./number-line";
+import { DataTable } from "./data-table";
 
 type MathTextProps = {
   content: string;
@@ -79,6 +80,18 @@ function NumLineBlock({ source }: { source: string }) {
   }
 }
 
+function TableBlock({ source }: { source: string }) {
+  try {
+    return <DataTable spec={JSON.parse(source)} />;
+  } catch {
+    return (
+      <pre className="not-prose my-4 overflow-x-auto rounded-xl border border-danger/30 bg-danger/5 p-3 text-xs text-danger">
+        Не удалось разобрать таблицу (проверьте JSON в блоке ```table).
+      </pre>
+    );
+  }
+}
+
 export function MathText({ content, className = "" }: MathTextProps) {
   return (
     <div className={`prose prose-slate max-w-none ${className}`}>
@@ -126,6 +139,16 @@ export function MathText({ content, className = "" }: MathTextProps) {
             if (cls.includes("language-numline")) {
               return (
                 <NumLineBlock
+                  source={rawText(
+                    (child as { props: { children?: ReactNode } }).props
+                      .children,
+                  )}
+                />
+              );
+            }
+            if (cls.includes("language-table")) {
+              return (
+                <TableBlock
                   source={rawText(
                     (child as { props: { children?: ReactNode } }).props
                       .children,
