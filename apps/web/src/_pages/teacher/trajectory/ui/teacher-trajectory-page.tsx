@@ -67,7 +67,6 @@ export function TeacherTrajectoryPage({
   const selectedSkillCode = useTeacherRouteWorkspaceStore(
     (state) => state.selectedSkillCode,
   );
-  const mapMode = useTeacherRouteWorkspaceStore((state) => state.mapMode);
   const editMode = useTeacherRouteWorkspaceStore((state) => state.editMode);
   const selectExamNumber = useTeacherRouteWorkspaceStore(
     (state) => state.selectExamNumber,
@@ -75,7 +74,6 @@ export function TeacherTrajectoryPage({
   const selectSkill = useTeacherRouteWorkspaceStore(
     (state) => state.selectSkill,
   );
-  const setMapMode = useTeacherRouteWorkspaceStore((state) => state.setMapMode);
   const toggleEditMode = useTeacherRouteWorkspaceStore(
     (state) => state.toggleEditMode,
   );
@@ -86,7 +84,8 @@ export function TeacherTrajectoryPage({
   const skillMutation = useTeacherSkillActionMutation(studentId);
   const subtopicMutation = useTeacherSubtopicStatusMutation(studentId);
   const nodeReviewMutation = useTeacherNodeReviewMutation(studentId);
-  const deleteNodeReviewMutation = useDeleteTeacherNodeReviewMutation(studentId);
+  const deleteNodeReviewMutation =
+    useDeleteTeacherNodeReviewMutation(studentId);
   const moduleMutation = useTeacherModuleActionMutation(studentId);
   const customModuleMutation = useCreateTeacherRouteModuleMutation(studentId);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
@@ -270,7 +269,6 @@ export function TeacherTrajectoryPage({
 
           <TeacherRoadmapBoard
             editMode={editMode}
-            mode={mapMode}
             onAddCustom={() => setIsCustomDialogOpen(true)}
             onCustomOpen={(moduleKey) => {
               selectExamNumber(null);
@@ -278,7 +276,6 @@ export function TeacherTrajectoryPage({
               setSelectedCustomModuleKey(moduleKey);
             }}
             onEditModeToggle={toggleEditMode}
-            onModeChange={setMapMode}
             onNodeOpen={(examNumber) => {
               setSelectedCustomModuleKey(null);
               selectExamNumber(examNumber);
@@ -394,15 +391,9 @@ export function TeacherTrajectoryPage({
         description="Изменение сохранится с вашим именем, причиной и точным временем."
         error={actionError}
         isOpen={Boolean(pendingAction)}
-        isPending={
-          skillMutation.isPending ||
-          moduleMutation.isPending
-        }
+        isPending={skillMutation.isPending || moduleMutation.isPending}
         onClose={() => {
-          if (
-            !skillMutation.isPending &&
-            !moduleMutation.isPending
-          ) {
+          if (!skillMutation.isPending && !moduleMutation.isPending) {
             setPendingAction(null);
             setActionError(null);
           }

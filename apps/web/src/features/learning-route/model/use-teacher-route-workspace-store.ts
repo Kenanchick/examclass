@@ -4,7 +4,6 @@ type TeacherRouteWorkspaceState = {
   activeStudentId: string | null;
   selectedExamNumber: number | null;
   selectedSkillCode: string | null;
-  mapMode: "PERSONAL" | "FULL";
   editMode: boolean;
   skillSearch: string;
   statusFilter: string;
@@ -12,7 +11,6 @@ type TeacherRouteWorkspaceState = {
   activateStudent: (studentId: string) => void;
   selectExamNumber: (examNumber: number | null) => void;
   selectSkill: (skillCode: string | null) => void;
-  setMapMode: (mode: "PERSONAL" | "FULL") => void;
   toggleEditMode: () => void;
   setSkillSearch: (value: string) => void;
   setStatusFilter: (value: string) => void;
@@ -24,7 +22,6 @@ export const useTeacherRouteWorkspaceStore = create<TeacherRouteWorkspaceState>(
     activeStudentId: null,
     selectedExamNumber: null,
     selectedSkillCode: null,
-    mapMode: "PERSONAL",
     editMode: false,
     skillSearch: "",
     statusFilter: "ALL",
@@ -37,7 +34,6 @@ export const useTeacherRouteWorkspaceStore = create<TeacherRouteWorkspaceState>(
               activeStudentId: studentId,
               selectedExamNumber: null,
               selectedSkillCode: null,
-              mapMode: "PERSONAL",
               editMode: false,
               skillSearch: "",
               statusFilter: "ALL",
@@ -46,7 +42,6 @@ export const useTeacherRouteWorkspaceStore = create<TeacherRouteWorkspaceState>(
       ),
     selectExamNumber: (selectedExamNumber) => set({ selectedExamNumber }),
     selectSkill: (selectedSkillCode) => set({ selectedSkillCode }),
-    setMapMode: (mapMode) => set({ mapMode }),
     toggleEditMode: () => set((state) => ({ editMode: !state.editMode })),
     setSkillSearch: (skillSearch) => set({ skillSearch }),
     setStatusFilter: (statusFilter) => set({ statusFilter }),
