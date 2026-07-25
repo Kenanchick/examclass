@@ -74,11 +74,11 @@ export function TeacherCustomModuleDialog({
         onSubmit={submit}
       >
         <div className="flex items-start gap-4">
-          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#f1edff] text-[#6651a3]">
+          <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#ffe8b5] text-[#aa6200]">
             <Plus className="size-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#6651a3]">
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#aa6200]">
               Дополнительная карточка
             </p>
             <h2 className="mt-1 text-2xl font-bold tracking-[-0.04em] text-ink">
@@ -167,11 +167,11 @@ export function TeacherCustomModuleDetail({
       />
       <aside className="roadmap-detail-panel fixed inset-x-3 bottom-3 z-50 max-h-[82vh] overflow-y-auto rounded-[1.75rem] border border-line bg-white p-6 shadow-[0_28px_80px_rgba(12,37,61,0.24)] sm:inset-y-4 sm:left-auto sm:right-4 sm:max-h-none sm:w-[500px]">
         <div className="flex items-start gap-4">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#f1edff] text-sm font-extrabold text-[#6651a3]">
+          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#ffe8b5] text-sm font-extrabold text-[#aa6200]">
             ДОП
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#6651a3]">
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-[#aa6200]">
               Тема преподавателя
             </p>
             <h2 className="mt-1 text-2xl font-bold tracking-[-0.04em] text-ink">
@@ -193,10 +193,10 @@ export function TeacherCustomModuleDetail({
         </p>
         <div className="mt-5 flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-2 rounded-xl bg-panel px-3 py-2 text-sm font-semibold text-muted">
-            <Clock3 className="size-4 text-[#6651a3]" />
+            <Clock3 className="size-4 text-[#aa6200]" />
             {module.estimatedMinutes} минут
           </span>
-          <span className="inline-flex items-center gap-2 rounded-xl bg-[#f1edff] px-3 py-2 text-sm font-semibold text-[#6651a3]">
+          <span className="inline-flex items-center gap-2 rounded-xl bg-[#fff1cf] px-3 py-2 text-sm font-semibold text-[#aa6200]">
             <Sparkles className="size-4" />
             Дополнительный маршрут
           </span>

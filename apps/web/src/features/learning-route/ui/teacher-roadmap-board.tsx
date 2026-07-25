@@ -11,7 +11,6 @@ import {
   Route,
   Sparkles,
 } from "lucide-react";
-import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -28,15 +27,15 @@ import type {
   TeacherRoadmapStatus,
 } from "@/entities/learning-route/model/teacher-route";
 
-const BOARD_WIDTH = 2180;
-const BOARD_HEIGHT = 1840;
-const CARD_WIDTH = 400;
-const CARD_HEIGHT = 250;
-const START_X = 140;
+const BOARD_WIDTH = 2600;
+const BOARD_HEIGHT = 1760;
+const CARD_WIDTH = 460;
+const CARD_HEIGHT = 230;
+const START_X = 155;
 const START_Y = 120;
-const COLUMN_GAP = 500;
-const ROW_GAP = 340;
-const CUSTOM_START_Y = 1870;
+const COLUMN_GAP = 620;
+const ROW_GAP = 325;
+const CUSTOM_START_Y = 1810;
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 1.45;
 
@@ -181,7 +180,6 @@ function RoadmapCard({
 }) {
   const presentation = statusPresentation[node.status];
   const position = nodePosition(node.examNumber);
-  const subtopics = node.subtopics.slice(0, 2);
   const isPerfect = node.mastery >= 0.995;
 
   return (
@@ -211,9 +209,9 @@ function RoadmapCard({
           className="roadmap-perfect-shine pointer-events-none absolute inset-0"
         />
       )}
-      <div className="flex items-start gap-4">
+      <div className="flex h-full items-center gap-6">
         <span
-          className="relative grid size-14 shrink-0 place-items-center rounded-2xl text-xl font-bold"
+          className="relative grid size-20 shrink-0 place-items-center rounded-[1.35rem] text-2xl font-extrabold"
           style={{
             background: presentation.background,
             color: presentation.color,
@@ -222,41 +220,13 @@ function RoadmapCard({
           {node.examNumber}
         </span>
         <div className="min-w-0 flex-1">
-          <span
-            className="inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em]"
-            style={{
-              background: presentation.background,
-              color: presentation.color,
-            }}
-          >
-            {presentation.label}
-          </span>
-          <h3 className="mt-2 line-clamp-2 text-[22px] font-bold leading-[1.16] tracking-[-0.04em] text-ink">
+          <h3 className="line-clamp-3 text-[29px] font-bold leading-[1.12] tracking-[-0.045em] text-ink">
             {node.title}
           </h3>
         </div>
-        <ProgressRing color={presentation.color} value={node.mastery} />
-      </div>
-
-      <div className="relative mt-5 flex flex-wrap gap-2">
-        {subtopics.map((subtopic) => (
-          <span
-            className="max-w-[250px] truncate rounded-lg bg-panel px-3 py-2 text-[13px] font-semibold text-muted"
-            key={subtopic.name}
-          >
-            {subtopic.name}
-          </span>
-        ))}
-        {node.subtopics.length > 2 && (
-          <span className="rounded-lg bg-panel px-3 py-2 text-[13px] font-semibold text-muted">
-            +{node.subtopics.length - 2}
-          </span>
-        )}
-      </div>
-
-      <div className="absolute inset-x-6 bottom-5 flex items-center justify-between border-t border-line pt-3 text-[13px] font-semibold text-muted">
-        <span>{node.examPart}</span>
-        <span>Уверенность {Math.round(node.confidence * 100)}%</span>
+        <div className="scale-110">
+          <ProgressRing color={presentation.color} value={node.mastery} />
+        </div>
       </div>
     </button>
   );
@@ -424,27 +394,6 @@ export function TeacherRoadmapBoard({
     setIsDragging(false);
   };
 
-  const visibleDependencies = useMemo(() => {
-    if (mode === "FULL") return roadmap.connections;
-    const emphasized = new Set(
-      roadmap.nodes
-        .filter((node) =>
-          [
-            "CURRENT_PRIORITY",
-            "BLOCKED",
-            "LEARNING",
-            "NEEDS_REVIEW",
-            "TEACHER_ASSIGNED",
-          ].includes(node.status),
-        )
-        .map((node) => node.examNumber),
-    );
-    return roadmap.connections.filter(
-      (connection) =>
-        emphasized.has(connection.from) || emphasized.has(connection.to),
-    );
-  }, [mode, roadmap.connections, roadmap.nodes]);
-
   return (
     <section className="overflow-hidden rounded-[2rem] border border-line bg-white shadow-[0_22px_55px_rgba(15,43,76,0.07)]">
       <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-3 sm:px-5">
@@ -510,6 +459,7 @@ export function TeacherRoadmapBoard({
             <Crosshair className="size-4" />
           </button>
           <button
+            aria-label="Редактировать"
             className={`ml-1 inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border px-3 text-sm font-bold transition ${
               editMode
                 ? "border-brand bg-brand text-white"
@@ -523,12 +473,13 @@ export function TeacherRoadmapBoard({
           </button>
           {editMode && (
             <button
-              className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[#6651a3] px-3 text-sm font-bold text-white transition hover:-translate-y-0.5"
+              aria-label="Добавить"
+              className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[#dd8a12] px-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#c97908]"
               onClick={onAddCustom}
               type="button"
             >
               <Plus className="size-4" />
-              <span className="hidden sm:inline">Добавить ДОП</span>
+              <span className="hidden sm:inline">Добавить</span>
             </button>
           )}
         </div>
@@ -577,14 +528,14 @@ export function TeacherRoadmapBoard({
                 <path d="M0,0 L8,4 L0,8 Z" fill="#7da8ca" />
               </marker>
               <marker
-                id="roadmap-arrow-secondary"
+                id="roadmap-arrow-custom"
                 markerHeight="7"
                 markerWidth="7"
                 orient="auto"
                 refX="6"
                 refY="3.5"
               >
-                <path d="M0,0 L7,3.5 L0,7 Z" fill="#bdc9d3" />
+                <path d="M0,0 L7,3.5 L0,7 Z" fill="#e19a2d" />
               </marker>
             </defs>
             {roadmap.nodes.slice(0, -1).map((node) => (
@@ -599,27 +550,13 @@ export function TeacherRoadmapBoard({
                 strokeWidth="7"
               />
             ))}
-            {visibleDependencies.map((connection) => (
-              <path
-                className="roadmap-secondary-line"
-                d={connectionPath(connection.from, connection.to)}
-                fill="none"
-                key={`${connection.from}-${connection.to}`}
-                markerEnd="url(#roadmap-arrow-secondary)"
-                stroke="#c9d3dc"
-                strokeDasharray="8 10"
-                strokeLinecap="round"
-                strokeWidth="3"
-              />
-            ))}
             {visibleCustomNodes.length > 0 && (
               <path
                 className="roadmap-secondary-line"
                 d={`M ${nodeCenter(19).x} ${nodeCenter(19).y} C ${nodeCenter(19).x} ${CUSTOM_START_Y - 80}, ${customNodePosition(0).x + CARD_WIDTH / 2} ${CUSTOM_START_Y - 80}, ${customNodePosition(0).x + CARD_WIDTH / 2} ${CUSTOM_START_Y}`}
                 fill="none"
-                markerEnd="url(#roadmap-arrow-secondary)"
-                stroke="#a99bd0"
-                strokeDasharray="9 10"
+                markerEnd="url(#roadmap-arrow-custom)"
+                stroke="#e19a2d"
                 strokeLinecap="round"
                 strokeWidth="4"
               />
@@ -643,31 +580,15 @@ export function TeacherRoadmapBoard({
             </div>
           ))}
 
-          <div
-            className="roadmap-mascot pointer-events-none absolute z-20"
-            style={{
-              left: nodePosition(roadmap.route.currentExamNumber).x - 74,
-              top: nodePosition(roadmap.route.currentExamNumber).y + 118,
-            }}
-          >
-            <Image
-              alt=""
-              className="h-auto w-[92px] object-contain drop-shadow-[0_12px_12px_rgba(27,71,109,0.14)]"
-              height={112}
-              src="/fox.png"
-              width={92}
-            />
-          </div>
-
           {visibleCustomNodes.length > 0 && (
             <div
               className="pointer-events-none absolute flex items-center gap-3"
               style={{ left: START_X, top: CUSTOM_START_Y - 64 }}
             >
-              <span className="grid size-9 place-items-center rounded-xl bg-[#f1edff] font-extrabold text-[#6651a3]">
+              <span className="grid size-9 place-items-center rounded-xl bg-[#fff2cf] font-extrabold text-[#ad6500]">
                 +
               </span>
-              <span className="text-sm font-bold uppercase tracking-[0.12em] text-[#6651a3]">
+              <span className="text-sm font-bold uppercase tracking-[0.12em] text-[#ad6500]">
                 Дополнительные темы преподавателя
               </span>
             </div>
@@ -676,7 +597,7 @@ export function TeacherRoadmapBoard({
             const position = customNodePosition(index);
             return (
               <button
-                className="roadmap-node pointer-events-auto absolute cursor-pointer overflow-hidden rounded-[1.75rem] border border-[#cfc5ec] bg-white p-6 text-left shadow-[0_16px_40px_rgba(91,71,143,0.12)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_50px_rgba(91,71,143,0.18)]"
+                className="roadmap-node pointer-events-auto absolute cursor-pointer overflow-hidden rounded-[1.75rem] border border-[#f0bd5f] bg-[#fffaf0] p-6 text-left shadow-[0_16px_40px_rgba(184,105,0,0.12)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_50px_rgba(184,105,0,0.2)]"
                 key={module.moduleKey}
                 onClick={() => onCustomOpen(module.moduleKey)}
                 onPointerDown={(event) => event.stopPropagation()}
@@ -689,11 +610,11 @@ export function TeacherRoadmapBoard({
                 type="button"
               >
                 <div className="flex items-start gap-4">
-                  <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#f1edff] text-sm font-extrabold text-[#6651a3]">
+                  <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#ffe7b0] text-sm font-extrabold text-[#a85f00]">
                     ДОП
                   </span>
                   <div className="min-w-0">
-                    <span className="rounded-full bg-[#f1edff] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#6651a3]">
+                    <span className="rounded-full bg-[#ffe7b0] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#a85f00]">
                       Тема преподавателя
                     </span>
                     <h3 className="mt-3 line-clamp-2 text-[22px] font-bold leading-[1.16] tracking-[-0.04em] text-ink">
