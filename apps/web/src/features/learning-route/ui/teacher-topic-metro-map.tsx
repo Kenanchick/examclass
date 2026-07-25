@@ -25,22 +25,22 @@ import {
 } from "react";
 import type { TeacherRoadmapNode } from "@/entities/learning-route/model/teacher-route";
 
-const METRO_WIDTH = 18000;
-const METRO_HEIGHT = 18000;
+const METRO_WIDTH = 7600;
+const METRO_HEIGHT = 7600;
 const METRO_CENTER = { x: METRO_WIDTH / 2, y: METRO_HEIGHT / 2 };
 const CORE_WIDTH = 520;
 const CORE_HEIGHT = 270;
-const SUBTOPIC_WIDTH = 440;
-const SUBTOPIC_HEIGHT = 210;
-const SKILL_WIDTH = 400;
-const SKILL_HEIGHT = 148;
-const SUBTOPIC_RADIUS_X = 3000;
-const SUBTOPIC_RADIUS_Y = 3000;
-const FIRST_SKILL_DISTANCE = 620;
-const SKILL_DISTANCE_STEP = 235;
-const SKILL_LABEL_OFFSET = 230;
-const INITIAL_SCALE = 0.16;
-const MIN_SCALE = 0.08;
+const SUBTOPIC_WIDTH = 420;
+const SUBTOPIC_HEIGHT = 200;
+const SKILL_WIDTH = 380;
+const SKILL_HEIGHT = 136;
+const SUBTOPIC_RADIUS_X = 1350;
+const SUBTOPIC_RADIUS_Y = 1350;
+const FIRST_SKILL_DISTANCE = 420;
+const SKILL_DISTANCE_STEP = 210;
+const SKILL_LABEL_OFFSET = 210;
+const INITIAL_SCALE = 0.2;
+const MIN_SCALE = 0.12;
 const MAX_SCALE = 1.25;
 
 const branchPalette = [
@@ -136,7 +136,7 @@ type TeacherTopicMetroMapProps = {
     code: string;
     name: string;
     status: "MASTERED" | "UNSTUDIED";
-  }) => void;
+  }) => Promise<void>;
 };
 
 function TeacherTopicMetroMapComponent({
@@ -165,9 +165,66 @@ function TeacherTopicMetroMapComponent({
     startY: number;
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [updatingSubtopicCode, setUpdatingSubtopicCode] = useState<
+    string | null
+  >(null);
+  const [optimisticStatuses, setOptimisticStatuses] = useState<
+    Record<string, "MASTERED" | "UNSTUDIED">
+  >({});
+  const displayedSubtopics = useMemo(
+    () =>
+      node.subtopics.map((subtopic) => {
+        const status = optimisticStatuses[subtopic.code];
+        if (!status) return subtopic;
+        const isMastered = status === "MASTERED";
+
+        return {
+          ...subtopic,
+          mastery: isMastered ? 1 : 0,
+          masteredSkills: isMastered ? subtopic.skills.length : 0,
+          isMastered,
+          skills: subtopic.skills.map((skill) => ({
+            ...skill,
+            mastery: isMastered ? 1 : 0,
+            status,
+          })),
+        };
+      }),
+    [node.subtopics, optimisticStatuses],
+  );
   const branches = useMemo(
-    () => buildBranchLayouts(node.subtopics),
-    [node.subtopics],
+    () => buildBranchLayouts(displayedSubtopics),
+    [displayedSubtopics],
+  );
+
+  const changeSubtopicStatus = useCallback(
+    async (action: {
+      code: string;
+      name: string;
+      status: "MASTERED" | "UNSTUDIED";
+    }) => {
+      setOptimisticStatuses((current) => ({
+        ...current,
+        [action.code]: action.status,
+      }));
+      setUpdatingSubtopicCode(action.code);
+
+      try {
+        await onSubtopicStatusChange(action);
+      } catch {
+        // Родитель показывает ошибку, а локальная подсветка откатывается ниже.
+      } finally {
+        setUpdatingSubtopicCode((current) =>
+          current === action.code ? null : current,
+        );
+        setOptimisticStatuses((current) => {
+          const next = { ...current };
+          delete next[action.code];
+          return next;
+        });
+      }
+    },
+    [onSubtopicStatusChange],
   );
 
   const commitViewport = useCallback((next: MetroViewport, animate = false) => {
@@ -611,14 +668,15 @@ function TeacherTopicMetroMapComponent({
                     </p>
                     <p className="mt-1 text-base font-semibold text-muted">
                       {branch.subtopic.masteredSkills}/
-                      {branch.subtopic.skills.length} навыков
+                      {branch.subtopic.skills.length} блоков
                     </p>
                   </div>
                 </div>
                 <button
-                  className="mt-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold text-white transition hover:-translate-y-0.5"
+                  className="mt-auto inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold text-white transition hover:-translate-y-0.5 disabled:cursor-wait disabled:opacity-70"
+                  disabled={updatingSubtopicCode === branch.subtopic.code}
                   onClick={() =>
-                    onSubtopicStatusChange({
+                    void changeSubtopicStatus({
                       code: branch.subtopic.code,
                       name: branch.subtopic.name,
                       status: branch.subtopic.isMastered
@@ -638,9 +696,11 @@ function TeacherTopicMetroMapComponent({
                   ) : (
                     <CheckCircle2 className="size-4" />
                   )}
-                  {branch.subtopic.isMastered
-                    ? "Вернуть в не пройдено"
-                    : "Отметить пройденной"}
+                  {updatingSubtopicCode === branch.subtopic.code
+                    ? "Сохраняем…"
+                    : branch.subtopic.isMastered
+                      ? "Вернуть ветку в не пройдено"
+                      : "Отметить всю ветку"}
                 </button>
               </article>
 

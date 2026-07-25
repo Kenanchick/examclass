@@ -125,10 +125,77 @@ export function useTeacherSkillActionMutation(studentId: string) {
 }
 
 export function useTeacherSubtopicStatusMutation(studentId: string) {
-  const invalidate = useInvalidateTeacherRoute(studentId);
+  const queryClient = useQueryClient();
+  const mapQueryKey = [...teacherRouteQueryKey, studentId, "map"] as const;
+
   return useMutation({
     mutationFn: applyTeacherSubtopicStatus,
-    onSuccess: invalidate,
+    onMutate: async ({ subtopicCode, data }) => {
+      await queryClient.cancelQueries({ queryKey: mapQueryKey });
+      const previous = queryClient.getQueryData<TeacherRoadmap>(mapQueryKey);
+      const isMastered = data.status === "MASTERED";
+
+      queryClient.setQueryData<TeacherRoadmap>(mapQueryKey, (current) => {
+        if (!current) return current;
+
+        return {
+          ...current,
+          nodes: current.nodes.map((node) => {
+            if (
+              !node.subtopics.some((subtopic) => subtopic.code === subtopicCode)
+            ) {
+              return node;
+            }
+
+            const subtopics = node.subtopics.map((subtopic) =>
+              subtopic.code === subtopicCode
+                ? {
+                    ...subtopic,
+                    mastery: isMastered ? 1 : 0,
+                    masteredSkills: isMastered ? subtopic.skills.length : 0,
+                    isMastered,
+                    skills: subtopic.skills.map((skill) => ({
+                      ...skill,
+                      mastery: isMastered ? 1 : 0,
+                      status: data.status,
+                    })),
+                  }
+                : subtopic,
+            );
+            const skills = subtopics.flatMap((subtopic) => subtopic.skills);
+            const mastery =
+              skills.reduce((total, skill) => total + skill.mastery, 0) /
+              Math.max(1, skills.length);
+            const isPassed = skills.every((skill) =>
+              ["MASTERED", "TEACHER_CONFIRMED"].includes(skill.status),
+            );
+
+            return {
+              ...node,
+              subtopics,
+              mastery,
+              isPassed,
+              status: isPassed
+                ? "MASTERED"
+                : node.status === "MASTERED"
+                  ? "AVAILABLE"
+                  : node.status,
+            };
+          }),
+        };
+      });
+
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(mapQueryKey, context.previous);
+      }
+    },
+    onSettled: () =>
+      queryClient.invalidateQueries({
+        queryKey: [...teacherRouteQueryKey, studentId],
+      }),
   });
 }
 

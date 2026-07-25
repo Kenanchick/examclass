@@ -11,8 +11,8 @@ describe('profileMathKnowledgeMap', () => {
     expect(validateKnowledgeMapCatalog(profileMathKnowledgeMap)).toEqual({
       sections: 9,
       topics: 19,
-      subtopics: 57,
-      skills: 381,
+      subtopics: 42,
+      skills: 195,
       requiredDependencies: 281,
       recommendedDependencies: 17,
       materials: 18,
@@ -27,16 +27,16 @@ describe('profileMathKnowledgeMap', () => {
       .flatMap((section) => section.topics)
       .find((topic) => topic.code === 'topic.ege01-planimetry');
 
-    expect(planimetryTopic?.subtopics).toHaveLength(23);
+    expect(planimetryTopic?.subtopics).toHaveLength(8);
     expect(
       planimetryTopic?.subtopics.reduce(
         (total, subtopic) => total + subtopic.skills.length,
         0,
       ),
-    ).toBe(231);
+    ).toBe(45);
     expect(
       skills.filter((skill) => skill.examNumbers.includes(1)),
-    ).toHaveLength(231);
+    ).toHaveLength(45);
   });
 
   it('покрывает все номера профильного ЕГЭ', () => {

@@ -18,7 +18,7 @@ import {
   getExamPart,
   resolveExamRoadmapStatus,
 } from './domain/exam-roadmap';
-import { getEffectiveSkillStatus } from './domain/teacher-skill-state';
+import { getEffectiveSkillMetrics } from './domain/teacher-skill-state';
 import { LearningRouteAccessService } from './learning-route-access.service';
 import { createTeacherRouteChange } from './teacher-route-change';
 
@@ -60,53 +60,6 @@ const getPrimaryExamNumber = (
     (left, right) =>
       right.weight - left.weight || left.examNumber - right.examNumber,
   )[0]?.examNumber;
-
-const getEffectiveMetrics = (
-  state:
-    | {
-        mastery: number;
-        confidence: number;
-        status: string;
-        needsReview?: boolean;
-      }
-    | null
-    | undefined,
-  control:
-    | {
-        manualStatus: string | null;
-        autoStatusEnabled: boolean;
-        reviewScheduledAt?: Date | null;
-      }
-    | null
-    | undefined,
-) => {
-  const status = state
-    ? getEffectiveSkillStatus(state.status, control)
-    : 'INSUFFICIENT_DATA';
-  if (control?.autoStatusEnabled !== false || !control.manualStatus) {
-    return {
-      status,
-      mastery: state?.mastery ?? 0.5,
-      confidence: state?.confidence ?? 0,
-    };
-  }
-
-  const manualMastery: Record<string, number> = {
-    UNSTUDIED: 0,
-    WEAK: 0.3,
-    LEARNING: 0.55,
-    NEEDS_REINFORCEMENT: 0.72,
-    MASTERED: 0.9,
-    NEEDS_REVIEW: 0.76,
-    TEACHER_CONFIRMED: 0.95,
-  };
-
-  return {
-    status,
-    mastery: manualMastery[control.manualStatus] ?? state?.mastery ?? 0.5,
-    confidence: Math.max(state?.confidence ?? 0, 0.86),
-  };
-};
 
 @Injectable()
 export class TeacherRoadmapService {
@@ -360,7 +313,7 @@ export class TeacherRoadmapService {
         matching.reduce((sum, item) => sum + item.mapping.weight, 0) || 1;
       const mastery = clamp01(
         matching.reduce((sum, { node, mapping }) => {
-          const metrics = getEffectiveMetrics(
+          const metrics = getEffectiveSkillMetrics(
             node.skillStates[0],
             node.teacherSkillControls[0],
           );
@@ -369,7 +322,7 @@ export class TeacherRoadmapService {
       );
       const confidence = clamp01(
         matching.reduce((sum, { node, mapping }) => {
-          const metrics = getEffectiveMetrics(
+          const metrics = getEffectiveSkillMetrics(
             node.skillStates[0],
             node.teacherSkillControls[0],
           );
@@ -400,7 +353,10 @@ export class TeacherRoadmapService {
           const prerequisite = link.prerequisite;
           const systemState = prerequisite.skillStates[0];
           const control = prerequisite.teacherSkillControls[0];
-          const effectiveMetrics = getEffectiveMetrics(systemState, control);
+          const effectiveMetrics = getEffectiveSkillMetrics(
+            systemState,
+            control,
+          );
           const blocking =
             link.type === 'REQUIRED' &&
             !['MASTERED', 'TEACHER_CONFIRMED'].includes(
@@ -454,7 +410,7 @@ export class TeacherRoadmapService {
       for (const { node } of matching) {
         const state = node.skillStates[0];
         const control = node.teacherSkillControls[0];
-        const metrics = getEffectiveMetrics(state, control);
+        const metrics = getEffectiveSkillMetrics(state, control);
         const subtopicName = node.parent?.name ?? 'Другие навыки';
         const group = subtopicMap.get(subtopicName) ?? {
           code: node.parent?.code ?? `other-${examNumber}`,
@@ -499,7 +455,7 @@ export class TeacherRoadmapService {
       const isPassed =
         matching.length > 0 &&
         matching.every(({ node }) => {
-          const metrics = getEffectiveMetrics(
+          const metrics = getEffectiveSkillMetrics(
             node.skillStates[0],
             node.teacherSkillControls[0],
           );

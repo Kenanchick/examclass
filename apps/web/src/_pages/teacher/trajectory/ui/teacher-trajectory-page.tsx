@@ -334,10 +334,10 @@ export function TeacherTrajectoryPage({
             selectSkill(null);
             selectExamNumber(null);
           }}
-          onSubtopicStatusChange={({ code, name, status }) => {
+          onSubtopicStatusChange={async ({ code, name, status }) => {
             setActionError(null);
-            subtopicMutation.mutate(
-              {
+            try {
+              await subtopicMutation.mutateAsync({
                 studentId,
                 subtopicCode: code,
                 data: {
@@ -347,14 +347,13 @@ export function TeacherTrajectoryPage({
                       ? `Отмечено преподавателем как пройденное: «${name}»`
                       : `Возвращено преподавателем в состояние «Не пройдено»: «${name}»`,
                 },
-              },
-              {
-                onError: (error) =>
-                  setActionError(
-                    getApiErrorMessage(error, "Не удалось отметить подтему."),
-                  ),
-              },
-            );
+              });
+            } catch (error) {
+              setActionError(
+                getApiErrorMessage(error, "Не удалось отметить подтему."),
+              );
+              throw error;
+            }
           }}
           onReviewNode={() => {
             setActionError(null);

@@ -1,4 +1,7 @@
-import { getEffectiveSkillStatus } from './teacher-skill-state';
+import {
+  getEffectiveSkillMetrics,
+  getEffectiveSkillStatus,
+} from './teacher-skill-state';
 
 describe('getEffectiveSkillStatus', () => {
   it('не подменяет освоение отметкой о прохождении темы', () => {
@@ -37,5 +40,33 @@ describe('getEffectiveSkillStatus', () => {
         reviewScheduledAt: new Date('2026-08-01T00:00:00Z'),
       }),
     ).toBe('NEEDS_REVIEW');
+  });
+});
+
+describe('getEffectiveSkillMetrics', () => {
+  it('учитывает ручной статус преподавателя даже без автоматического состояния', () => {
+    expect(
+      getEffectiveSkillMetrics(undefined, {
+        autoStatusEnabled: false,
+        manualStatus: 'MASTERED',
+      }),
+    ).toEqual({
+      status: 'MASTERED',
+      mastery: 0.9,
+      confidence: 0.86,
+    });
+  });
+
+  it('показывает ветку непройденной после ручного сброса статуса', () => {
+    expect(
+      getEffectiveSkillMetrics(undefined, {
+        autoStatusEnabled: false,
+        manualStatus: 'UNSTUDIED',
+      }),
+    ).toEqual({
+      status: 'UNSTUDIED',
+      mastery: 0,
+      confidence: 0.86,
+    });
   });
 });
