@@ -36,6 +36,7 @@ const START_X = 140;
 const START_Y = 120;
 const COLUMN_GAP = 500;
 const ROW_GAP = 340;
+const CUSTOM_START_Y = 1870;
 const MIN_SCALE = 0.3;
 const MAX_SCALE = 1.45;
 
@@ -115,6 +116,11 @@ const nodeCenter = (examNumber: number) => {
   };
 };
 
+const customNodePosition = (index: number) => ({
+  x: START_X + (index % 4) * COLUMN_GAP,
+  y: CUSTOM_START_Y + Math.floor(index / 4) * ROW_GAP,
+});
+
 const connectionPath = (from: number, to: number) => {
   const start = nodeCenter(from);
   const end = nodeCenter(to);
@@ -129,13 +135,7 @@ const connectionPath = (from: number, to: number) => {
   return `M ${start.x} ${start.y} C ${start.x} ${middle}, ${end.x} ${middle}, ${end.x} ${end.y}`;
 };
 
-function ProgressRing({
-  value,
-  color,
-}: {
-  value: number;
-  color: string;
-}) {
+function ProgressRing({ value, color }: { value: number; color: string }) {
   const radius = 25;
   const circumference = Math.PI * radius * 2;
   const dash = circumference * Math.max(0, Math.min(1, value));
@@ -268,6 +268,8 @@ type TeacherRoadmapBoardProps = {
   editMode: boolean;
   selectedExamNumber: number | null;
   onEditModeToggle: () => void;
+  onAddCustom: () => void;
+  onCustomOpen: (moduleKey: string) => void;
   onModeChange: (mode: "PERSONAL" | "FULL") => void;
   onNodeOpen: (examNumber: number) => void;
 };
@@ -278,6 +280,8 @@ export function TeacherRoadmapBoard({
   editMode,
   selectedExamNumber,
   onEditModeToggle,
+  onAddCustom,
+  onCustomOpen,
   onModeChange,
   onNodeOpen,
 }: TeacherRoadmapBoardProps) {
@@ -295,6 +299,18 @@ export function TeacherRoadmapBoard({
     startY: number;
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const visibleCustomNodes = useMemo(
+    () =>
+      editMode
+        ? roadmap.customNodes
+        : roadmap.customNodes.filter((module) => !module.isHidden),
+    [editMode, roadmap.customNodes],
+  );
+  const canvasHeight =
+    BOARD_HEIGHT +
+    (visibleCustomNodes.length > 0
+      ? Math.ceil(visibleCustomNodes.length / 4) * ROW_GAP
+      : 0);
 
   const fitRoute = useCallback(() => {
     const element = viewportRef.current;
@@ -305,15 +321,15 @@ export function TeacherRoadmapBoard({
       Math.min(
         0.9,
         (bounds.width - 48) / BOARD_WIDTH,
-        (bounds.height - 48) / BOARD_HEIGHT,
+        (bounds.height - 48) / canvasHeight,
       ),
     );
     setViewport({
       scale,
       x: (bounds.width - BOARD_WIDTH * scale) / 2,
-      y: (bounds.height - BOARD_HEIGHT * scale) / 2,
+      y: (bounds.height - canvasHeight * scale) / 2,
     });
-  }, []);
+  }, [canvasHeight]);
 
   const centerNode = useCallback((examNumber: number) => {
     const element = viewportRef.current;
@@ -505,6 +521,16 @@ export function TeacherRoadmapBoard({
             <Edit3 className="size-4" />
             <span className="hidden sm:inline">Редактировать</span>
           </button>
+          {editMode && (
+            <button
+              className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl bg-[#6651a3] px-3 text-sm font-bold text-white transition hover:-translate-y-0.5"
+              onClick={onAddCustom}
+              type="button"
+            >
+              <Plus className="size-4" />
+              <span className="hidden sm:inline">Добавить ДОП</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -527,7 +553,7 @@ export function TeacherRoadmapBoard({
         <div
           className="roadmap-canvas absolute left-0 top-0 origin-top-left"
           style={{
-            height: BOARD_HEIGHT,
+            height: canvasHeight,
             transform: `translate3d(${viewport.x}px, ${viewport.y}px, 0) scale(${viewport.scale})`,
             width: BOARD_WIDTH,
           }}
@@ -535,8 +561,8 @@ export function TeacherRoadmapBoard({
           <svg
             aria-hidden
             className="pointer-events-none absolute inset-0 overflow-visible"
-            height={BOARD_HEIGHT}
-            viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_HEIGHT}`}
+            height={canvasHeight}
+            viewBox={`0 0 ${BOARD_WIDTH} ${canvasHeight}`}
             width={BOARD_WIDTH}
           >
             <defs>
@@ -586,6 +612,18 @@ export function TeacherRoadmapBoard({
                 strokeWidth="3"
               />
             ))}
+            {visibleCustomNodes.length > 0 && (
+              <path
+                className="roadmap-secondary-line"
+                d={`M ${nodeCenter(19).x} ${nodeCenter(19).y} C ${nodeCenter(19).x} ${CUSTOM_START_Y - 80}, ${customNodePosition(0).x + CARD_WIDTH / 2} ${CUSTOM_START_Y - 80}, ${customNodePosition(0).x + CARD_WIDTH / 2} ${CUSTOM_START_Y}`}
+                fill="none"
+                markerEnd="url(#roadmap-arrow-secondary)"
+                stroke="#a99bd0"
+                strokeDasharray="9 10"
+                strokeLinecap="round"
+                strokeWidth="4"
+              />
+            )}
           </svg>
 
           {roadmap.nodes.map((node) => (
@@ -620,6 +658,65 @@ export function TeacherRoadmapBoard({
               width={92}
             />
           </div>
+
+          {visibleCustomNodes.length > 0 && (
+            <div
+              className="pointer-events-none absolute flex items-center gap-3"
+              style={{ left: START_X, top: CUSTOM_START_Y - 64 }}
+            >
+              <span className="grid size-9 place-items-center rounded-xl bg-[#f1edff] font-extrabold text-[#6651a3]">
+                +
+              </span>
+              <span className="text-sm font-bold uppercase tracking-[0.12em] text-[#6651a3]">
+                Дополнительные темы преподавателя
+              </span>
+            </div>
+          )}
+          {visibleCustomNodes.map((module, index) => {
+            const position = customNodePosition(index);
+            return (
+              <button
+                className="roadmap-node pointer-events-auto absolute cursor-pointer overflow-hidden rounded-[1.75rem] border border-[#cfc5ec] bg-white p-6 text-left shadow-[0_16px_40px_rgba(91,71,143,0.12)] transition duration-300 hover:-translate-y-1.5 hover:shadow-[0_22px_50px_rgba(91,71,143,0.18)]"
+                key={module.moduleKey}
+                onClick={() => onCustomOpen(module.moduleKey)}
+                onPointerDown={(event) => event.stopPropagation()}
+                style={{
+                  height: CARD_HEIGHT,
+                  left: position.x,
+                  top: position.y,
+                  width: CARD_WIDTH,
+                }}
+                type="button"
+              >
+                <div className="flex items-start gap-4">
+                  <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-[#f1edff] text-sm font-extrabold text-[#6651a3]">
+                    ДОП
+                  </span>
+                  <div className="min-w-0">
+                    <span className="rounded-full bg-[#f1edff] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#6651a3]">
+                      Тема преподавателя
+                    </span>
+                    <h3 className="mt-3 line-clamp-2 text-[22px] font-bold leading-[1.16] tracking-[-0.04em] text-ink">
+                      {module.title}
+                    </h3>
+                  </div>
+                </div>
+                <p className="mt-5 line-clamp-2 text-sm leading-6 text-muted">
+                  {module.description}
+                </p>
+                <div className="absolute inset-x-6 bottom-5 flex items-center justify-between border-t border-line pt-3 text-[13px] font-semibold text-muted">
+                  <span>{module.estimatedMinutes} минут</span>
+                  <span>
+                    {module.status === "COMPLETED"
+                      ? "Завершено"
+                      : module.status === "BLOCKED"
+                        ? "Нужна база"
+                        : "В маршруте"}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 

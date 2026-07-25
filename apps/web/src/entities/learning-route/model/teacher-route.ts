@@ -388,6 +388,17 @@ export type TeacherRoadmap = {
     currentExamNumber: number;
   };
   nodes: TeacherRoadmapNode[];
+  customNodes: Array<{
+    moduleKey: string;
+    title: string;
+    description: string;
+    status: "AVAILABLE" | "BLOCKED" | "COMPLETED";
+    position: number;
+    estimatedMinutes: number;
+    isPinned: boolean;
+    isHidden: boolean;
+    autoUpdateEnabled: boolean;
+  }>;
   connections: Array<{
     from: number;
     to: number;

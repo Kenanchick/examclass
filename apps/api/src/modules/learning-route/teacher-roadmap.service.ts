@@ -223,6 +223,7 @@ export class TeacherRoadmapService {
               completionCriteria: true,
               isPinned: true,
               isHidden: true,
+              isCustom: true,
               autoUpdateEnabled: true,
               teacherComment: true,
               skills: {
@@ -567,6 +568,22 @@ export class TeacherRoadmapService {
         currentExamNumber,
       },
       nodes: roadmapNodes,
+      customNodes: routeModules
+        .filter((module) => module.isCustom)
+        .map((module) => ({
+          moduleKey: module.moduleKey,
+          title: module.title,
+          description:
+            module.teacherComment ??
+            jsonStrings(module.reasons).map(humanizeReason)[0] ??
+            'Дополнительная тема преподавателя',
+          status: module.status,
+          position: module.position,
+          estimatedMinutes: module.estimatedMinutes,
+          isPinned: module.isPinned,
+          isHidden: module.isHidden,
+          autoUpdateEnabled: module.autoUpdateEnabled,
+        })),
       connections: EXAM_ROADMAP_CONNECTIONS.map(([from, to]) => ({
         from,
         to,

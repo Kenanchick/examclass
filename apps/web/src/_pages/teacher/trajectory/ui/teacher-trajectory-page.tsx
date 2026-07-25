@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  ArrowLeft,
-  History,
-  Map,
-  Save,
-  X,
-} from "lucide-react";
+import { ArrowLeft, History, Map, Save, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import {
@@ -27,6 +21,10 @@ import type {
 } from "@/entities/learning-route/model/teacher-route";
 import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
 import { useTeacherRouteWorkspaceStore } from "@/features/learning-route/model/use-teacher-route-workspace-store";
+import {
+  TeacherCustomModuleDetail,
+  TeacherCustomModuleDialog,
+} from "@/features/learning-route/ui/teacher-custom-roadmap";
 import { TeacherRoadmapBoard } from "@/features/learning-route/ui/teacher-roadmap-board";
 import { TeacherRoadmapDetail } from "@/features/learning-route/ui/teacher-roadmap-detail";
 import { TeacherRouteActionDialog } from "@/features/learning-route/ui/teacher-route-action-dialog";
@@ -111,9 +109,7 @@ export function TeacherTrajectoryPage({
   const selectSkill = useTeacherRouteWorkspaceStore(
     (state) => state.selectSkill,
   );
-  const setMapMode = useTeacherRouteWorkspaceStore(
-    (state) => state.setMapMode,
-  );
+  const setMapMode = useTeacherRouteWorkspaceStore((state) => state.setMapMode);
   const toggleEditMode = useTeacherRouteWorkspaceStore(
     (state) => state.toggleEditMode,
   );
@@ -136,6 +132,10 @@ export function TeacherTrajectoryPage({
   const [weeklyMinutes, setWeeklyMinutes] = useState("");
   const [weeklyReason, setWeeklyReason] = useState("");
   const [weeklyMessage, setWeeklyMessage] = useState<string | null>(null);
+  const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
+  const [selectedCustomModuleKey, setSelectedCustomModuleKey] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     activateStudent(studentId);
@@ -328,8 +328,11 @@ export function TeacherTrajectoryPage({
   const route = routeQuery.data;
   const roadmap = roadmapQuery.data;
   const selectedNode =
-    roadmap.nodes.find(
-      (node) => node.examNumber === selectedExamNumber,
+    roadmap.nodes.find((node) => node.examNumber === selectedExamNumber) ??
+    null;
+  const selectedCustomModule =
+    roadmap.customNodes.find(
+      (module) => module.moduleKey === selectedCustomModuleKey,
     ) ?? null;
 
   return (
@@ -360,9 +363,18 @@ export function TeacherTrajectoryPage({
           <TeacherRoadmapBoard
             editMode={editMode}
             mode={mapMode}
+            onAddCustom={() => setIsCustomDialogOpen(true)}
+            onCustomOpen={(moduleKey) => {
+              selectExamNumber(null);
+              selectSkill(null);
+              setSelectedCustomModuleKey(moduleKey);
+            }}
             onEditModeToggle={toggleEditMode}
             onModeChange={setMapMode}
-            onNodeOpen={selectExamNumber}
+            onNodeOpen={(examNumber) => {
+              setSelectedCustomModuleKey(null);
+              selectExamNumber(examNumber);
+            }}
             roadmap={roadmap}
             selectedExamNumber={selectedExamNumber}
           />
@@ -501,6 +513,15 @@ export function TeacherTrajectoryPage({
         />
       )}
 
+      {selectedCustomModule && (
+        <TeacherCustomModuleDetail
+          editMode={editMode}
+          module={selectedCustomModule}
+          onAction={openModuleAction}
+          onClose={() => setSelectedCustomModuleKey(null)}
+        />
+      )}
+
       {selectedSkillCode && selectedNode && (
         <>
           <button
@@ -551,6 +572,22 @@ export function TeacherTrajectoryPage({
         }}
         onConfirm={confirmAction}
         title={pendingAction?.title ?? "Изменить маршрут"}
+      />
+
+      <TeacherCustomModuleDialog
+        isOpen={isCustomDialogOpen}
+        isPending={customModuleMutation.isPending}
+        onClose={() => {
+          if (!customModuleMutation.isPending) setIsCustomDialogOpen(false);
+        }}
+        onCreate={(data) =>
+          customModuleMutation.mutate(
+            { studentId, data },
+            {
+              onSuccess: () => setIsCustomDialogOpen(false),
+            },
+          )
+        }
       />
     </StudentLayout>
   );
