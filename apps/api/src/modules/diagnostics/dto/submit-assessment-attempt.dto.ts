@@ -9,6 +9,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+import { AttemptIndependence } from '../../../generated/prisma/client';
 
 export enum AttemptSubmissionType {
   ANSWER = 'ANSWER',
@@ -44,6 +45,10 @@ export class SubmitAssessmentAttemptDto {
   @IsOptional()
   @IsBoolean()
   hasVisibleWork?: boolean;
+
+  @IsOptional()
+  @IsEnum(AttemptIndependence)
+  independence?: AttemptIndependence;
 
   @IsInt()
   @Min(0)

@@ -225,6 +225,11 @@ enum SkillEvidenceSource {
   THEORY_QUESTION
   MANUAL_REVIEW
   SELF_REPORT
+  HOMEWORK
+  CONTROL_WORK
+  MOCK_EXAM
+  LESSON
+  TEACHER_CONFIRMATION
 }
 
 enum StudentSkillStatus {
@@ -233,6 +238,19 @@ enum StudentSkillStatus {
   GAP
   DEVELOPING
   MASTERED
+  INSUFFICIENT_DATA
+  WEAK
+  LEARNING
+  NEEDS_REINFORCEMENT
+  NEEDS_REVIEW
+  TEACHER_CONFIRMED
+}
+
+enum AttemptIndependence {
+  UNKNOWN
+  INDEPENDENT
+  MINOR_HINT
+  MAJOR_HELP
 }
 
 enum AssessmentReviewErrorType {
@@ -827,6 +845,7 @@ model AssessmentAttempt {
   rawAnswer         String?
   solutionText      String?
   confidence        Int?
+  independence      AttemptIndependence        @default(UNKNOWN)
   declaredUnstudied Boolean                    @default(false)
   outcome           AssessmentAttemptOutcome
   autoScore         Float?
@@ -909,7 +928,7 @@ model DiagnosticHypothesis {
 }
 
 model SkillEvidence {
-  id               String              @id @default(cuid())
+  id               String                     @id @default(cuid())
   studentId        String
   skillId          String
   sessionId        String
@@ -917,11 +936,19 @@ model SkillEvidence {
   source           SkillEvidenceSource
   score            Float
   weight           Float
+  difficulty       Int?
+  skillRole        TaskSkillRole?
+  independence     AttemptIndependence        @default(UNKNOWN)
+  activeSeconds    Int?
+  expectedSeconds  Int?
+  selfConfidence   Int?
+  errorType        AssessmentReviewErrorType?
+  teacherConfirmed Boolean                    @default(false)
   independenceKey  String
   reason           String
   metadata         Json?
   occurredAt       DateTime
-  createdAt        DateTime            @default(now())
+  createdAt        DateTime                   @default(now())
 
   student        User              @relation("StudentSkillEvidence", fields: [studentId], references: [id], onDelete: Cascade)
   skill          KnowledgeNode     @relation(fields: [skillId], references: [id], onDelete: Cascade)
@@ -938,13 +965,24 @@ model StudentSkillState {
   skillId                String
   knowledgeMapId         String
   initializedBySessionId String?
+  formulaVersion         String             @default("legacy")
   mastery                Float
   confidence             Float
   evidenceWeight         Float
   evidenceCount          Int
   distinctEvidenceCount  Int
+  confirmingAttempts     Int                @default(0)
+  contradictingAttempts  Int                @default(0)
+  speed                  Float?
+  stability              Float?
   status                 StudentSkillStatus
   lastEvidenceAt         DateTime?
+  lastVerifiedAt         DateTime?
+  reviewDueAt            DateTime?
+  needsReview            Boolean            @default(false)
+  teacherConfirmedAt     DateTime?
+  sourceSummary          Json               @default("{}")
+  explanation            Json               @default("{}")
   createdAt              DateTime           @default(now())
   updatedAt              DateTime           @updatedAt
 

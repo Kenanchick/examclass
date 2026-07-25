@@ -25,6 +25,11 @@ export type AnalysisReviewErrorType =
   | 'NOTATION'
   | 'INCOMPLETE'
   | 'MISREAD_CONDITION';
+export type AnalysisIndependence =
+  | 'UNKNOWN'
+  | 'INDEPENDENT'
+  | 'MINOR_HINT'
+  | 'MAJOR_HELP';
 
 export type AttemptSkillLink = {
   skillCode: string;
@@ -47,10 +52,13 @@ export type AttemptAnalysisInput = {
   expectedSeconds: number;
   remainingSessionSeconds: number;
   confidence?: number | null;
+  difficulty?: number;
+  independence?: AnalysisIndependence;
   answerChanges?: number;
   hasVisibleWork?: boolean;
   scoreRatio?: number | null;
   reviewErrorType?: AnalysisReviewErrorType | null;
+  teacherConfirmed?: boolean;
   skillLinks: AttemptSkillLink[];
 };
 
@@ -61,6 +69,14 @@ export type EvidenceDraft = {
   weight: number;
   independenceKey: string;
   reason: string;
+  difficulty: number | null;
+  skillRole: AnalysisSkillRole;
+  independence: AnalysisIndependence;
+  activeSeconds: number;
+  expectedSeconds: number;
+  selfConfidence: number | null;
+  errorType: AnalysisReviewErrorType | null;
+  teacherConfirmed: boolean;
 };
 
 export type HypothesisDraft = {
@@ -75,12 +91,6 @@ export type HypothesisDraft = {
 export type AttemptAnalysis = {
   evidence: EvidenceDraft[];
   hypotheses: HypothesisDraft[];
-};
-
-const roleWeight: Record<AnalysisSkillRole, number> = {
-  PRIMARY: 1,
-  SECONDARY: 0.65,
-  PREREQUISITE: 0.45,
 };
 
 const bounded = (value: number, minimum = 0, maximum = 1) =>
@@ -150,6 +160,14 @@ export const analyzeAttempt = (
         weight: 0.1,
         independenceKey: `${input.itemKey}:${link.skillCode}`,
         reason: 'Ученик явно отметил, что материал ещё не изучался',
+        difficulty: input.difficulty ?? null,
+        skillRole: link.role,
+        independence: input.independence ?? 'UNKNOWN',
+        activeSeconds: input.activeSeconds,
+        expectedSeconds,
+        selfConfidence: input.confidence ?? null,
+        errorType: input.reviewErrorType ?? null,
+        teacherConfirmed: input.teacherConfirmed ?? false,
       });
       hypotheses.push({
         key: `unstudied:${link.skillCode}`,
@@ -182,7 +200,7 @@ export const analyzeAttempt = (
         : 0;
 
   for (const link of input.skillLinks) {
-    const baseWeight = bounded(link.weight) * roleWeight[link.role];
+    const baseWeight = bounded(link.weight);
     const adjustedWeight = possibleGuess
       ? baseWeight * 0.35
       : rushedByTime
@@ -202,6 +220,14 @@ export const analyzeAttempt = (
         : rushedByTime
           ? 'Ошибка при исчерпанном времени имеет минимальный диагностический вес'
           : `Результат ${input.outcome.toLowerCase()} по связи ${link.role.toLowerCase()}`,
+      difficulty: input.difficulty ?? null,
+      skillRole: link.role,
+      independence: input.independence ?? 'UNKNOWN',
+      activeSeconds: input.activeSeconds,
+      expectedSeconds,
+      selfConfidence: input.confidence ?? null,
+      errorType: input.reviewErrorType ?? null,
+      teacherConfirmed: input.teacherConfirmed ?? false,
     });
   }
 

@@ -25,6 +25,7 @@ import { DiagnosticSessionService } from './diagnostic-session.service';
 import { CreateInitialDiagnosticDto } from './dto/create-initial-diagnostic.dto';
 import { RecordBehaviorEventDto } from './dto/record-behavior-event.dto';
 import { SubmitAssessmentAttemptDto } from './dto/submit-assessment-attempt.dto';
+import { KnowledgeProfileService } from './knowledge-profile.service';
 
 @Controller('diagnostics')
 @UseGuards(JwtAuthGuard)
@@ -34,6 +35,7 @@ export class DiagnosticsController {
     private readonly attemptService: DiagnosticAttemptService,
     private readonly attachmentService: DiagnosticAttachmentService,
     private readonly flowService: DiagnosticFlowService,
+    private readonly profileService: KnowledgeProfileService,
   ) {}
 
   @Post()
@@ -60,6 +62,11 @@ export class DiagnosticsController {
       length: attachment.sizeBytes,
       disposition: `attachment; filename*=UTF-8''${encodeURIComponent(attachment.originalName)}`,
     });
+  }
+
+  @Get('profile/current')
+  getCurrentProfile(@CurrentUserId() userId: string) {
+    return this.profileService.getOwnProfile(userId);
   }
 
   @Get(':publicId')

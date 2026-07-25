@@ -47,6 +47,7 @@ export class DiagnosticFlowService {
         expectedSeconds: true,
         task: {
           select: {
+            difficulty: true,
             skillLinks: {
               where: {
                 skill: { knowledgeMapId: session.knowledgeMapId },
@@ -93,6 +94,7 @@ export class DiagnosticFlowService {
           activeSeconds: 0,
           expectedSeconds: item.expectedSeconds ?? 300,
           remainingSessionSeconds: 0,
+          difficulty: item.task?.difficulty ?? 2,
           skillLinks:
             item.task?.skillLinks.map((link) => ({
               skillCode: link.skill.code,
@@ -326,7 +328,7 @@ export class DiagnosticFlowService {
         status: AssessmentItemStatus.AWAITING_REVIEW,
       },
     });
-    const profile = await this.evidenceService.recalculateInitialProfile(
+    const profile = await this.evidenceService.recalculateProfile(
       studentId,
       session.knowledgeMapId,
       session.id,
@@ -348,9 +350,15 @@ export class DiagnosticFlowService {
       awaitingManualReview: pendingManual,
       profileSummary: {
         mastered: profile.filter((item) => item.status === 'MASTERED').length,
-        gaps: profile.filter((item) => item.status === 'GAP').length,
+        weak: profile.filter((item) => item.status === 'WEAK').length,
+        learning: profile.filter((item) => item.status === 'LEARNING').length,
+        reinforcement: profile.filter(
+          (item) => item.status === 'NEEDS_REINFORCEMENT',
+        ).length,
         unstudied: profile.filter((item) => item.status === 'UNSTUDIED').length,
-        unknown: profile.filter((item) => item.status === 'UNKNOWN').length,
+        insufficientData: profile.filter(
+          (item) => item.status === 'INSUFFICIENT_DATA',
+        ).length,
       },
     };
   }

@@ -1,18 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import {
+  AssessmentReviewErrorType,
+  AttemptIndependence,
   DiagnosticHypothesisStatus,
   DiagnosticHypothesisType,
   KnowledgeNodeKind,
+  Prisma,
   SkillEvidenceSource,
   StudentSkillStatus,
+  TaskSkillRole,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
-import type {
-  AttemptAnalysis,
-  AnalysisEvidenceSource,
-} from './domain/diagnostic-analysis';
+import type { AttemptAnalysis } from './domain/diagnostic-analysis';
 import { reconcileHypothesisStatus } from './domain/hypothesis-reconciliation';
-import { calculateInitialProfile } from './domain/profile-calculator';
+import {
+  calculateKnowledgeProfile,
+  type ProfileEvidenceSource,
+} from './domain/profile-calculator';
+import { KNOWLEDGE_PROFILE_FORMULA_VERSION } from './domain/profile-factors';
 
 @Injectable()
 export class DiagnosticEvidenceService {
@@ -73,6 +78,16 @@ export class DiagnosticEvidenceService {
           update: {
             score: item.score,
             weight: item.weight,
+            difficulty: item.difficulty,
+            skillRole: TaskSkillRole[item.skillRole],
+            independence: AttemptIndependence[item.independence],
+            activeSeconds: item.activeSeconds,
+            expectedSeconds: item.expectedSeconds,
+            selfConfidence: item.selfConfidence,
+            errorType: item.errorType
+              ? AssessmentReviewErrorType[item.errorType]
+              : null,
+            teacherConfirmed: item.teacherConfirmed,
             reason: item.reason,
             occurredAt,
           },
@@ -84,6 +99,16 @@ export class DiagnosticEvidenceService {
             source: SkillEvidenceSource[item.source],
             score: item.score,
             weight: item.weight,
+            difficulty: item.difficulty,
+            skillRole: TaskSkillRole[item.skillRole],
+            independence: AttemptIndependence[item.independence],
+            activeSeconds: item.activeSeconds,
+            expectedSeconds: item.expectedSeconds,
+            selfConfidence: item.selfConfidence,
+            errorType: item.errorType
+              ? AssessmentReviewErrorType[item.errorType]
+              : null,
+            teacherConfirmed: item.teacherConfirmed,
             independenceKey: item.independenceKey,
             reason: item.reason,
             occurredAt,
@@ -189,7 +214,7 @@ export class DiagnosticEvidenceService {
     });
   }
 
-  async recalculateInitialProfile(
+  async recalculateProfile(
     studentId: string,
     knowledgeMapId: string,
     initializedBySessionId: string,
@@ -213,22 +238,38 @@ export class DiagnosticEvidenceService {
           source: true,
           score: true,
           weight: true,
+          difficulty: true,
+          skillRole: true,
+          independence: true,
+          activeSeconds: true,
+          expectedSeconds: true,
+          selfConfidence: true,
+          errorType: true,
+          teacherConfirmed: true,
           independenceKey: true,
           occurredAt: true,
         },
       }),
     ]);
-    const calculated = calculateInitialProfile(
-      skills.map((skill) => skill.code),
-      evidence.map((item) => ({
+    const calculated = calculateKnowledgeProfile({
+      skillCodes: skills.map((skill) => skill.code),
+      evidence: evidence.map((item) => ({
         skillCode: item.skill.code,
-        source: item.source as AnalysisEvidenceSource,
+        source: item.source as ProfileEvidenceSource,
         score: item.score,
         weight: item.weight,
+        difficulty: item.difficulty,
+        skillRole: item.skillRole,
+        independence: item.independence,
+        activeSeconds: item.activeSeconds,
+        expectedSeconds: item.expectedSeconds,
+        selfConfidence: item.selfConfidence,
+        errorType: item.errorType,
+        teacherConfirmed: item.teacherConfirmed,
         independenceKey: item.independenceKey,
         occurredAt: item.occurredAt,
       })),
-    );
+    });
     const skillIdByCode = new Map(
       skills.map((skill) => [skill.code, skill.id]),
     );
@@ -245,26 +286,48 @@ export class DiagnosticEvidenceService {
           update: {
             knowledgeMapId,
             initializedBySessionId,
+            formulaVersion: KNOWLEDGE_PROFILE_FORMULA_VERSION,
             mastery: state.mastery,
             confidence: state.confidence,
             evidenceWeight: state.evidenceWeight,
             evidenceCount: state.evidenceCount,
             distinctEvidenceCount: state.distinctEvidenceCount,
+            confirmingAttempts: state.confirmingAttempts,
+            contradictingAttempts: state.contradictingAttempts,
+            speed: state.speed,
+            stability: state.stability,
             status: StudentSkillStatus[state.status],
             lastEvidenceAt: state.lastEvidenceAt,
+            lastVerifiedAt: state.lastVerifiedAt,
+            reviewDueAt: state.reviewDueAt,
+            needsReview: state.needsReview,
+            teacherConfirmedAt: state.teacherConfirmedAt,
+            sourceSummary: state.sourceSummary as Prisma.InputJsonValue,
+            explanation: state.explanation as Prisma.InputJsonValue,
           },
           create: {
             studentId,
             skillId: skillIdByCode.get(state.skillCode)!,
             knowledgeMapId,
             initializedBySessionId,
+            formulaVersion: KNOWLEDGE_PROFILE_FORMULA_VERSION,
             mastery: state.mastery,
             confidence: state.confidence,
             evidenceWeight: state.evidenceWeight,
             evidenceCount: state.evidenceCount,
             distinctEvidenceCount: state.distinctEvidenceCount,
+            confirmingAttempts: state.confirmingAttempts,
+            contradictingAttempts: state.contradictingAttempts,
+            speed: state.speed,
+            stability: state.stability,
             status: StudentSkillStatus[state.status],
             lastEvidenceAt: state.lastEvidenceAt,
+            lastVerifiedAt: state.lastVerifiedAt,
+            reviewDueAt: state.reviewDueAt,
+            needsReview: state.needsReview,
+            teacherConfirmedAt: state.teacherConfirmedAt,
+            sourceSummary: state.sourceSummary as Prisma.InputJsonValue,
+            explanation: state.explanation as Prisma.InputJsonValue,
           },
         }),
       ),

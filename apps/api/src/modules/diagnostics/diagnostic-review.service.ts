@@ -105,6 +105,9 @@ export class DiagnosticReviewService {
       select: {
         id: true,
         outcome: true,
+        activeSeconds: true,
+        confidence: true,
+        independence: true,
         item: {
           select: {
             id: true,
@@ -130,6 +133,7 @@ export class DiagnosticReviewService {
             },
             task: {
               select: {
+                difficulty: true,
                 skillLinks: {
                   select: {
                     role: true,
@@ -275,12 +279,17 @@ export class DiagnosticReviewService {
                 : criterion.awardedScore > 0
                   ? 'PARTIAL'
                   : 'INCORRECT',
-            activeSeconds: attempt.item.expectedSeconds ?? 1_200,
+            activeSeconds:
+              attempt.activeSeconds || attempt.item.expectedSeconds || 1_200,
             expectedSeconds: attempt.item.expectedSeconds ?? 1_200,
             remainingSessionSeconds: 0,
+            confidence: attempt.confidence,
+            difficulty: attempt.item.task?.difficulty ?? 2,
+            independence: attempt.independence,
             hasVisibleWork: true,
             scoreRatio: criterion.awardedScore / criterion.maxScore,
             reviewErrorType: criterion.errorType,
+            teacherConfirmed: true,
             skillLinks: [
               {
                 skillCode: criterion.skillCode,
@@ -301,12 +310,17 @@ export class DiagnosticReviewService {
           itemKey: attempt.item.publicId,
           source: 'MANUAL_REVIEW',
           outcome,
-          activeSeconds: attempt.item.expectedSeconds ?? 1_200,
+          activeSeconds:
+            attempt.activeSeconds || attempt.item.expectedSeconds || 1_200,
           expectedSeconds: attempt.item.expectedSeconds ?? 1_200,
           remainingSessionSeconds: 0,
+          confidence: attempt.confidence,
+          difficulty: attempt.item.task?.difficulty ?? 2,
+          independence: attempt.independence,
           hasVisibleWork: true,
           scoreRatio,
           reviewErrorType: dto.errorType,
+          teacherConfirmed: true,
           skillLinks:
             attempt.item.task?.skillLinks.map((link) => ({
               skillCode: link.skill.code,
@@ -317,7 +331,7 @@ export class DiagnosticReviewService {
       });
     }
 
-    const profile = await this.evidenceService.recalculateInitialProfile(
+    const profile = await this.evidenceService.recalculateProfile(
       attempt.item.session.studentId,
       attempt.item.session.knowledgeMapId,
       attempt.item.session.id,

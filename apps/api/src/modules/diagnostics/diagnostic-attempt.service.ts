@@ -143,6 +143,7 @@ export class DiagnosticAttemptService {
         rawAnswer: dto.rawAnswer,
         solutionText: dto.solutionText,
         confidence: dto.confidence,
+        independence: dto.independence,
         declaredUnstudied:
           dto.submissionType === AttemptSubmissionType.UNSTUDIED,
         outcome,
@@ -161,6 +162,7 @@ export class DiagnosticAttemptService {
         rawAnswer: dto.rawAnswer,
         solutionText: dto.solutionText,
         confidence: dto.confidence,
+        independence: dto.independence,
         declaredUnstudied:
           dto.submissionType === AttemptSubmissionType.UNSTUDIED,
         outcome,
@@ -202,6 +204,7 @@ export class DiagnosticAttemptService {
         outcome,
         activeSeconds: dto.activeSeconds,
         confidence: dto.confidence,
+        independence: dto.independence,
         answerChanges: dto.answerChanges,
         hasVisibleWork:
           dto.hasVisibleWork ||
@@ -245,6 +248,7 @@ export class DiagnosticAttemptService {
     outcome,
     activeSeconds,
     confidence,
+    independence,
     answerChanges,
     hasVisibleWork,
     occurredAt,
@@ -254,6 +258,7 @@ export class DiagnosticAttemptService {
     outcome: AssessmentAttemptOutcome;
     activeSeconds: number;
     confidence?: number;
+    independence?: Parameters<typeof analyzeAttempt>[0]['independence'];
     answerChanges: number;
     hasVisibleWork: boolean;
     occurredAt: Date;
@@ -306,6 +311,9 @@ export class DiagnosticAttemptService {
         expectedSeconds: item.expectedSeconds ?? 180,
         remainingSessionSeconds,
         confidence,
+        difficulty:
+          item.task?.difficulty ?? item.questionTemplate?.difficulty ?? 2,
+        independence,
         answerChanges,
         hasVisibleWork,
         skillLinks,

@@ -10,6 +10,7 @@ import { DiagnosticFlowService } from './diagnostic-flow.service';
 import { DiagnosticReviewService } from './diagnostic-review.service';
 import { DiagnosticSessionService } from './diagnostic-session.service';
 import { DiagnosticsController } from './diagnostics.controller';
+import { KnowledgeProfileService } from './knowledge-profile.service';
 import { TeacherDiagnosticsController } from './teacher-diagnostics.controller';
 
 @Module({
@@ -23,6 +24,7 @@ import { TeacherDiagnosticsController } from './teacher-diagnostics.controller';
     DiagnosticFlowService,
     DiagnosticReviewService,
     DiagnosticSessionService,
+    KnowledgeProfileService,
   ],
 })
 export class DiagnosticsModule {}

@@ -69,6 +69,7 @@ export class DiagnosticAccessService {
           select: {
             correctAnswer: true,
             examPart: true,
+            difficulty: true,
             skillLinks: {
               select: {
                 role: true,
@@ -82,6 +83,7 @@ export class DiagnosticAccessService {
           select: {
             correctAnswer: true,
             evaluationMode: true,
+            difficulty: true,
           },
         },
         events: {
