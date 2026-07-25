@@ -8,6 +8,7 @@ import {
   DiagnosticHypothesisStatus,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
+import { LearningRouteService } from '../learning-route/learning-route.service';
 import { DiagnosticAccessService } from './diagnostic-access.service';
 import { DiagnosticEvidenceService } from './diagnostic-evidence.service';
 import { selectNextAdaptiveCandidate } from './domain/adaptive-selector';
@@ -23,6 +24,7 @@ export class DiagnosticFlowService {
     private readonly prisma: PrismaService,
     private readonly access: DiagnosticAccessService,
     private readonly evidenceService: DiagnosticEvidenceService,
+    private readonly learningRoutes: LearningRouteService,
   ) {}
 
   async finishFullExam(studentId: string, sessionPublicId: string) {
@@ -344,10 +346,14 @@ export class DiagnosticFlowService {
         completedAt: completed ? new Date() : null,
       },
     });
+    const route = completed
+      ? await this.learningRoutes.rebuildFromProfile(studentId)
+      : null;
 
     return {
       completed,
       awaitingManualReview: pendingManual,
+      routePublicId: route?.publicId ?? null,
       profileSummary: {
         mastered: profile.filter((item) => item.status === 'MASTERED').length,
         weak: profile.filter((item) => item.status === 'WEAK').length,

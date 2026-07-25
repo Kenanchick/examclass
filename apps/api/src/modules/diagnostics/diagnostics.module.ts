@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../../database/prisma/prisma.module';
 import { SolutionFileStorageModule } from '../../shared/storage/solution-file-storage.module';
 import { AuthModule } from '../auth/auth.module';
+import { LearningRouteModule } from '../learning-route/learning-route.module';
 import { DiagnosticAccessService } from './diagnostic-access.service';
 import { DiagnosticAttachmentService } from './diagnostic-attachment.service';
 import { DiagnosticAttemptService } from './diagnostic-attempt.service';
@@ -14,7 +15,12 @@ import { KnowledgeProfileService } from './knowledge-profile.service';
 import { TeacherDiagnosticsController } from './teacher-diagnostics.controller';
 
 @Module({
-  imports: [AuthModule, PrismaModule, SolutionFileStorageModule],
+  imports: [
+    AuthModule,
+    LearningRouteModule,
+    PrismaModule,
+    SolutionFileStorageModule,
+  ],
   controllers: [DiagnosticsController, TeacherDiagnosticsController],
   providers: [
     DiagnosticAccessService,

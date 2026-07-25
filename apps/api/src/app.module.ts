@@ -7,6 +7,7 @@ import { DiagnosticsModule } from './modules/diagnostics/diagnostics.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { HomeworkModule } from './modules/homework/homework.module';
 import { KnowledgeMapModule } from './modules/knowledge-map/knowledge-map.module';
+import { LearningRouteModule } from './modules/learning-route/learning-route.module';
 import { SubjectsModule } from './modules/subjects/subjects.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { TopicsModule } from './modules/topics/topics.module';
@@ -21,6 +22,7 @@ import { TopicsModule } from './modules/topics/topics.module';
     FavoritesModule,
     HomeworkModule,
     KnowledgeMapModule,
+    LearningRouteModule,
     SubjectsModule,
     TasksModule,
     TopicsModule,

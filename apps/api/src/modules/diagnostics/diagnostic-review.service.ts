@@ -11,6 +11,7 @@ import {
   Role,
 } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma/prisma.service';
+import { LearningRouteService } from '../learning-route/learning-route.service';
 import { DiagnosticEvidenceService } from './diagnostic-evidence.service';
 import { ReviewAssessmentAttemptDto } from './dto/review-assessment-attempt.dto';
 import { analyzeAttempt } from './domain/diagnostic-analysis';
@@ -20,6 +21,7 @@ export class DiagnosticReviewService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly evidenceService: DiagnosticEvidenceService,
+    private readonly learningRoutes: LearningRouteService,
   ) {}
 
   async getReviewQueue(reviewerId: string) {
@@ -355,6 +357,9 @@ export class DiagnosticReviewService {
           completedAt: reviewedAt,
         },
       });
+      await this.learningRoutes.rebuildFromProfile(
+        attempt.item.session.studentId,
+      );
     }
 
     return {
