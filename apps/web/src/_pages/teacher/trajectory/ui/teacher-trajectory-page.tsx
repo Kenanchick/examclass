@@ -1,22 +1,18 @@
 "use client";
 
-import { ArrowLeft, History, Map, Save, X } from "lucide-react";
+import { ArrowLeft, Map, X } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 import {
   useCreateTeacherRouteModuleMutation,
-  useTeacherLearningRouteQuery,
   useTeacherModuleActionMutation,
   useTeacherRoadmapQuery,
-  useTeacherRouteHistoryQuery,
   useTeacherSkillActionMutation,
   useTeacherSkillDetailQuery,
   useTeacherSubtopicStatusMutation,
-  useUpdateTeacherWeeklyLoadMutation,
 } from "@/entities/learning-route/api/use-teacher-route-query";
 import type {
   TeacherModuleActionInput,
-  TeacherRouteModule,
   TeacherSubtopicStatusInput,
 } from "@/entities/learning-route/model/teacher-route";
 import { useRequireAuthModal } from "@/features/auth/modal/model/use-require-auth-modal";
@@ -28,7 +24,6 @@ import {
 import { TeacherRoadmapBoard } from "@/features/learning-route/ui/teacher-roadmap-board";
 import { TeacherRoadmapDetail } from "@/features/learning-route/ui/teacher-roadmap-detail";
 import { TeacherRouteActionDialog } from "@/features/learning-route/ui/teacher-route-action-dialog";
-import { TeacherRouteModuleList } from "@/features/learning-route/ui/teacher-route-module-list";
 import {
   TeacherSkillDetailPanel,
   type SkillActionRequest,
@@ -61,34 +56,12 @@ type PendingAction =
       data: Omit<TeacherSubtopicStatusInput, "reason">;
     };
 
-const actionLabels: Record<string, string> = {
-  CONFIRM_SYSTEM_CONCLUSION: "Подтверждён вывод системы",
-  CHANGE_SKILL_STATUS: "Изменён статус навыка",
-  CLEAR_SKILL_STATUS: "Возвращён автоматический статус",
-  MARK_TAUGHT: "Тема отмечена пройденной",
-  MARK_REINFORCED: "Тема отмечена закреплённой",
-  SCHEDULE_CONTROL: "Назначен контроль",
-  SCHEDULE_REVIEW: "Назначено повторение",
-  MOVE_MODULE: "Изменён порядок модулей",
-  PIN_MODULE: "Модуль закреплён",
-  UNPIN_MODULE: "Модуль откреплён",
-  HIDE_MODULE: "Модуль скрыт",
-  SHOW_MODULE: "Модуль возвращён",
-  SET_MODULE_AUTOMATION: "Изменена автоматизация модуля",
-  SET_SKILL_AUTOMATION: "Изменена автоматизация навыка",
-  ADD_CUSTOM_MODULE: "Добавлена собственная тема",
-  UPDATE_WEEKLY_LOAD: "Изменена недельная нагрузка",
-  UPDATE_SKILL_COMMENT: "Обновлён комментарий к навыку",
-};
-
 export function TeacherTrajectoryPage({
   studentId,
 }: TeacherTrajectoryPageProps) {
   const { hasAccessToken, openLogin } = useRequireAuthModal();
   const enabled = hasAccessToken === true;
-  const routeQuery = useTeacherLearningRouteQuery(studentId, enabled);
   const roadmapQuery = useTeacherRoadmapQuery(studentId, enabled);
-  const historyQuery = useTeacherRouteHistoryQuery(studentId, enabled);
   const activateStudent = useTeacherRouteWorkspaceStore(
     (state) => state.activateStudent,
   );
@@ -100,9 +73,6 @@ export function TeacherTrajectoryPage({
   );
   const mapMode = useTeacherRouteWorkspaceStore((state) => state.mapMode);
   const editMode = useTeacherRouteWorkspaceStore((state) => state.editMode);
-  const showHiddenModules = useTeacherRouteWorkspaceStore(
-    (state) => state.showHiddenModules,
-  );
   const selectExamNumber = useTeacherRouteWorkspaceStore(
     (state) => state.selectExamNumber,
   );
@@ -113,9 +83,6 @@ export function TeacherTrajectoryPage({
   const toggleEditMode = useTeacherRouteWorkspaceStore(
     (state) => state.toggleEditMode,
   );
-  const toggleHiddenModules = useTeacherRouteWorkspaceStore(
-    (state) => state.toggleHiddenModules,
-  );
   const skillDetailQuery = useTeacherSkillDetailQuery(
     studentId,
     selectedSkillCode,
@@ -124,14 +91,10 @@ export function TeacherTrajectoryPage({
   const subtopicMutation = useTeacherSubtopicStatusMutation(studentId);
   const moduleMutation = useTeacherModuleActionMutation(studentId);
   const customModuleMutation = useCreateTeacherRouteModuleMutation(studentId);
-  const weeklyLoadMutation = useUpdateTeacherWeeklyLoadMutation(studentId);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(
     null,
   );
   const [actionError, setActionError] = useState<string | null>(null);
-  const [weeklyMinutes, setWeeklyMinutes] = useState("");
-  const [weeklyReason, setWeeklyReason] = useState("");
-  const [weeklyMessage, setWeeklyMessage] = useState<string | null>(null);
   const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
   const [selectedCustomModuleKey, setSelectedCustomModuleKey] = useState<
     string | null
@@ -140,12 +103,6 @@ export function TeacherTrajectoryPage({
   useEffect(() => {
     activateStudent(studentId);
   }, [activateStudent, studentId]);
-
-  useEffect(() => {
-    if (routeQuery.data) {
-      setWeeklyMinutes(String(routeQuery.data.goal.weeklyMinutes));
-    }
-  }, [routeQuery.data]);
 
   const openModuleAction = ({
     moduleKey,
@@ -159,25 +116,6 @@ export function TeacherTrajectoryPage({
     setActionError(null);
     setPendingAction({ scope: "module", moduleKey, title, data });
   };
-
-  const openListModuleAction = (
-    module: TeacherRouteModule,
-    action: {
-      action: string;
-      direction?: "UP" | "DOWN";
-      enabled?: boolean;
-      title: string;
-    },
-  ) =>
-    openModuleAction({
-      moduleKey: module.moduleKey,
-      title: action.title,
-      data: {
-        action: action.action,
-        direction: action.direction,
-        enabled: action.enabled,
-      },
-    });
 
   const openSkillAction = (request: SkillActionRequest) => {
     if (!selectedSkillCode) return;
@@ -244,30 +182,6 @@ export function TeacherTrajectoryPage({
     );
   };
 
-  const updateWeeklyLoad = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const value = Number(weeklyMinutes);
-    if (!Number.isFinite(value) || weeklyReason.trim().length < 3) return;
-    setWeeklyMessage(null);
-    weeklyLoadMutation.mutate(
-      {
-        studentId,
-        weeklyMinutes: value,
-        reason: weeklyReason.trim(),
-      },
-      {
-        onSuccess: () => {
-          setWeeklyReason("");
-          setWeeklyMessage("Нагрузка обновлена, маршрут пересчитан.");
-        },
-        onError: (error) =>
-          setWeeklyMessage(
-            getApiErrorMessage(error, "Не удалось изменить нагрузку."),
-          ),
-      },
-    );
-  };
-
   if (hasAccessToken === false) {
     return (
       <StudentLayout>
@@ -284,11 +198,7 @@ export function TeacherTrajectoryPage({
     );
   }
 
-  if (
-    hasAccessToken === null ||
-    routeQuery.isPending ||
-    roadmapQuery.isPending
-  ) {
+  if (hasAccessToken === null || roadmapQuery.isPending) {
     return (
       <StudentLayout>
         <main className="p-5 sm:p-8">
@@ -302,19 +212,13 @@ export function TeacherTrajectoryPage({
     );
   }
 
-  if (
-    routeQuery.isError ||
-    roadmapQuery.isError ||
-    !routeQuery.data ||
-    !roadmapQuery.data
-  ) {
+  if (roadmapQuery.isError || !roadmapQuery.data) {
     return (
       <StudentLayout>
         <main className="p-5 sm:p-8">
           <RequestState
             description="Проверьте, что ученик завершил стартовую диагностику и добавлен в ваш класс."
             onRetry={() => {
-              void routeQuery.refetch();
               void roadmapQuery.refetch();
             }}
             title="Маршрут пока недоступен"
@@ -325,7 +229,6 @@ export function TeacherTrajectoryPage({
     );
   }
 
-  const route = routeQuery.data;
   const roadmap = roadmapQuery.data;
   const selectedNode =
     roadmap.nodes.find((node) => node.examNumber === selectedExamNumber) ??
@@ -378,125 +281,16 @@ export function TeacherTrajectoryPage({
             roadmap={roadmap}
             selectedExamNumber={selectedExamNumber}
           />
-
-          {editMode && (
-            <section className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)]">
-              <TeacherRouteModuleList
-                isCreating={customModuleMutation.isPending}
-                modules={route.modules}
-                onAddCustom={(data) =>
-                  customModuleMutation.mutate({ studentId, data })
-                }
-                onModuleAction={openListModuleAction}
-                onSelectSkill={selectSkill}
-                onToggleHidden={toggleHiddenModules}
-                selectedSkillCode={selectedSkillCode}
-                showHidden={showHiddenModules}
-              />
-              <form
-                className="rounded-[2rem] border border-line bg-white p-5 shadow-[0_16px_40px_rgba(15,43,76,0.04)]"
-                onSubmit={updateWeeklyLoad}
-              >
-                <h2 className="text-xl font-bold tracking-[-0.035em] text-ink">
-                  Недельная нагрузка
-                </h2>
-                <p className="mt-1 text-sm leading-6 text-muted">
-                  Изменение нагрузки перестроит автоматическую часть маршрута.
-                </p>
-                <label className="mt-5 block text-sm font-bold text-ink">
-                  Минут в неделю
-                  <input
-                    className="mt-2 h-12 w-full rounded-xl border border-line bg-white px-3 text-sm font-semibold outline-none focus:border-brand"
-                    min={30}
-                    onChange={(event) => setWeeklyMinutes(event.target.value)}
-                    step={15}
-                    type="number"
-                    value={weeklyMinutes}
-                  />
-                </label>
-                <label className="mt-4 block text-sm font-bold text-ink">
-                  Причина изменения
-                  <input
-                    className="mt-2 h-12 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none focus:border-brand"
-                    onChange={(event) => setWeeklyReason(event.target.value)}
-                    placeholder="Например, изменилось расписание"
-                    value={weeklyReason}
-                  />
-                </label>
-                <button
-                  className="mt-4 inline-flex h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand text-sm font-bold text-white disabled:opacity-50"
-                  disabled={weeklyLoadMutation.isPending}
-                  type="submit"
-                >
-                  <Save className="size-4" />
-                  Сохранить нагрузку
-                </button>
-                {weeklyMessage && (
-                  <p className="mt-3 text-sm font-semibold text-brand">
-                    {weeklyMessage}
-                  </p>
-                )}
-              </form>
-            </section>
-          )}
-
-          <section className="rounded-[2rem] border border-line bg-white px-5 py-5 shadow-[0_16px_40px_rgba(15,43,76,0.04)] sm:px-7">
-            <details>
-              <summary className="flex cursor-pointer list-none items-center gap-3 text-lg font-bold text-ink">
-                <History className="size-5 text-brand" />
-                История решений преподавателя
-                <span className="ml-auto text-sm font-semibold text-muted">
-                  {historyQuery.data?.length ?? 0}
-                </span>
-              </summary>
-              <div className="mt-5 divide-y divide-line border-t border-line">
-                {(historyQuery.data ?? []).map((item) => (
-                  <div
-                    className="grid gap-1 py-4 sm:grid-cols-[minmax(0,1fr)_auto]"
-                    key={item.publicId}
-                  >
-                    <div>
-                      <p className="font-bold text-ink">
-                        {actionLabels[item.action] ?? "Изменён маршрут"}
-                      </p>
-                      <p className="mt-1 text-sm leading-6 text-muted">
-                        {item.reason}
-                      </p>
-                    </div>
-                    <p className="text-xs font-semibold text-muted sm:text-right">
-                      {item.author.name}
-                      <br />
-                      {new Intl.DateTimeFormat("ru-RU", {
-                        day: "numeric",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      }).format(new Date(item.createdAt))}
-                    </p>
-                  </div>
-                ))}
-                {historyQuery.data?.length === 0 && (
-                  <p className="py-5 text-sm text-muted">
-                    Ручных изменений пока не было.
-                  </p>
-                )}
-              </div>
-            </details>
-          </section>
         </div>
       </main>
 
       {selectedNode && (
         <TeacherRoadmapDetail
-          editMode={editMode}
           node={selectedNode}
           onClose={() => {
             selectSkill(null);
             selectExamNumber(null);
           }}
-          onModuleAction={({ moduleKey, title, data }) =>
-            openModuleAction({ moduleKey, title, data })
-          }
           onSubtopicStatusChange={({ code, name, status }) => {
             setActionError(null);
             setPendingAction({

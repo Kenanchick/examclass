@@ -1,26 +1,15 @@
 "use client";
 
 import {
-  ArrowDown,
-  ArrowUp,
   BookOpenCheck,
   CalendarClock,
   CheckCircle2,
   ChevronRight,
-  CircleHelp,
   Clock3,
-  EyeOff,
-  Flag,
-  Pin,
   RotateCcw,
-  ShieldCheck,
-  Sparkles,
   X,
 } from "lucide-react";
-import type {
-  TeacherModuleActionInput,
-  TeacherRoadmapNode,
-} from "@/entities/learning-route/model/teacher-route";
+import type { TeacherRoadmapNode } from "@/entities/learning-route/model/teacher-route";
 
 const statusLabels: Record<string, string> = {
   UNKNOWN: "Недостаточно данных",
@@ -36,19 +25,6 @@ const statusLabels: Record<string, string> = {
   TEACHER_CONFIRMED: "Подтверждено преподавателем",
 };
 
-const sourceLabels: Record<string, string> = {
-  FULL_EXAM: "Стартовый вариант",
-  ADAPTIVE_TASK: "Уточняющая задача",
-  THEORY_QUESTION: "Теоретический вопрос",
-  MANUAL_REVIEW: "Проверка преподавателя",
-  SELF_REPORT: "Самооценка",
-  HOMEWORK: "Домашняя работа",
-  CONTROL_WORK: "Контрольная работа",
-  MOCK_EXAM: "Пробный экзамен",
-  LESSON: "Занятие",
-  TEACHER_CONFIRMATION: "Подтверждение преподавателя",
-};
-
 const formatDate = (value: string) =>
   new Intl.DateTimeFormat("ru-RU", {
     day: "numeric",
@@ -56,13 +32,7 @@ const formatDate = (value: string) =>
     year: "numeric",
   }).format(new Date(value));
 
-function Metric({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
+function Metric({ label, value }: { label: string; value: number }) {
   const percent = Math.round(value * 100);
   return (
     <div className="rounded-2xl bg-panel/70 p-3">
@@ -80,18 +50,9 @@ function Metric({
   );
 }
 
-type ModuleAction = {
-  moduleKey: string;
-  moduleTitle: string;
-  title: string;
-  data: Omit<TeacherModuleActionInput, "reason">;
-};
-
 type TeacherRoadmapDetailProps = {
   node: TeacherRoadmapNode;
-  editMode: boolean;
   onClose: () => void;
-  onModuleAction: (action: ModuleAction) => void;
   onSubtopicStatusChange: (action: {
     code: string;
     name: string;
@@ -102,9 +63,7 @@ type TeacherRoadmapDetailProps = {
 
 export function TeacherRoadmapDetail({
   node,
-  editMode,
   onClose,
-  onModuleAction,
   onSubtopicStatusChange,
   onSkillOpen,
 }: TeacherRoadmapDetailProps) {
@@ -146,23 +105,6 @@ export function TeacherRoadmapDetail({
             <Metric label="Владение" value={node.mastery} />
             <Metric label="Уверенность системы" value={node.confidence} />
           </div>
-
-          <section>
-            <h3 className="flex items-center gap-2 font-bold text-ink">
-              <Sparkles className="size-5 text-brand" />
-              Почему этот узел здесь
-            </h3>
-            <div className="mt-3 space-y-2">
-              {node.reasons.map((reason) => (
-                <p
-                  className="border-l-2 border-[#bdd6ea] pl-3 text-sm leading-6 text-muted"
-                  key={reason}
-                >
-                  {reason}
-                </p>
-              ))}
-            </div>
-          </section>
 
           <section>
             <div className="flex items-center justify-between gap-3">
@@ -209,9 +151,7 @@ export function TeacherRoadmapDetail({
                         onSubtopicStatusChange({
                           code: subtopic.code,
                           name: subtopic.name,
-                          status: subtopic.isMastered
-                            ? "LEARNING"
-                            : "MASTERED",
+                          status: subtopic.isMastered ? "LEARNING" : "MASTERED",
                         })
                       }
                       type="button"
@@ -269,63 +209,6 @@ export function TeacherRoadmapDetail({
             </p>
           </section>
 
-          {node.unlocksExamNumbers.length > 0 && (
-            <section>
-              <h3 className="flex items-center gap-2 font-bold text-ink">
-                <Flag className="size-5 text-brand" />
-                Что откроется дальше
-              </h3>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {node.unlocksExamNumbers.map((examNumber) => (
-                  <span
-                    className="rounded-xl bg-[#eef6ff] px-3 py-2 text-xs font-bold text-brand"
-                    key={examNumber}
-                  >
-                    Задание {examNumber}
-                  </span>
-                ))}
-              </div>
-            </section>
-          )}
-
-          <section>
-            <h3 className="flex items-center gap-2 font-bold text-ink">
-              <ShieldCheck className="size-5 text-brand" />
-              Последние подтверждения
-            </h3>
-            <div className="mt-3 divide-y divide-line border-y border-line">
-              {node.attempts.slice(0, 5).map((attempt) => (
-                <div
-                  className="grid grid-cols-[1fr_auto] gap-3 py-3 text-sm"
-                  key={attempt.id}
-                >
-                  <div>
-                    <p className="font-semibold text-ink">
-                      {sourceLabels[attempt.source] ?? "Учебная попытка"}
-                    </p>
-                    <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-muted">
-                      {attempt.reason}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-brand">
-                      {Math.round(attempt.score * 100)}%
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted">
-                      {formatDate(attempt.occurredAt)}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {node.attempts.length === 0 && (
-                <div className="flex items-center gap-3 py-4 text-sm text-muted">
-                  <CircleHelp className="size-5 text-brand" />
-                  Независимых попыток пока недостаточно.
-                </div>
-              )}
-            </div>
-          </section>
-
           {node.plannedReviews.length > 0 && (
             <section>
               <h3 className="flex items-center gap-2 font-bold text-ink">
@@ -347,90 +230,6 @@ export function TeacherRoadmapDetail({
                     </span>
                   </div>
                 ))}
-              </div>
-            </section>
-          )}
-
-          {editMode && (
-            <section className="rounded-2xl border border-[#bad2e7] bg-[#f6faff] p-4">
-              <h3 className="font-bold text-ink">Режим преподавателя</h3>
-              <p className="mt-1 text-sm leading-6 text-muted">
-                Меняйте только связанные модули. Каждое решение сохранится с
-                причиной, автором и временем.
-              </p>
-              <div className="mt-4 space-y-3">
-                {node.routeModules.map((module) => (
-                  <div
-                    className="rounded-xl border border-line bg-white p-3"
-                    key={module.moduleKey}
-                  >
-                    <p className="text-sm font-bold text-ink">{module.title}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {[
-                        {
-                          title: "Переместить раньше",
-                          icon: ArrowUp,
-                          data: {
-                            action: "MOVE_MODULE",
-                            direction: "UP" as const,
-                          },
-                        },
-                        {
-                          title: "Переместить позже",
-                          icon: ArrowDown,
-                          data: {
-                            action: "MOVE_MODULE",
-                            direction: "DOWN" as const,
-                          },
-                        },
-                        {
-                          title: module.isPinned
-                            ? "Открепить модуль"
-                            : "Закрепить модуль",
-                          icon: Pin,
-                          data: {
-                            action: module.isPinned
-                              ? "UNPIN_MODULE"
-                              : "PIN_MODULE",
-                          },
-                        },
-                        {
-                          title: module.isHidden
-                            ? "Вернуть модуль"
-                            : "Временно скрыть",
-                          icon: EyeOff,
-                          data: {
-                            action: module.isHidden
-                              ? "SHOW_MODULE"
-                              : "HIDE_MODULE",
-                          },
-                        },
-                      ].map(({ title, icon: Icon, data }) => (
-                        <button
-                          className="inline-flex min-h-9 cursor-pointer items-center gap-2 rounded-lg bg-panel px-2.5 text-xs font-bold text-muted transition hover:text-brand"
-                          key={title}
-                          onClick={() =>
-                            onModuleAction({
-                              moduleKey: module.moduleKey,
-                              moduleTitle: module.title,
-                              title,
-                              data,
-                            })
-                          }
-                          type="button"
-                        >
-                          <Icon className="size-3.5" />
-                          {title}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                {node.routeModules.length === 0 && (
-                  <p className="text-sm text-muted">
-                    Этот узел пока не включён в ближайший персональный маршрут.
-                  </p>
-                )}
               </div>
             </section>
           )}
