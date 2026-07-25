@@ -36,14 +36,21 @@ const START_X = 680;
 const START_Y = 520;
 const COLUMN_GAP = 790;
 const ROW_GAP = 410;
-const REVIEW_FALLBACK_START_Y = 2740;
 const DEFAULT_CUSTOM_START_Y = 3240;
 const MIN_SCALE = 0.24;
 const MAX_SCALE = 1.45;
 const ARROW_END_GAP = 30;
+const REVIEW_EDGE_PADDING = 20;
+const REVIEW_EDGE_GAP = 110;
+const REVIEW_BOTTOM_GAP = 220;
+const REVIEW_BOTTOM_ROW_GAP = REVIEW_CARD_HEIGHT + 140;
+const MAIN_ROUTE_BOTTOM = START_Y + 4 * ROW_GAP + CARD_HEIGHT;
 
 type Viewport = { x: number; y: number; scale: number };
+type BoardPoint = { x: number; y: number };
 type BoardBox = { x: number; y: number; width: number; height: number };
+type ReviewNode = TeacherRoadmap["reviewNodes"][number];
+type ReviewSide = "left" | "top" | "right" | "bottom";
 type HighlightedLink =
   | { kind: "route"; from: number; to: number }
   | { kind: "review"; from: number; moduleKey: string }
@@ -125,43 +132,70 @@ const nodeCenter = (examNumber: number) => {
   };
 };
 
-const reviewNodePosition = (
-  review: TeacherRoadmap["reviewNodes"][number],
-  index: number,
-) => {
-  const source = nodePosition(review.sourceExamNumber);
+const reviewSide = (review: ReviewNode): ReviewSide => {
   const { row, column } = nodeGridPosition(review.sourceExamNumber);
 
-  if (column === 0) {
-    return { x: 60, y: source.y - 10 };
-  }
-  if (row === 0) {
-    return {
-      x: source.x + (CARD_WIDTH - REVIEW_CARD_WIDTH) / 2,
-      y: 70,
-    };
-  }
-  if (column === 3) {
-    return { x: source.x + CARD_WIDTH + 110, y: source.y - 10 };
-  }
-  if (row === 4) {
-    return {
-      x: source.x + (CARD_WIDTH - REVIEW_CARD_WIDTH) / 2,
-      y: source.y + CARD_HEIGHT + 110,
-    };
-  }
-
-  return {
-    x: START_X + (index % 4) * COLUMN_GAP,
-    y: REVIEW_FALLBACK_START_Y + Math.floor(index / 4) * ROW_GAP,
-  };
+  if (column === 0) return "left";
+  if (column === 3) return "right";
+  if (row === 0) return "top";
+  return "bottom";
 };
 
-const reviewBox = (
-  review: TeacherRoadmap["reviewNodes"][number],
-  index: number,
-): BoardBox => ({
-  ...reviewNodePosition(review, index),
+const buildReviewPositions = (reviews: ReviewNode[]) => {
+  const positions: BoardPoint[] = new Array(reviews.length);
+  const indexedReviews = reviews.map((review, index) => ({
+    index,
+    review,
+    side: reviewSide(review),
+    source: nodePosition(review.sourceExamNumber),
+  }));
+  const sideReviews = (side: ReviewSide) =>
+    indexedReviews
+      .filter((item) => item.side === side)
+      .sort((a, b) => a.review.sourceExamNumber - b.review.sourceExamNumber);
+
+  const placeVerticalEdge = (side: "left" | "right", x: number) => {
+    let nextY = START_Y - 10;
+
+    sideReviews(side).forEach((item) => {
+      const desiredY = item.source.y + (CARD_HEIGHT - REVIEW_CARD_HEIGHT) / 2;
+      const y = Math.max(desiredY, nextY);
+      positions[item.index] = { x, y };
+      nextY = y + REVIEW_CARD_HEIGHT + REVIEW_EDGE_GAP;
+    });
+  };
+
+  placeVerticalEdge("left", REVIEW_EDGE_PADDING);
+  placeVerticalEdge(
+    "right",
+    BOARD_WIDTH - REVIEW_CARD_WIDTH - REVIEW_EDGE_PADDING,
+  );
+
+  sideReviews("top").forEach((item) => {
+    positions[item.index] = {
+      x: item.source.x + (CARD_WIDTH - REVIEW_CARD_WIDTH) / 2,
+      y: REVIEW_EDGE_PADDING,
+    };
+  });
+
+  sideReviews("bottom").forEach((item, slot) => {
+    positions[item.index] = {
+      x:
+        START_X +
+        (slot % 4) * COLUMN_GAP +
+        (CARD_WIDTH - REVIEW_CARD_WIDTH) / 2,
+      y:
+        MAIN_ROUTE_BOTTOM +
+        REVIEW_BOTTOM_GAP +
+        Math.floor(slot / 4) * REVIEW_BOTTOM_ROW_GAP,
+    };
+  });
+
+  return positions;
+};
+
+const reviewBox = (position: BoardPoint): BoardBox => ({
+  ...position,
   width: REVIEW_CARD_WIDTH,
   height: REVIEW_CARD_HEIGHT,
 });
@@ -250,11 +284,12 @@ const connectionPath = (from: number, to: number) => {
 };
 
 const reviewConnectionPath = (
-  review: TeacherRoadmap["reviewNodes"][number],
+  review: ReviewNode,
+  position: BoardPoint,
   index: number,
 ) => {
   const source = nodeBox(review.sourceExamNumber);
-  const target = reviewBox(review, index);
+  const target = reviewBox(position);
   const { column, row } = nodeGridPosition(review.sourceExamNumber);
 
   if (column === 0 || column === 3 || row === 0 || row === 4) {
@@ -491,19 +526,18 @@ function RoadmapCard({
 function ReviewRoadmapCard({
   review,
   connectionHighlighted,
-  index,
   onHighlightChange,
   onOpen,
   onRemove,
+  position,
 }: {
   review: TeacherRoadmap["reviewNodes"][number];
   connectionHighlighted: boolean;
-  index: number;
   onHighlightChange: (active: boolean) => void;
   onOpen: () => void;
   onRemove: () => void;
+  position: BoardPoint;
 }) {
-  const position = reviewNodePosition(review, index);
   const openTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -611,6 +645,7 @@ function ReviewRoadmapCard({
 type TeacherRoadmapBoardProps = {
   roadmap: TeacherRoadmap;
   editMode: boolean;
+  paused?: boolean;
   selectedExamNumber: number | null;
   onEditModeToggle: () => void;
   onAddCustom: () => void;
@@ -622,6 +657,7 @@ type TeacherRoadmapBoardProps = {
 export function TeacherRoadmapBoard({
   roadmap,
   editMode,
+  paused = false,
   selectedExamNumber,
   onEditModeToggle,
   onAddCustom,
@@ -659,10 +695,7 @@ export function TeacherRoadmapBoard({
     [editMode, roadmap.customNodes],
   );
   const reviewPositions = useMemo(
-    () =>
-      roadmap.reviewNodes.map((review, index) =>
-        reviewNodePosition(review, index),
-      ),
+    () => buildReviewPositions(roadmap.reviewNodes),
     [roadmap.reviewNodes],
   );
   const reviewBottom = Math.max(
@@ -687,9 +720,9 @@ export function TeacherRoadmapBoard({
   const reviewPaths = useMemo(
     () =>
       roadmap.reviewNodes.map((review, index) =>
-        reviewConnectionPath(review, index),
+        reviewConnectionPath(review, reviewPositions[index]!, index),
       ),
-    [roadmap.reviewNodes],
+    [reviewPositions, roadmap.reviewNodes],
   );
   const reviewByExamNumber = useMemo(
     () =>
@@ -1024,7 +1057,7 @@ export function TeacherRoadmapBoard({
           isDragging
             ? "roadmap-viewport--dragging cursor-grabbing"
             : "cursor-grab"
-        }`}
+        } ${paused ? "roadmap-viewport--paused" : ""}`}
         onPointerCancel={endDrag}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -1224,7 +1257,6 @@ export function TeacherRoadmapBoard({
                   highlightedLink?.kind === "review" &&
                   highlightedLink.moduleKey === review.moduleKey
                 }
-                index={index}
                 onOpen={() => {
                   onNodeOpen(review.sourceExamNumber);
                   centerNode(review.sourceExamNumber);
@@ -1241,6 +1273,7 @@ export function TeacherRoadmapBoard({
                   )
                 }
                 onRemove={() => onReviewRemove(review.sourceExamNumber)}
+                position={reviewPositions[index]!}
                 review={review}
               />
             </div>

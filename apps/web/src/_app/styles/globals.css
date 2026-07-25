@@ -195,6 +195,40 @@ body {
   }
 }
 
+@keyframes topic-metro-enter {
+  from {
+    opacity: 0;
+    transform: translateX(4%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes topic-metro-node-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes topic-metro-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+
 .roadmap-viewport {
   background-image:
     radial-gradient(
@@ -210,6 +244,64 @@ body {
     120px 120px,
     120px 120px;
   overscroll-behavior: contain;
+}
+
+.topic-metro-overlay {
+  animation: topic-metro-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.topic-metro-viewport {
+  background-color: #f7fafe;
+  background-image:
+    radial-gradient(
+      circle at center,
+      rgb(147 175 199 / 35%) 1px,
+      transparent 1px
+    ),
+    linear-gradient(rgb(229 237 244 / 45%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(229 237 244 / 45%) 1px, transparent 1px);
+  background-position: center;
+  background-size:
+    26px 26px,
+    130px 130px,
+    130px 130px;
+  overscroll-behavior: contain;
+}
+
+.topic-metro-canvas {
+  contain: layout style paint;
+}
+
+.topic-metro-canvas--animated,
+.topic-metro-viewport--dragging .topic-metro-canvas {
+  will-change: transform;
+}
+
+.topic-metro-canvas--animated {
+  transition: transform 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.topic-metro-core,
+.topic-metro-station,
+.topic-metro-skill {
+  animation: topic-metro-node-enter 520ms cubic-bezier(0.22, 1, 0.36, 1)
+    backwards;
+}
+
+.topic-metro-station--mastered {
+  box-shadow:
+    0 22px 50px rgb(24 52 76 / 13%),
+    0 0 0 8px color-mix(in srgb, var(--metro-glow) 22%, transparent);
+}
+
+.topic-metro-flow {
+  stroke-dasharray: 1 35;
+  animation: topic-metro-flow 1.9s linear infinite;
+}
+
+.topic-metro-viewport--dragging .topic-metro-flow,
+.topic-metro-viewport--paused .topic-metro-flow {
+  animation-play-state: paused;
 }
 
 .roadmap-canvas {
@@ -386,11 +478,17 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .roadmap-canvas,
+  .topic-metro-canvas,
   .roadmap-mascot,
   .roadmap-progress-ring {
     transition: none;
   }
 
+  .topic-metro-overlay,
+  .topic-metro-core,
+  .topic-metro-station,
+  .topic-metro-skill,
+  .topic-metro-flow,
   .roadmap-main-line,
   .roadmap-link-dots,
   .roadmap-node,
@@ -408,5 +506,9 @@ body {
 
   .roadmap-link-dots {
     display: none;
+  }
+
+  .topic-metro-flow {
+    animation: none;
   }
 }

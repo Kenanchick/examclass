@@ -24,12 +24,12 @@ import {
   TeacherCustomModuleDialog,
 } from "@/features/learning-route/ui/teacher-custom-roadmap";
 import { TeacherRoadmapBoard } from "@/features/learning-route/ui/teacher-roadmap-board";
-import { TeacherRoadmapDetail } from "@/features/learning-route/ui/teacher-roadmap-detail";
 import { TeacherRouteActionDialog } from "@/features/learning-route/ui/teacher-route-action-dialog";
 import {
   TeacherSkillDetailPanel,
   type SkillActionRequest,
 } from "@/features/learning-route/ui/teacher-skill-detail";
+import { TeacherTopicMetroMap } from "@/features/learning-route/ui/teacher-topic-metro-map";
 import { getApiErrorMessage } from "@/shared/lib/get-api-error-message";
 import { RequestState } from "@/shared/ui/request-state/request-state";
 import { StudentLayout } from "@/widgets/student-layout/ui/student-layout";
@@ -267,42 +267,52 @@ export function TeacherTrajectoryPage({
             </div>
           </header>
 
-          <TeacherRoadmapBoard
-            editMode={editMode}
-            onAddCustom={() => setIsCustomDialogOpen(true)}
-            onCustomOpen={(moduleKey) => {
-              selectExamNumber(null);
-              selectSkill(null);
-              setSelectedCustomModuleKey(moduleKey);
-            }}
-            onEditModeToggle={toggleEditMode}
-            onNodeOpen={(examNumber) => {
-              setSelectedCustomModuleKey(null);
-              selectExamNumber(examNumber);
-            }}
-            onReviewRemove={(examNumber) => {
-              setActionError(null);
-              deleteNodeReviewMutation.mutate(
-                { studentId, examNumber },
-                {
-                  onError: (error) =>
-                    setActionError(
-                      getApiErrorMessage(
-                        error,
-                        "Не удалось удалить карточку повторения.",
+          <div
+            aria-hidden={Boolean(selectedNode)}
+            className={`origin-center transition-[opacity,transform,filter] duration-500 ${
+              selectedNode
+                ? "pointer-events-none -translate-x-10 scale-[0.97] opacity-0 blur-[2px]"
+                : ""
+            }`}
+          >
+            <TeacherRoadmapBoard
+              editMode={editMode}
+              onAddCustom={() => setIsCustomDialogOpen(true)}
+              onCustomOpen={(moduleKey) => {
+                selectExamNumber(null);
+                selectSkill(null);
+                setSelectedCustomModuleKey(moduleKey);
+              }}
+              onEditModeToggle={toggleEditMode}
+              onNodeOpen={(examNumber) => {
+                setSelectedCustomModuleKey(null);
+                selectExamNumber(examNumber);
+              }}
+              onReviewRemove={(examNumber) => {
+                setActionError(null);
+                deleteNodeReviewMutation.mutate(
+                  { studentId, examNumber },
+                  {
+                    onError: (error) =>
+                      setActionError(
+                        getApiErrorMessage(
+                          error,
+                          "Не удалось удалить карточку повторения.",
+                        ),
                       ),
-                    ),
-                },
-              );
-            }}
-            roadmap={roadmap}
-            selectedExamNumber={selectedExamNumber}
-          />
+                  },
+                );
+              }}
+              paused={Boolean(selectedNode)}
+              roadmap={roadmap}
+              selectedExamNumber={selectedExamNumber}
+            />
+          </div>
         </div>
       </main>
 
       {selectedNode && (
-        <TeacherRoadmapDetail
+        <TeacherTopicMetroMap
           node={selectedNode}
           onClose={() => {
             selectSkill(null);
